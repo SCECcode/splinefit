@@ -43,3 +43,10 @@ def test_get_variables():
     geo = 'p_2 = 1 - 2;'
     var = gmsh.get_variables(geo)
     assert var['p_2'] == '1 - 2'
+
+def test_counter():
+
+    c = gmsh.Counter()
+    assert c['newp'] == 0
+    assert c['newp'] == 1
+    assert c['newl'] == 0

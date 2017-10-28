@@ -1,4 +1,20 @@
 supportedcmds = {'Spline', 'Point', 'Line Loop', 'Ruled Surface'} 
+counters = {'newp', 'newl', 'news', 'newv', 'newll'}
+
+class Counter:
+
+    def __init__(self):
+        self.counter = {}
+        for c in counters:
+            self.counter[c] = 0
+
+    def __getitem__(self, key):
+        if key not in self.counter:
+            raise KeyError('Unable to find %s' % key)
+        val = self.counter[key]
+        self.counter[key] += 1
+        return val
+
 
 def get_command(cmd, geo):
     """
