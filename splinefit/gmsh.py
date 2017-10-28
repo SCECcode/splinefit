@@ -234,5 +234,17 @@ def subs(group, values):
                     out[gk][gvi] = updated_value
     return out
                 
+def write_command(cmd, group):
+    
+    from six import iteritems
+
+    out = ''
+    if isinstance(group, dict):
+        for k, v in iteritems(group):
+            out += '%s(%d) = {' % (cmd, int(k))
+            out += ', '.join(map(lambda vi : str(vi), v))
+            out += '};\n'
+    return out
+
                 
     

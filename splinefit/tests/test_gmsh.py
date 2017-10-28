@@ -86,4 +86,10 @@ def test_eval_groups():
     assert groups['g1'][0] == 0 
     assert groups['g1'][1] == 1 
 
+def test_write_command():
+
+    groups = {'0' : [0.0, 1.0]}
+    cmdstr = gmsh.write_command('Spline', groups)
+    print cmdstr
+    assert cmdstr == 'Spline(0) = {0.0, 1.0};\n'
 
