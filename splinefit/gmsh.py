@@ -1,4 +1,5 @@
 supportedcmds = {'Spline', 'Point', 'Line Loop', 'Ruled Surface'} 
+datatypes = {'Spline' : lambda x : int(x), 'Point' : lambda x : float(x)}
 counters = {'newp', 'newl', 'news', 'newv', 'newll'}
 
 
@@ -119,7 +120,7 @@ def check_groupmembers(group, members):
                 out = False
     return out
 
-def eval(variables):
+def eval_vars(variables):
     from six import iteritems
 
     out = { }
@@ -130,3 +131,31 @@ def eval(variables):
             out[k] = variables[k]
     return out
 
+def eval_groups(groups):
+    from six import iteritems
+
+    out = { }
+    for k, v in iteritems(variables):
+        out[k] = datatypes[k](v)
+    return out
+
+def subs(group, values):
+    import re
+    from six import iteritems
+
+    out = {}
+    for gk, gv in iteritems(group):
+        out[gk] = []
+        for gvi, gvv in enumerate(gv):
+            out[gk].append(gvv)
+
+    for vk, vv in iteritems(values):
+        for gk, gv in iteritems(group):
+            for gvi, gvv in enumerate(gv):
+                updated_value = re.sub(vk, str(vv), str(gvv))
+                if updated_value != str(gvv):
+                    out[gk][gvi] = updated_value
+    return out
+                
+                
+    

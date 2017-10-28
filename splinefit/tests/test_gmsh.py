@@ -28,7 +28,6 @@ def test_check_group():
     a = {0 : [0], 1 : [1, 2]}
     assert not gmsh.check_groupmembers(a, b)
 
-
 def test_get_variables():
 
     geo = 'a = 10;'
@@ -51,11 +50,23 @@ def test_counter():
     assert c['newp'] == 1
     assert c['newl'] == 0
 
-def test_eval():
+def test_eval_vars():
 
     variables = {'a' : 'newp', 'b' : 'newl', 'c': 'newp'}
-    newvars = gmsh.eval(variables)
+    newvars = gmsh.eval_vars(variables)
     assert newvars['a'] == 0
     assert newvars['b'] == 0
     assert newvars['c'] == 1
+
+def test_subs():
+
+    variables = {'a' : 'newp', 'b' : 'newl', 'c': 'newp'}
+    newvars = gmsh.eval_vars(variables)
+    groups = {'g0' : ['b', 'a'], 'g1' : ['b', 'c']}
+    newgroups = gmsh.subs(groups, newvars)
+
+    assert newgroups['g0'][0] == '1' 
+    assert newgroups['g0'][1] == '2' 
+    assert newgroups['g1'][0] == '1' 
+    assert newgroups['g1'][1] == '3' 
 
