@@ -92,4 +92,8 @@ def test_write_command():
     cmdstr = gmsh.write_command('Spline', groups)
     print cmdstr
     assert cmdstr == 'Spline(0) = {0.0, 1.0};\n'
+    groups = [[0.0, 1.0]]
+    cmdstr = gmsh.write_command('Spline', groups)
+    assert cmdstr == 'Spline(0) = {0.0, 1.0};\n'
+
 

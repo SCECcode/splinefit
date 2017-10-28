@@ -241,10 +241,19 @@ def write_command(cmd, group):
     out = ''
     if isinstance(group, dict):
         for k, v in iteritems(group):
-            out += '%s(%d) = {' % (cmd, int(k))
-            out += ', '.join(map(lambda vi : str(vi), v))
-            out += '};\n'
+            out += _write_command(cmd, k, v)
+    else:
+        for k, v in enumerate(group):
+            out += _write_command(cmd, k, v)
+
     return out
+
+def _write_command(cmd, k, v):
+    out = '%s(%d) = {' % (cmd, int(k))
+    out += ', '.join(map(lambda vi : str(vi), v))
+    out += '};\n'
+    return out
+
 
                 
     
