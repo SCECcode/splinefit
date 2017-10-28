@@ -28,8 +28,72 @@ def test_check_group():
     a = {0 : [0], 1 : [1, 2]}
     assert not gmsh.check_groupmembers(a, b)
 
+def test_get_variables():
 
-    
+    geo = 'a = 10;'
+    var = gmsh.get_variables(geo)
+    assert var['a'] == '10'
+    geo = 'p2 = 10.0 + p2;'
+    var = gmsh.get_variables(geo)
+    assert var['p2'] == '10.0 + p2'
+    geo = '2p = 10.0 + p2;'
+    var = gmsh.get_variables(geo)
+    assert var == None
+    geo = 'p_2 = 1 - 2;'
+    var = gmsh.get_variables(geo)
+    assert var['p_2'] == '1 - 2'
 
+def test_counter():
+
+    c = gmsh.Counter()
+    assert c['newp'] == 0
+    assert c['newp'] == 1
+    assert c['newl'] == 0
+
+def test_eval_vars():
+
+    gmsh.counter.reset()
+    variables = {'a' : 'newp', 'b' : 'newl', 'c': 'newp'}
+    newvars = gmsh.eval_vars(variables)
+    assert newvars['a'] == 0
+    assert newvars['b'] == 0
+    assert newvars['c'] == 1
+
+def test_subs():
+
+    gmsh.counter.reset()
+    variables = {'a' : 'newp', 'b' : 'newl', 'c': 'newp'}
+    newvars = gmsh.eval_vars(variables)
+    groups = {'g0' : ['b', 'a'], 'g1' : ['b', 'c']}
+    newgroups = gmsh.subs(groups, newvars)
+
+    assert newgroups['g0'][0] == '0' 
+    assert newgroups['g0'][1] == '0' 
+    assert newgroups['g1'][0] == '0' 
+    assert newgroups['g1'][1] == '1' 
+
+def test_eval_groups():
+
+    gmsh.counter.reset()
+    variables = {'a' : 'newp', 'b' : 'newl', 'c': 'newp'}
+    newvars = gmsh.eval_vars(variables)
+    groups = {'g0' : ['b', 'a'], 'g1' : ['b', 'c']}
+    groups = gmsh.subs(groups, newvars)
+    groups = gmsh.eval_groups(groups, grouptype='Spline')
+
+    assert groups['g0'][0] == 0 
+    assert groups['g0'][1] == 0 
+    assert groups['g1'][0] == 0 
+    assert groups['g1'][1] == 1 
+
+def test_write_command():
+
+    groups = {'0' : [0.0, 1.0]}
+    cmdstr = gmsh.write_command('Spline', groups)
+    print cmdstr
+    assert cmdstr == 'Spline(0) = {0.0, 1.0};\n'
+    groups = [[0.0, 1.0]]
+    cmdstr = gmsh.write_command('Spline', groups)
+    assert cmdstr == 'Spline(0) = {0.0, 1.0};\n'
 
 
