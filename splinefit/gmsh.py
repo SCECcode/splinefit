@@ -92,7 +92,6 @@ def get_variables(geo):
           the value assigned to the variable.
           If no variables are found this function returns
           `None`.
-          
 
     """
     import re 
@@ -114,7 +113,6 @@ def read(filename):
 
     geo = open(filename).read() 
 
-
     var = get_variables(geo)
 
     cmd = {}
@@ -126,8 +124,6 @@ def read(filename):
         cmd[k] = eval_groups(cmd[k], k)
 
     return var, cmd
-
-
 
 def check_groupmembers(group, members):
     """
@@ -277,22 +273,42 @@ def write_command(cmd, group):
     
     from six import iteritems
 
-    out = ''
+    out = []
     if isinstance(group, dict):
         for k, v in iteritems(group):
-            out += _write_command(cmd, k, v)
+            out.append(_write_command(cmd, k, v))
     else:
         for k, v in enumerate(group):
-            out += _write_command(cmd, k, v)
+            out.append(_write_command(cmd, k, v))
 
-    return out
+    return '\n'.join(out)
+
+def write_variables(var):
+    """
+    Writes gmsh variables to string.
+
+    Parameters
+
+    var : dict,
+          contains the variables to write 
+
+    Returns
+
+    out : string,
+          the variables written. Each variable is placed on a new line. 
+
+    """
+    
+    from six import iteritems
+
+    out = []
+    for k, v in iteritems(var):
+        out.append('%s = %s;' % (k, str(v)))
+
+    return '\n'.join(out)
 
 def _write_command(cmd, k, v):
     out = '%s(%d) = {' % (cmd, int(k))
     out += ', '.join(map(lambda vi : str(vi), v))
-    out += '};\n'
+    out += '};'
     return out
-
-
-                
-    

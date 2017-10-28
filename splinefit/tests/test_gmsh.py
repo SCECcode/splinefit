@@ -102,10 +102,14 @@ def test_write_command():
 
     groups = {'0' : [0.0, 1.0]}
     cmdstr = gmsh.write_command('Spline', groups)
-    print cmdstr
-    assert cmdstr == 'Spline(0) = {0.0, 1.0};\n'
+    assert cmdstr == 'Spline(0) = {0.0, 1.0};'
     groups = [[0.0, 1.0]]
     cmdstr = gmsh.write_command('Spline', groups)
-    assert cmdstr == 'Spline(0) = {0.0, 1.0};\n'
+    assert cmdstr == 'Spline(0) = {0.0, 1.0};'
+
+def test_write_variables():
+
+    var = {'a' : 1.0 }
+    assert gmsh.write_variables(var) == 'a = 1.0;'
 
 
