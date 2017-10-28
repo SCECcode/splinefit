@@ -1,6 +1,6 @@
 supportedcmds = {'Spline', 'Point', 'Line Loop', 'Ruled Surface'} 
-datatypes = {'Spline' : lambda x : map(lambda y: int(y), x), 
-             'Point'  : lambda x : map(lambda y: float(y), x)}
+datatypes = {'Spline' : lambda x : x, 
+             'Point'  : lambda x : float(x)}
 counters = {'newp', 'newl', 'news', 'newv', 'newll'}
 
 
@@ -97,7 +97,7 @@ def get_variables(geo):
     """
     import re 
     pattern = '(^[a-zA-Z_]+\w*)\s*=\s*(.*);'
-    p = re.compile(pattern)
+    p = re.compile(pattern, re.M)
     matches = p.findall(geo)
 
     if len(matches) == 0:
@@ -108,6 +108,26 @@ def get_variables(geo):
         out[m[0]] = m[1]
 
     return out 
+
+def read(filename):
+    from six import iterkeys, iteritems
+
+    geo = open(filename).read() 
+
+
+    var = get_variables(geo)
+
+    cmd = {}
+    for k in supportedcmds:
+        cmd[k] = get_command(k, geo)
+        check_groupmembers(cmd[k], var)
+
+    for k in iterkeys(cmd):
+        cmd[k] = eval_groups(cmd[k], k)
+
+    return var, cmd
+
+
 
 def check_groupmembers(group, members):
     """
@@ -189,10 +209,13 @@ def eval_groups(groups, grouptype):
 
     out = { }
     for k, v in iteritems(groups):
-        try: 
-            out[k] = datatypes[grouptype](v)
-        except:
-            out[k] = groups[k]
+        data = []
+        for vi in v:
+            try: 
+                data.append(datatypes[grouptype](vi))
+            except:
+                data.append(vi)
+        out[k] = data
     return out
 
 def subs(group, values):

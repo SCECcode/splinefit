@@ -18,6 +18,14 @@ def test_get_command():
         points  = gmsh.get_command('Point', load(test))
         assert gmsh.check_groupmembers(splines, points)
 
+def test_read():
+    from six import iteritems
+
+    tests = ['fixtures/test1.geo']
+
+    for test in tests:
+        var, cmd = gmsh.read(test)
+
 def test_check_group():
 
     a = {0 : [0], 1 : [1]}
@@ -42,6 +50,10 @@ def test_get_variables():
     geo = 'p_2 = 1 - 2;'
     var = gmsh.get_variables(geo)
     assert var['p_2'] == '1 - 2'
+    geo = 'p_2 = 1 - 2;\na = b;'
+    var = gmsh.get_variables(geo)
+    assert var['p_2'] == '1 - 2'
+    assert var['a'] == 'b'
 
 def test_counter():
 
@@ -81,10 +93,10 @@ def test_eval_groups():
     groups = gmsh.subs(groups, newvars)
     groups = gmsh.eval_groups(groups, grouptype='Spline')
 
-    assert groups['g0'][0] == 0 
-    assert groups['g0'][1] == 0 
-    assert groups['g1'][0] == 0 
-    assert groups['g1'][1] == 1 
+    assert groups['g0'][0] == '0' 
+    assert groups['g0'][1] == '0' 
+    assert groups['g1'][0] == '0' 
+    assert groups['g1'][1] == '1' 
 
 def test_write_command():
 
