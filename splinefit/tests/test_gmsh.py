@@ -29,7 +29,17 @@ def test_check_group():
     assert not gmsh.check_groupmembers(a, b)
 
 
-    
+def test_get_variables():
 
-
-
+    geo = 'a = 10;'
+    var = gmsh.get_variables(geo)
+    assert var['a'] == '10'
+    geo = 'p2 = 10.0 + p2;'
+    var = gmsh.get_variables(geo)
+    assert var['p2'] == '10.0 + p2'
+    geo = '2p = 10.0 + p2;'
+    var = gmsh.get_variables(geo)
+    assert var == None
+    geo = 'p_2 = 1 - 2;'
+    var = gmsh.get_variables(geo)
+    assert var['p_2'] == '1 - 2'

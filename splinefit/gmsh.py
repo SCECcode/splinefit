@@ -37,7 +37,6 @@ def get_command(cmd, geo):
 
     pattern = r'%s\((.*)\)\s*=\s*\{(.*)\}\;.*'%cmd
     p = re.compile(pattern)
-
     matches = p.findall(geo)
 
     data = {}
@@ -52,10 +51,20 @@ def get_command(cmd, geo):
 
     return out
 
+def get_variables(geo):
+    import re 
+    pattern = '(^[a-zA-Z_]+\w*)\s*=\s*(.*);'
+    p = re.compile(pattern)
+    matches = p.findall(geo)
 
-def get_variables(var, geo):
-    pass
+    if len(matches) == 0:
+        return None
 
+    out = {}
+    for m in matches:
+        out[m[0]] = m[1]
+
+    return out 
 
 def check_groupmembers(group, members):
     """
