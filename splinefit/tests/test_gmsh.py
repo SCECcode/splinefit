@@ -52,6 +52,7 @@ def test_counter():
 
 def test_eval_vars():
 
+    gmsh.counter.reset()
     variables = {'a' : 'newp', 'b' : 'newl', 'c': 'newp'}
     newvars = gmsh.eval_vars(variables)
     assert newvars['a'] == 0
@@ -60,13 +61,29 @@ def test_eval_vars():
 
 def test_subs():
 
+    gmsh.counter.reset()
     variables = {'a' : 'newp', 'b' : 'newl', 'c': 'newp'}
     newvars = gmsh.eval_vars(variables)
     groups = {'g0' : ['b', 'a'], 'g1' : ['b', 'c']}
     newgroups = gmsh.subs(groups, newvars)
 
-    assert newgroups['g0'][0] == '1' 
-    assert newgroups['g0'][1] == '2' 
-    assert newgroups['g1'][0] == '1' 
-    assert newgroups['g1'][1] == '3' 
+    assert newgroups['g0'][0] == '0' 
+    assert newgroups['g0'][1] == '0' 
+    assert newgroups['g1'][0] == '0' 
+    assert newgroups['g1'][1] == '1' 
+
+def test_eval_groups():
+
+    gmsh.counter.reset()
+    variables = {'a' : 'newp', 'b' : 'newl', 'c': 'newp'}
+    newvars = gmsh.eval_vars(variables)
+    groups = {'g0' : ['b', 'a'], 'g1' : ['b', 'c']}
+    groups = gmsh.subs(groups, newvars)
+    groups = gmsh.eval_groups(groups, grouptype='Spline')
+
+    assert groups['g0'][0] == 0 
+    assert groups['g0'][1] == 0 
+    assert groups['g1'][0] == 0 
+    assert groups['g1'][1] == 1 
+
 

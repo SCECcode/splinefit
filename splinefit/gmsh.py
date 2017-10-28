@@ -1,5 +1,6 @@
 supportedcmds = {'Spline', 'Point', 'Line Loop', 'Ruled Surface'} 
-datatypes = {'Spline' : lambda x : int(x), 'Point' : lambda x : float(x)}
+datatypes = {'Spline' : lambda x : map(lambda y: int(y), x), 
+             'Point'  : lambda x : map(lambda y: float(y), x)}
 counters = {'newp', 'newl', 'news', 'newv', 'newll'}
 
 
@@ -14,6 +15,11 @@ class Counter:
         val = self.counter[key]
         self.counter[key] += 1
         return val
+
+    def reset(self):
+        for c in counters:
+            self.counter[c] = 0
+
 
 counter = Counter()
 
@@ -70,6 +76,25 @@ def get_command(cmd, geo):
     return out
 
 def get_variables(geo):
+    """
+    Finds all gmsh variables in a .geo script. 
+    Variables use the gmsh syntax `variable = value;` 
+
+    Parameters
+
+    geo : string,
+          The .geo script to search for variables in
+
+    Returns
+
+    out : dict,
+          The key is the variable name and the value is
+          the value assigned to the variable.
+          If no variables are found this function returns
+          `None`.
+          
+
+    """
     import re 
     pattern = '(^[a-zA-Z_]+\w*)\s*=\s*(.*);'
     p = re.compile(pattern)
@@ -91,7 +116,7 @@ def check_groupmembers(group, members):
 
     Parameters
 
-    group : dictionary,
+    group : dict,
             A group is an item in the dictionary where the key in the dictionary
             is the group ID and the value are the group members that are specified 
             as a list.
@@ -121,6 +146,20 @@ def check_groupmembers(group, members):
     return out
 
 def eval_vars(variables):
+    """
+    Evaluates variables that get their values
+    from counters
+
+    Parameters
+
+    variables : dict,
+                contains the variables to evaluate
+
+    Returns : dict,
+               variables with updated values.
+
+    """
+
     from six import iteritems
 
     out = { }
@@ -131,15 +170,53 @@ def eval_vars(variables):
             out[k] = variables[k]
     return out
 
-def eval_groups(groups):
+def eval_groups(groups, grouptype):
+    """
+    Evaluates groups by converting their parameters
+    to their particular type. If the type conversion fails, 
+    then the original value is reused.
+
+    Parameters
+
+    variables : dict,
+                contains the groups to evaluate
+
+    Returns  : dict,
+               groups with updated values.
+
+    """
     from six import iteritems
 
     out = { }
-    for k, v in iteritems(variables):
-        out[k] = datatypes[k](v)
+    for k, v in iteritems(groups):
+        try: 
+            out[k] = datatypes[grouptype](v)
+        except:
+            out[k] = groups[k]
     return out
 
 def subs(group, values):
+    """
+    Substitutes group parameters using a dictionary of key-value
+    pairs corresponding to the parameter to perform substitution
+    for and its new value.
+
+    Parameters
+
+    group : dict,
+            contains the groups to perform substition for
+
+    values : dict,
+             contains the new parameter values.
+
+    Returns
+
+    out : dict,
+          contains the updated values. If no parameters to
+          update are found, then the original dict `group` is
+          returned.
+    """
+
     import re
     from six import iteritems
 
