@@ -84,6 +84,10 @@ def test_subs():
     assert newgroups['g1'][0] == '0' 
     assert newgroups['g1'][1] == '1' 
 
+    groups = {'g0 + a' : ['b', 'a'], 'g1 + b' : ['b', 'c']}
+    newgroups = gmsh.subs(groups, newvars)
+    assert newgroups['g0 + a'] 
+
 def test_eval_groups():
 
     gmsh.counter.reset()
@@ -98,18 +102,23 @@ def test_eval_groups():
     assert groups['g1'][0] == '0' 
     assert groups['g1'][1] == '1' 
 
+def test_write():
+
+    var, cmd = gmsh.read('fixtures/test1.geo')
+    gmsh.write('fixtures/out.geo', var, cmd)
+
 def test_write_command():
 
     groups = {'0' : [0.0, 1.0]}
     cmdstr = gmsh.write_command('Spline', groups)
-    assert cmdstr == 'Spline(0) = {0.0, 1.0};'
+    assert cmdstr == 'Spline(0) = {0.0, 1.0};\n'
     groups = [[0.0, 1.0]]
     cmdstr = gmsh.write_command('Spline', groups)
-    assert cmdstr == 'Spline(0) = {0.0, 1.0};'
+    assert cmdstr == 'Spline(0) = {0.0, 1.0};\n'
 
 def test_write_variables():
 
     var = {'a' : 1.0 }
-    assert gmsh.write_variables(var) == 'a = 1.0;'
+    assert gmsh.write_variables(var) == 'a = 1.0;\n'
 
 

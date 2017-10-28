@@ -1,4 +1,4 @@
-supportedcmds = {'Spline', 'Point', 'Line Loop', 'Ruled Surface'} 
+supportedcmds = ['Point', 'Spline', 'Line Loop', 'Ruled Surface']
 datatypes = {'Spline' : lambda x : x, 
              'Point'  : lambda x : float(x)}
 counters = {'newp', 'newl', 'news', 'newv', 'newll'}
@@ -120,6 +120,15 @@ def read(filename):
         cmd[k] = get_command(k, geo)
         check_groupmembers(cmd[k], var)
 
+    for k in iterkeys(var):
+        var = eval_vars(var)
+    
+    for k in iterkeys(var):
+        var = eval_vars(var)
+
+    for k in iterkeys(cmd):
+        cmd[k] = subs(cmd[k], var) 
+
     for k in iterkeys(cmd):
         cmd[k] = eval_groups(cmd[k], k)
 
@@ -240,18 +249,44 @@ def subs(group, values):
     from six import iteritems
 
     out = {}
-    for gk, gv in iteritems(group):
-        out[gk] = []
-        for gvi, gvv in enumerate(gv):
-            out[gk].append(gvv)
+    for vk, vv in iteritems(values):
+        for gk, gv in iteritems(group):
+            out[gk] = []
+            newgk = re.sub(vk, str(vv), str(gk))
+            for gvi, gvv in enumerate(gv):
+                out[newgk].append(gvv)
 
     for vk, vv in iteritems(values):
         for gk, gv in iteritems(group):
+            # Update key
+            newgk = re.sub(vk, str(vv), str(gk))
+            out[newgk] = []
+            #if updated_value != str(gk):
+            #    newgk = updated_value
+            #else:
+            #    newgk = gk
+
+            # Update value
             for gvi, gvv in enumerate(gv):
                 updated_value = re.sub(vk, str(vv), str(gvv))
                 if updated_value != str(gvv):
-                    out[gk][gvi] = updated_value
+                    out[newgk].append(updated_value)
+                else:
+                    out[newgk].append(gvv)
     return out
+
+def write(filename, var, cmd):
+
+    from six import iterkeys
+
+    f = open(filename, 'w')
+
+    f.write(write_variables(var))
+    for k in supportedcmds:
+        if k in cmd:
+            f.write(write_command(k, cmd[k]))
+
+    f.close()
                 
 def write_command(cmd, group):
     """
@@ -281,7 +316,7 @@ def write_command(cmd, group):
         for k, v in enumerate(group):
             out.append(_write_command(cmd, k, v))
 
-    return '\n'.join(out)
+    return ''.join(out)
 
 def write_variables(var):
     """
@@ -303,12 +338,12 @@ def write_variables(var):
 
     out = []
     for k, v in iteritems(var):
-        out.append('%s = %s;' % (k, str(v)))
+        out.append('%s = %s;\n' % (k, str(v)))
 
-    return '\n'.join(out)
+    return ''.join(out)
 
 def _write_command(cmd, k, v):
-    out = '%s(%d) = {' % (cmd, int(k))
+    out = '%s(%s) = {' % (cmd, str(k))
     out += ', '.join(map(lambda vi : str(vi), v))
-    out += '};'
+    out += '};\n'
     return out
