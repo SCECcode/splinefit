@@ -235,6 +235,22 @@ def subs(group, values):
     return out
                 
 def write_command(cmd, group):
+    """
+    Writes a gmsh command to string.
+
+    Parameters
+
+    cmd : string,
+          gmsh command to write
+    group : dict, or list,
+            contains the groups and their parameters to write
+
+    Returns
+
+    out : string,
+          contains the gmsh commands. Each command is placed on a new line. 
+
+    """
     
     from six import iteritems
 
