@@ -50,3 +50,12 @@ def test_counter():
     assert c['newp'] == 0
     assert c['newp'] == 1
     assert c['newl'] == 0
+
+def test_eval():
+
+    variables = {'a' : 'newp', 'b' : 'newl', 'c': 'newp'}
+    newvars = gmsh.eval(variables)
+    assert newvars['a'] == 0
+    assert newvars['b'] == 0
+    assert newvars['c'] == 1
+

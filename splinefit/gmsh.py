@@ -1,6 +1,7 @@
 supportedcmds = {'Spline', 'Point', 'Line Loop', 'Ruled Surface'} 
 counters = {'newp', 'newl', 'news', 'newv', 'newll'}
 
+
 class Counter:
 
     def __init__(self):
@@ -9,11 +10,11 @@ class Counter:
             self.counter[c] = 0
 
     def __getitem__(self, key):
-        if key not in self.counter:
-            raise KeyError('Unable to find %s' % key)
         val = self.counter[key]
         self.counter[key] += 1
         return val
+
+counter = Counter()
 
 
 def get_command(cmd, geo):
@@ -117,3 +118,15 @@ def check_groupmembers(group, members):
             if not v in members:
                 out = False
     return out
+
+def eval(variables):
+    from six import iteritems
+
+    out = { }
+    for k, v in iteritems(variables):
+        if v in counter.counter:
+            out[k] = counter[v]
+        else:
+            out[k] = variables[k]
+    return out
+
