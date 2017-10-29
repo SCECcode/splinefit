@@ -1,12 +1,11 @@
-supportedcmds = ['Point', 'Spline', 'Line Loop', 'Ruled Surface', 'Surface']
+supportedobjs = ['Point', 'Spline', 'Line Loop', 'Surface']
 datatypes = {'Spline' : lambda x : int(x), 
              'Point'  : lambda x : float(x), 
-             'Ruled Surface' : lambda x : int(x),
+             'Surface' : lambda x : int(x),
              'Line Loop' : lambda x : int(x)}
 counters = {'Point' : 'newp', 'Line' : 'newl', 
             'Surface' : 'news', 'Volume' : 'newv', 
              'Line Loop' : 'newll'}
-
 
 class Counter:
 
@@ -25,14 +24,12 @@ class Counter:
         for c in counters:
             self.counter[c] = 0
 
-
 counter = Counter()
-
 
 def get_command(cmd, geo):
     """
     Searches through a gmsh geo script for a specific command and extracts
-    all occurences found. 
+    all occurrences found. 
     A gmsh command uses the syntax: `command(id) = {.., .., parameters, etc};`
 
     Parameters
@@ -61,7 +58,7 @@ def get_command(cmd, geo):
 
     import re 
 
-    if cmd not in supportedcmds:
+    if cmd not in supportedobjs:
         raise KeyError("Command: %s not supported" %cmd)
 
     pattern = r'%s\((.*)\)\s*=\s*\{(.*)\}\;.*'%cmd
@@ -80,7 +77,32 @@ def get_command(cmd, geo):
 
     return out
 
-def get_group(geo):
+def get_obj(geo):
+    """
+    Gets a gmsh object from geo script.
+
+    Parameters
+
+    geo : string,
+          The geo script to parse
+
+    Returns
+
+    out : dict,
+          contains the object `id`, `type`, and `data` if found. 
+          When no object is found this function returns `none`.
+
+    # Examples
+
+    >>> point = get_obj('Point(1) = {1.0, 2.0, 3.0};')
+    >>> point['id']
+    '1'
+    >>> point['type']
+    'Point'
+    >>> point['data']
+    ['1.0', '2.0', '3.0']
+
+    """
 
     import re
 
@@ -99,7 +121,6 @@ def get_group(geo):
         out = {'type' : m[0], 'id' :  m[1], 'data' : data}
 
     return out
-
 
 def get_variables(geo):
     """
@@ -134,64 +155,37 @@ def get_variables(geo):
 
     return out 
 
-def read(filename):
-    from six import iterkeys, iteritems
-    pass
-
-    geo = open(filename).read() 
-
-    var = get_variables(geo)
-
-    cmd = {}
-    for k in supportedcmds:
-        cmd[k] = get_command(k, geo)
-        check_groupmembers(cmd[k], var)
-
-    for k in iterkeys(var):
-        var = eval_vars(var)
-    
-    for k in iterkeys(var):
-        var = eval_vars(var)
-
-    for k in iterkeys(cmd):
-        cmd[k] = subs(cmd[k], var) 
-
-    for k in iterkeys(cmd):
-        cmd[k] = eval_groups(cmd[k], k)
-
-    return var, cmd
-
-def check_groupmembers(group, members):
+def check_objmembers(obj, members):
     """
-    Determines if all the parameters in one or more groups exist in a list containing
+    Determines if all the parameters in one or more objs exist in a list containing
     the parameter IDs.
 
     Parameters
 
-    group : dict,
-            A group is an item in the dictionary where the key in the dictionary
-            is the group ID and the value are the group members that are specified 
+    obj : dict,
+            A obj is an item in the dictionary where the key in the dictionary
+            is the obj ID and the value are the obj members that are specified 
             as a list.
 
     Returns 
 
     out : bool,
-          If all of the items in `members` are found in any group of
-          `groups` then this function returns True, and False otherwise.
+          If all of the items in `members` are found in any obj of
+          `objs` then this function returns True, and False otherwise.
 
 
     # Examples
 
     >>> points = {'p0' : [0.0, 0.0], 'p1' : [1.0, 2.0], 'p2' : [2.0, 3.0] }
     >>> splines = {'0' : ['p0', 'p1', 'p2'], '1' : ['p1', 'p2'] }
-    >>> check_groupmembers(splines, points)
+    >>> check_objmembers(splines, points)
     True
 
     """
 
     from six import itervalues
     out = True
-    for val in itervalues(group):
+    for val in itervalues(obj):
         for v in val:
             if not v in members:
                 out = False
@@ -222,36 +216,25 @@ def eval_vars(variables):
             out[k] = variables[k]
     return out
 
-def eval_groups(groups, grouptype):
-    """
-    Evaluates groups by converting their parameters
-    to their particular type. If the type conversion fails, 
-    then the original value is reused.
-
-    Parameters
-
-    variables : dict,
-                contains the groups to evaluate
-
-    Returns  : dict,
-               groups with updated values.
-
-    """
-    from six import iteritems
-
-    out = { }
-    for k, v in iteritems(groups):
-        data = []
-        for vi in v:
-            try: 
-                data.append(datatypes[grouptype](vi))
-            except:
-                data.append(vi)
-        out[k] = data
-    return out
-
-
 def eval_id(idx, variables):
+    """
+    Evaluates the id string of a gmsh object (Point, Spline ... ).
+    If the string contains any reference to a variable, this
+    reference is replaced by the variable value
+
+    Parameters 
+
+    idx : string,
+          the ID string to evaluate 
+    variables : dict,
+                the key is the variable and the value is the value of the variable
+
+    Returns 
+
+    out : int,
+          the ID obtained after evaluation.
+
+    """
 
     from six import iteritems
     import re
@@ -261,90 +244,141 @@ def eval_id(idx, variables):
 
     return int(eval(idx))
 
-def eval_data(group, variables):
+def eval_data(obj, variables):
+    """
+    Evaluates the data field of a gmsh object (Point, Spline, ...).
+    If any of the data items of the object contains a reference to 
+    a variable, then the reference is replaced by the variable value.
+
+
+    Parameters
+
+    obj : dict,
+          The object to evaluate. Must contain obj['data'] and obj['type']
+    variables : dict,
+                the key is the variable and the value is the value of the variable
+            
+
+    Returns 
+
+    out : list,
+          The evaluated object data. The type of the items in the list depend on the 
+          type of the object data. 
+
+    """
     
     from six import iteritems
     import re
     
     data = []
-    for d in group['data']:
+    for d in obj['data']:
       d_ = d
       for k, v in iteritems(variables):
           d_ = re.sub(k, str(v), str(d_))
       try:
-        data.append(datatypes[group['type']](eval(d_))) 
+        data.append(datatypes[obj['type']](eval(d_))) 
       except:
         data.append(d_)
 
     return data
 
-
-def subs(group, values):
+def write(filename, var, cmd, kernel='OpenCascade'):
     """
-    Substitutes group parameters using a dictionary of key-value
-    pairs corresponding to the parameter to perform substitution
-    for and its new value.
-
+    Writes gmsh variables and objects to geo script. 
+    
     Parameters
 
-    group : dict,
-            contains the groups to perform substition for
+    filename : string,
+               Path and name including extension to geo the script to write.
+               If this file does not exist, it will be created. If it already exists
+               it is overwritten.
 
-    values : dict,
-             contains the new parameter values.
+        var  : dict,
+               collection of gmsh variables, where
+               key is the variable name and value is the variable value.
 
-    Returns
+    objects : dict,
+              collection of gmsh objects, where
+              key is object type and value is the object.
+              Each object is a dict that has the keys `id`, `data`, and `type`.
 
-    out : dict,
-          contains the updated values. If no parameters to
-          update are found, then the original dict `group` is
-          returned.
+    kernel : string, optional,
+             geometry kernel to use.
+             Make sure to use the 'OpenCascade' geometry kernel to 
+             be able to export the geometry to any of the OpenCascade formats 
+             (brep or step).
+             
+
+
     """
-
-    import re
-    from six import iteritems
-
-    out = {}
-    for vk, vv in iteritems(values):
-        for gk, gv in iteritems(group):
-            out[gk] = []
-            newgk = re.sub(vk, str(vv), str(gk))
-            for gvi, gvv in enumerate(gv):
-                out[newgk].append(gvv)
-
-    for vk, vv in iteritems(values):
-        for gk, gv in iteritems(group):
-            # Update key
-            newgk = re.sub(vk, str(vv), str(gk))
-            out[newgk] = []
-            #if updated_value != str(gk):
-            #    newgk = updated_value
-            #else:
-            #    newgk = gk
-
-            # Update value
-            for gvi, gvv in enumerate(gv):
-                updated_value = re.sub(vk, str(vv), str(gvv))
-                if updated_value != str(gvv):
-                    out[newgk].append(updated_value)
-                else:
-                    out[newgk].append(gvv)
-    return out
-
-def write(filename, var, cmd):
 
     from six import iterkeys
 
     f = open(filename, 'w')
+    
+    if kernel == 'OpenCascade':
+        f.write('SetFactory("OpenCASCADE");\n')
 
     f.write(write_variables(var))
-    for k in supportedcmds:
+
+    for k in supportedobjs:
         if k in cmd:
             f.write(write_command(k, cmd[k]))
 
     f.close()
+
+def read(filename):
+    """
+    Reads a gmsh geo script file.
+
+    Parameters 
+
+    filename : string,
+               Path and filename to the geo script to read
+
+    Returns
+
+    variables : dict,
+                collection of gmsh variables, where
+                key is the variable name and value is the variable value.
+    objects : dict,
+              collection of gmsh objects, where
+              key is object type and value is the object.
+              Each object is a dict that has the keys `id`, `data`, and `type`.
+
+    """
+
+    from six import iteritems
+
+    f = open(filename, 'r')
+
+    pts = []
+
+    counter.reset()
+    variables = {}
+    objects = {}
+
+    for k in supportedobjs:
+      objects[k] = {}
+
+    for line in f:
+        # Get variables
+        var = get_variables(line)
+        if var:
+            var = eval_vars(var)
+            for k, v in iteritems(var):
+              variables[k] = v
+        # Get objects
+        obj = get_obj(line)
+        if obj:
+          obj['id'] = eval_id(obj['id'], variables)
+          obj['data'] = eval_data(obj, variables)
+          if obj['type'] in counters:
+            count = counter[counters[obj['type']]]
+          objects[obj['type']][obj['id']] = obj['data'] 
+    return variables, objects
                 
-def write_command(cmd, group):
+def write_command(cmd, obj):
     """
     Writes a gmsh command to string.
 
@@ -352,8 +386,8 @@ def write_command(cmd, group):
 
     cmd : string,
           gmsh command to write
-    group : dict, or list,
-            contains the groups and their parameters to write
+    obj : dict, or list,
+            contains the objs and their parameters to write
 
     Returns
 
@@ -365,11 +399,11 @@ def write_command(cmd, group):
     from six import iteritems
 
     out = []
-    if isinstance(group, dict):
-        for k, v in iteritems(group):
+    if isinstance(obj, dict):
+        for k, v in iteritems(obj):
             out.append(_write_command(cmd, k, v))
     else:
-        for k, v in enumerate(group):
+        for k, v in enumerate(obj):
             out.append(_write_command(cmd, k, v))
 
     return ''.join(out)
@@ -404,33 +438,3 @@ def _write_command(cmd, k, v):
     out += '};\n'
     return out
 
-def parse(filename):
-
-    from six import iteritems
-
-    f = open(filename, 'r')
-
-    pts = []
-
-    counter.reset()
-    variables = {}
-    groups = {}
-
-    for k in supportedcmds:
-      groups[k] = {}
-
-    for line in f:
-        var = get_variables(line)
-        if var:
-            bvar = var
-            var = eval_vars(var)
-            for k, v in iteritems(var):
-              variables[k] = v
-        grp = get_group(line)
-        if grp:
-          grp['id'] = eval_id(grp['id'], variables)
-          grp['data'] = eval_data(grp, variables)
-          if grp['type'] in counters:
-            count = counter[counters[grp['type']]]
-          groups[grp['type']][grp['id']] = grp['data'] 
-    return variables, groups

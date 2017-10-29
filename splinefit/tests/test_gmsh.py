@@ -16,25 +16,17 @@ def test_get_command():
     for test in tests:
         splines = gmsh.get_command('Spline', load(test))
         points  = gmsh.get_command('Point', load(test))
-        assert gmsh.check_groupmembers(splines, points)
+        assert gmsh.check_objmembers(splines, points)
 
-def test_read():
-    from six import iteritems
-
-    tests = ['fixtures/test1.geo']
-
-    for test in tests:
-        var, cmd = gmsh.read(test)
-
-def test_check_group():
+def test_check_obj():
 
     a = {0 : [0], 1 : [1]}
     b = {0 : 1, 1 : 1}
-    assert gmsh.check_groupmembers(a, b)
+    assert gmsh.check_objmembers(a, b)
     b = [0, 1]
-    assert gmsh.check_groupmembers(a, b)
+    assert gmsh.check_objmembers(a, b)
     a = {0 : [0], 1 : [1, 2]}
-    assert not gmsh.check_groupmembers(a, b)
+    assert not gmsh.check_objmembers(a, b)
 
 def test_get_variables():
 
@@ -71,49 +63,18 @@ def test_eval_vars():
     assert newvars['b'] == 0
     assert newvars['c'] == 1
 
-def test_subs():
-
-    gmsh.counter.reset()
-    variables = {'a' : 'newp', 'b' : 'newl', 'c': 'newp'}
-    newvars = gmsh.eval_vars(variables)
-    groups = {'g0' : ['b', 'a'], 'g1' : ['b', 'c']}
-    newgroups = gmsh.subs(groups, newvars)
-
-    assert newgroups['g0'][0] == '0' 
-    assert newgroups['g0'][1] == '0' 
-    assert newgroups['g1'][0] == '0' 
-    assert newgroups['g1'][1] == '1' 
-
-    groups = {'g0 + a' : ['b', 'a'], 'g1 + b' : ['b', 'c']}
-    newgroups = gmsh.subs(groups, newvars)
-    assert newgroups['g0 + a'] 
-
-def test_eval_groups():
-
-    gmsh.counter.reset()
-    variables = {'a' : 'newp', 'b' : 'newl', 'c': 'newp'}
-    newvars = gmsh.eval_vars(variables)
-    groups = {'g0' : ['b', 'a'], 'g1' : ['b', 'c']}
-    groups = gmsh.subs(groups, newvars)
-    groups = gmsh.eval_groups(groups, grouptype='Spline')
-
-    assert groups['g0'][0] == '0' 
-    assert groups['g0'][1] == '0' 
-    assert groups['g1'][0] == '0' 
-    assert groups['g1'][1] == '1' 
-
 def test_write():
 
-    var, cmd = gmsh.parse('fixtures/test1.geo')
-    gmsh.write('fixtures/out.geo', var, cmd)
+    var, cmd = gmsh.read('fixtures/test1.geo')
+    gmsh.write('fixtures/new.geo', var, cmd)
 
 def test_write_command():
 
-    groups = {'0' : [0.0, 1.0]}
-    cmdstr = gmsh.write_command('Spline', groups)
+    objs = {'0' : [0.0, 1.0]}
+    cmdstr = gmsh.write_command('Spline', objs)
     assert cmdstr == 'Spline(0) = {0.0, 1.0};\n'
-    groups = [[0.0, 1.0]]
-    cmdstr = gmsh.write_command('Spline', groups)
+    objs = [[0.0, 1.0]]
+    cmdstr = gmsh.write_command('Spline', objs)
     assert cmdstr == 'Spline(0) = {0.0, 1.0};\n'
 
 def test_write_variables():
@@ -121,16 +82,12 @@ def test_write_variables():
     var = {'a' : 1.0 }
     assert gmsh.write_variables(var) == 'a = 1.0;\n'
 
-def test_parse():
+def test_read():
 
-    var, grp = gmsh.parse('fixtures/test1.geo')
-    print var
-    for g in grp:
-        print g, grp[g]
-    assert False
+    var, grp = gmsh.read('fixtures/test1.geo')
 
-def test_get_group():
+def test_get_obj():
 
-    geo = 'Ruled Surface(1) = {1, 2, 3};'
-    grp = gmsh.get_group(geo)
-    assert grp['type'] == 'Ruled Surface'
+    geo = 'Surface(1) = {1, 2, 3};'
+    grp = gmsh.get_obj(geo)
+    assert grp['type'] == 'Surface'
