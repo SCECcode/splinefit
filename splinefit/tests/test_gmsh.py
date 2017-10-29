@@ -104,7 +104,7 @@ def test_eval_groups():
 
 def test_write():
 
-    var, cmd = gmsh.read('fixtures/test1.geo')
+    var, cmd = gmsh.parse('fixtures/test1.geo')
     gmsh.write('fixtures/out.geo', var, cmd)
 
 def test_write_command():
@@ -121,4 +121,16 @@ def test_write_variables():
     var = {'a' : 1.0 }
     assert gmsh.write_variables(var) == 'a = 1.0;\n'
 
+def test_parse():
 
+    var, grp = gmsh.parse('fixtures/test1.geo')
+    print var
+    for g in grp:
+        print g, grp[g]
+    assert False
+
+def test_get_group():
+
+    geo = 'Ruled Surface(1) = {1, 2, 3};'
+    grp = gmsh.get_group(geo)
+    assert grp['type'] == 'Ruled Surface'

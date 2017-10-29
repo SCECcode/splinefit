@@ -1,15 +1,20 @@
-supportedcmds = ['Point', 'Spline', 'Line Loop', 'Ruled Surface']
-datatypes = {'Spline' : lambda x : x, 
-             'Point'  : lambda x : float(x)}
-counters = {'newp', 'newl', 'news', 'newv', 'newll'}
+supportedcmds = ['Point', 'Spline', 'Line Loop', 'Ruled Surface', 'Surface']
+datatypes = {'Spline' : lambda x : int(x), 
+             'Point'  : lambda x : float(x), 
+             'Ruled Surface' : lambda x : int(x),
+             'Line Loop' : lambda x : int(x)}
+counters = {'Point' : 'newp', 'Line' : 'newl', 
+            'Surface' : 'news', 'Volume' : 'newv', 
+             'Line Loop' : 'newll'}
 
 
 class Counter:
 
     def __init__(self):
+        from six import iteritems
         self.counter = {}
-        for c in counters:
-            self.counter[c] = 0
+        for k, v in iteritems(counters):
+            self.counter[v] = 0
 
     def __getitem__(self, key):
         val = self.counter[key]
@@ -75,6 +80,27 @@ def get_command(cmd, geo):
 
     return out
 
+def get_group(geo):
+
+    import re
+
+    pattern = r'([a-zA-Z\s]*)\((.*)\)\s*=\s*\{(.*)\}\;.*'
+    p = re.compile(pattern)
+    matches = p.findall(geo)
+
+    data = {}
+    if len(matches) == 0:
+        return None
+    
+    out = {}
+
+    for m in matches:
+        data = m[2].strip().split(', ')
+        out = {'type' : m[0], 'id' :  m[1], 'data' : data}
+
+    return out
+
+
 def get_variables(geo):
     """
     Finds all gmsh variables in a .geo script. 
@@ -110,6 +136,7 @@ def get_variables(geo):
 
 def read(filename):
     from six import iterkeys, iteritems
+    pass
 
     geo = open(filename).read() 
 
@@ -222,6 +249,35 @@ def eval_groups(groups, grouptype):
                 data.append(vi)
         out[k] = data
     return out
+
+
+def eval_id(idx, variables):
+
+    from six import iteritems
+    import re
+
+    for k, v in iteritems(variables):
+      idx = re.sub(k, str(v), str(idx))
+
+    return int(eval(idx))
+
+def eval_data(group, variables):
+    
+    from six import iteritems
+    import re
+    
+    data = []
+    for d in group['data']:
+      d_ = d
+      for k, v in iteritems(variables):
+          d_ = re.sub(k, str(v), str(d_))
+      try:
+        data.append(datatypes[group['type']](eval(d_))) 
+      except:
+        data.append(d_)
+
+    return data
+
 
 def subs(group, values):
     """
@@ -347,3 +403,34 @@ def _write_command(cmd, k, v):
     out += ', '.join(map(lambda vi : str(vi), v))
     out += '};\n'
     return out
+
+def parse(filename):
+
+    from six import iteritems
+
+    f = open(filename, 'r')
+
+    pts = []
+
+    counter.reset()
+    variables = {}
+    groups = {}
+
+    for k in supportedcmds:
+      groups[k] = {}
+
+    for line in f:
+        var = get_variables(line)
+        if var:
+            bvar = var
+            var = eval_vars(var)
+            for k, v in iteritems(var):
+              variables[k] = v
+        grp = get_group(line)
+        if grp:
+          grp['id'] = eval_id(grp['id'], variables)
+          grp['data'] = eval_data(grp, variables)
+          if grp['type'] in counters:
+            count = counter[counters[grp['type']]]
+          groups[grp['type']][grp['id']] = grp['data'] 
+    return variables, groups
