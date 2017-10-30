@@ -66,3 +66,18 @@ def tri(txt):
         out.append(map(lambda x: int(x), m))
 
     return np.array(out)
+
+def msh(tri):
+    import numpy as np
+
+    n = tri.shape[0]
+    out = np.zeros((n, 8))
+
+    for i in range(n):
+        out[i,0:8] = [i+1] + [2, 2, 0, 4] + list(tri[i,:])
+
+    return out
+
+
+
+

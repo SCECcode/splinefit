@@ -38,3 +38,14 @@ def test_tri():
 def test_read():
     filename = 'fixtures/Newport-Inglewood_fault.ts'
     tsurf.read(filename)
+
+def test_msh():
+    from splinefit import msh
+    filename = 'fixtures/Newport-Inglewood_fault.ts'
+    p, t = tsurf.read(filename)
+
+    e = tsurf.msh(t)
+    msh.write('fixtures/Newport-Inglewood_fault.msh', p, e)
+
+
+
