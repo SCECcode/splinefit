@@ -1,7 +1,7 @@
 from splinefit import tsurf
 
 def load(test='Newport-Inglewood_fault'):
-    txt = open('fixtures/' + test + '.ts').read() 
+    txt = open('mesh/' + test + '.ts').read() 
     return txt
 
 def test_header():
@@ -36,15 +36,12 @@ def test_tri():
     assert tri[2][0] == 23
 
 def test_read():
-    filename = 'fixtures/Newport-Inglewood_fault.ts'
+    filename = 'mesh/Newport-Inglewood_fault.ts'
     tsurf.read(filename)
 
 def test_msh():
     from splinefit import msh
     filename = 'Newport-Inglewood_fault'
-    p, t = tsurf.read('fixtures/%s.ts'%filename)
+    p, t = tsurf.read('mesh/%s.ts'%filename)
     e = tsurf.msh(t)
-    msh.write('fixtures/%s.msh'%filename, p, e)
-
-
-
+    msh.write('mesh/%s.msh'%filename, p, e)
