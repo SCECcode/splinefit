@@ -1,0 +1,19 @@
+#!/usr/bin/env python
+import sys
+from splinefit import msh
+from splinefit import tsurf
+
+if len(sys.argv) == 1:
+    msg = 'tsurfmsh.py (input) (output)\n'
+    msg += 'usage: Converts triangular meshes in GOCAD .tsurf to gmsh .msh\n' 
+    msg += 'input : is the .tsurf file to read\n'
+    msg += 'output : is the .msh file to write'
+    print msg
+    exit(1)
+
+inputfile = sys.argv[1]
+outputfile = sys.argv[2]
+
+p, t = tsurf.read(inputfile)
+e = tsurf.msh(t)
+msh.write(outputfile, p, e)

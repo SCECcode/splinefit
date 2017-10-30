@@ -41,11 +41,10 @@ def test_read():
 
 def test_msh():
     from splinefit import msh
-    filename = 'fixtures/Newport-Inglewood_fault.ts'
-    p, t = tsurf.read(filename)
-
+    filename = 'Newport-Inglewood_fault'
+    p, t = tsurf.read('fixtures/%s.ts'%filename)
     e = tsurf.msh(t)
-    msh.write('fixtures/Newport-Inglewood_fault.msh', p, e)
+    msh.write('fixtures/%s.msh'%filename, p, e)
 
 
 
