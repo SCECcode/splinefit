@@ -26,58 +26,7 @@ class Counter:
 
 counter = Counter()
 
-def get_command(cmd, geo):
-    """
-    Searches through a gmsh geo script for a specific command and extracts
-    all occurrences found. 
-    A gmsh command uses the syntax: `command(id) = {.., .., parameters, etc};`
-
-    Parameters
-
-    cmd : string,
-          The command to search for
-    geo : string,
-          The input geo-script to parse. 
-
-    Returns
-
-    out : dict,
-          All of the instances found of the command. 
-          The command id is used as the key and a list of parameters
-          is the value. If no instance of `cmd` is found, then this function
-          returns `None`.
-
-    # Examples
-
-    >>> geo = "Point(1) = {1.0, 2.0, 3.0};"
-    >>> point = get_command('Point', geo)
-    >>> point
-    {'1': ['1.0', '2.0', '3.0']}
-
-    """
-
-    import re 
-
-    if cmd not in supportedobjs:
-        raise KeyError("Command: %s not supported" %cmd)
-
-    pattern = r'%s\((.*)\)\s*=\s*\{(.*)\}\;.*'%cmd
-    p = re.compile(pattern)
-    matches = p.findall(geo)
-
-    data = {}
-    if len(matches) == 0:
-        return None
-    
-    out = {}
-
-    for m in matches:
-        data = m[1].strip().split(', ')
-        out[m[0]] = data
-
-    return out
-
-def get_obj(geo):
+def get_object(geo):
     """
     Gets a gmsh object from geo script.
 
@@ -94,7 +43,7 @@ def get_obj(geo):
 
     # Examples
 
-    >>> point = get_obj('Point(1) = {1.0, 2.0, 3.0};')
+    >>> point = get_object('Point(1) = {1.0, 2.0, 3.0};')
     >>> point['id']
     '1'
     >>> point['type']
@@ -323,7 +272,7 @@ def write(filename, var, cmd, kernel='OpenCascade'):
 
     for k in supportedobjs:
         if k in cmd:
-            f.write(write_command(k, cmd[k]))
+            f.write(write_object(k, cmd[k]))
 
     f.close()
 
@@ -369,7 +318,7 @@ def read(filename):
             for k, v in iteritems(var):
               variables[k] = v
         # Get objects
-        obj = get_obj(line)
+        obj = get_object(line)
         if obj:
           obj['id'] = eval_id(obj['id'], variables)
           obj['data'] = eval_data(obj, variables)
@@ -378,21 +327,21 @@ def read(filename):
           objects[obj['type']][obj['id']] = obj['data'] 
     return variables, objects
                 
-def write_command(cmd, obj):
+def write_object(cmd, obj):
     """
-    Writes a gmsh command to string.
+    Writes a gmsh object to string.
 
     Parameters
 
     cmd : string,
-          gmsh command to write
+          gmsh object to write
     obj : dict, or list,
             contains the objs and their parameters to write
 
     Returns
 
     out : string,
-          contains the gmsh commands. Each command is placed on a new line. 
+          contains the gmsh object. Each object is placed on a new line. 
 
     """
     
@@ -401,10 +350,10 @@ def write_command(cmd, obj):
     out = []
     if isinstance(obj, dict):
         for k, v in iteritems(obj):
-            out.append(_write_command(cmd, k, v))
+            out.append(_write_object(cmd, k, v))
     else:
         for k, v in enumerate(obj):
-            out.append(_write_command(cmd, k, v))
+            out.append(_write_object(cmd, k, v))
 
     return ''.join(out)
 
@@ -432,7 +381,7 @@ def write_variables(var):
 
     return ''.join(out)
 
-def _write_command(cmd, k, v):
+def _write_object(cmd, k, v):
     out = '%s(%s) = {' % (cmd, str(k))
     out += ', '.join(map(lambda vi : str(vi), v))
     out += '};\n'

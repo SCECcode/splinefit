@@ -1,35 +1,21 @@
 from splinefit import gmsh
 
 def load(test):
-
     txt = open('fixtures/' + test + '.geo').read() 
     return txt
 
-def test_get_command():
+def test_counter():
+    c = gmsh.Counter()
+    assert c['newp'] == 0
+    assert c['newp'] == 1
+    assert c['newl'] == 0
 
-    geo = "Point(1) = {1.0, 2.0, 3.0};"
-    point = gmsh.get_command('Point', geo)
-    assert point['1'][0] == '1.0'
-
-    tests = ['test1']
-
-    for test in tests:
-        splines = gmsh.get_command('Spline', load(test))
-        points  = gmsh.get_command('Point', load(test))
-        assert gmsh.check_objmembers(splines, points)
-
-def test_check_obj():
-
-    a = {0 : [0], 1 : [1]}
-    b = {0 : 1, 1 : 1}
-    assert gmsh.check_objmembers(a, b)
-    b = [0, 1]
-    assert gmsh.check_objmembers(a, b)
-    a = {0 : [0], 1 : [1, 2]}
-    assert not gmsh.check_objmembers(a, b)
+def test_get_object():
+    geo = 'Surface(1) = {1, 2, 3};'
+    obj = gmsh.get_object(geo)
+    assert obj['type'] == 'Surface'
 
 def test_get_variables():
-
     geo = 'a = 10;'
     var = gmsh.get_variables(geo)
     assert var['a'] == '10'
@@ -47,15 +33,16 @@ def test_get_variables():
     assert var['p_2'] == '1 - 2'
     assert var['a'] == 'b'
 
-def test_counter():
-
-    c = gmsh.Counter()
-    assert c['newp'] == 0
-    assert c['newp'] == 1
-    assert c['newl'] == 0
+def test_check_obj():
+    a = {0 : [0], 1 : [1]}
+    b = {0 : 1, 1 : 1}
+    assert gmsh.check_objmembers(a, b)
+    b = [0, 1]
+    assert gmsh.check_objmembers(a, b)
+    a = {0 : [0], 1 : [1, 2]}
+    assert not gmsh.check_objmembers(a, b)
 
 def test_eval_vars():
-
     gmsh.counter.reset()
     variables = {'a' : 'newp', 'b' : 'newl', 'c': 'newp'}
     newvars = gmsh.eval_vars(variables)
@@ -63,31 +50,36 @@ def test_eval_vars():
     assert newvars['b'] == 0
     assert newvars['c'] == 1
 
+def test_eval_id():
+    gmsh.counter.reset()
+    variables = {'a' : 1 }
+    out = gmsh.eval_id('a + 1', variables)
+    assert out == 2
+
+def test_eval_data():
+    obj = {'id' : 'a', 'type' : 'Point', 'data' : ['1.0', '2.0', '3.0']}
+    out = gmsh.eval_data(obj, {})
+    assert out[0] == 1.0
+    assert out[1] == 2.0
+    assert out[2] == 3.0
+
 def test_write():
+    var, obj = gmsh.read('fixtures/test1.geo')
+    gmsh.write('fixtures/new.geo', var, obj)
 
-    var, cmd = gmsh.read('fixtures/test1.geo')
-    gmsh.write('fixtures/new.geo', var, cmd)
+def test_read():
+    var, obj = gmsh.read('fixtures/test1.geo')
 
-def test_write_command():
-
+def test_write_object():
     objs = {'0' : [0.0, 1.0]}
-    cmdstr = gmsh.write_command('Spline', objs)
+    cmdstr = gmsh.write_object('Spline', objs)
     assert cmdstr == 'Spline(0) = {0.0, 1.0};\n'
     objs = [[0.0, 1.0]]
-    cmdstr = gmsh.write_command('Spline', objs)
+    cmdstr = gmsh.write_object('Spline', objs)
     assert cmdstr == 'Spline(0) = {0.0, 1.0};\n'
 
 def test_write_variables():
-
     var = {'a' : 1.0 }
     assert gmsh.write_variables(var) == 'a = 1.0;\n'
 
-def test_read():
 
-    var, grp = gmsh.read('fixtures/test1.geo')
-
-def test_get_obj():
-
-    geo = 'Surface(1) = {1, 2, 3};'
-    grp = gmsh.get_obj(geo)
-    assert grp['type'] == 'Surface'
