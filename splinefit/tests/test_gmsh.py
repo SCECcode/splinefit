@@ -1,7 +1,7 @@
 from splinefit import gmsh
 
 def load(test):
-    txt = open('fixtures/' + test + '.geo').read() 
+    txt = open('geometry/' + test + '.geo').read() 
     return txt
 
 def test_counter():
@@ -64,11 +64,11 @@ def test_eval_data():
     assert out[2] == 3.0
 
 def test_write():
-    var, obj = gmsh.read('fixtures/test1.geo')
-    gmsh.write('fixtures/new.geo', var, obj)
+    var, obj = gmsh.read('geometry/test1.geo')
+    gmsh.write('geometry/new.geo', var, obj)
 
 def test_read():
-    var, obj = gmsh.read('fixtures/test1.geo')
+    var, obj = gmsh.read('geometry/test1.geo')
 
 def test_write_object():
     objs = {'0' : [0.0, 1.0]}
