@@ -12,6 +12,11 @@ def tris_to_edges(tris):
     with respect to the edge. The key that defines the edge is represented as a
     string "1-2" where the first number is the Node ID of the node of this edge
     with the least index. 
+
+    If the edge in the data structure is "1-2" and belongs to some triangle with
+    edge 1-2, then the orientation is said to be positive (True). On the other
+    hand, if the edge in the triangle is 2-1 (reversed order) then the
+    orientation is negative (False).
     
     Arguments:
         tris : Triangulation in the form of a m x 3 array.
