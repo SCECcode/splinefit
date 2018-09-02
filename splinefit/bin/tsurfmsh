@@ -8,7 +8,7 @@ if len(sys.argv) == 1:
     msg += 'usage: Converts triangular meshes in GOCAD .tsurf to gmsh .msh\n' 
     msg += 'input : is the .tsurf file to read\n'
     msg += 'output : is the .msh file to write'
-    print msg
+    print(msg)
     exit(1)
 
 inputfile = sys.argv[1]

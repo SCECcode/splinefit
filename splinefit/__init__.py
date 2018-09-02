@@ -1,1 +1,1 @@
-import gmsh
+from . import gmsh

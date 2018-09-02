@@ -9,7 +9,6 @@ def test_read():
 
 def test_write():
     n, e = msh.read('fixtures/test.msh')
-    print e.shape
     msh.write('fixtures/new.msh', n, e)
 
 def test_nodes():

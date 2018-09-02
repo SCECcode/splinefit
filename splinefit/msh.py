@@ -50,7 +50,7 @@ def nodes(txt):
     out = []
     for line in nodes:
         data = line.split(' ')
-        out.append([int(data[0])] + map(lambda x : float(x), data[1:]))
+        out.append([int(data[0])] + [float(x) for x in data[1:]])
 
     return np.array(out)
 
@@ -69,7 +69,7 @@ def elements(txt):
     out = []
     for line in elem:
         data = line.split(' ')
-        out.append(map(lambda x : int(x), data))
+        out.append([int(x) for x in data])
 
     out = np.array(out)
     return out

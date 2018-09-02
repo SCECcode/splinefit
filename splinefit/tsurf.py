@@ -63,7 +63,7 @@ def tri(txt):
 
     out = []
     for m in match:
-        out.append(map(lambda x: int(x), m))
+        out.append([int(mi) for mi in m])
 
     return np.array(out)
 
