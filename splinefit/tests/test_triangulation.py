@@ -1,10 +1,9 @@
 import pytest
+import splinefit as sf
 
 def test_edge_mapping():
-    import splinefit as sf
-
     assert sf.triangulation.edge_mapping(2,1) == '1-2'
-    assert sf.triangulation.edge_mapping(2,1) == '1-2'
+    assert sf.triangulation.edge_mapping(1,2) == '1-2'
 
     # Nodes in a edge must be unique
     with pytest.raises(Exception) : sf.triangulation.edge_mapping(1,1)
@@ -12,3 +11,10 @@ def test_edge_mapping():
     # Nodes must be int
     with pytest.raises(Exception) : sf.triangulation.edge_mapping('1',1)
     with pytest.raises(Exception) : sf.triangulation.edge_mapping(1,'1')
+
+def test_tri_to_edges():
+    tri = [1,2,3]
+    assert sf.triangulation.tri_to_edges(tri)[0] == (1,2)
+    assert sf.triangulation.tri_to_edges(tri)[1] == (2,3)
+    assert sf.triangulation.tri_to_edges(tri)[2] == (3,1)
+
