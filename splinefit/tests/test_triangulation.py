@@ -20,6 +20,17 @@ def test_tri_to_edges():
     # Not a triangle
     with pytest.raises(Exception) : sf.triangulation.tri_to_edges([0,1])
 
+def test_unordered_boundary_edges():
+    nodes = np.array([[1,2], [2,3], [1,3], [3,4], [2,4]]).astype(np.int64)
+    count = np.array([1, 1, 0, 0, 0]) 
+    bnd_edges = sf.triangulation.unordered_boundary_edges(nodes, count)
+    bnd_edges_ans = np.array([[1,2], [2,3]])
+    assert np.all(np.equal(bnd_edges,bnd_edges))
+
+def test_ordered_boundary_edges():
+    nodes = np.array([[2,3], [1,2], [3,4]]).astype(np.int64)
+    nodes_ans = np.array([[1,2], [2,3], [3,4]])
+
 def test_edges_shared_tri_count():
     tri = [1,2,3]
     tris = np.array([[1,2,3],[2,3,4]]).astype(np.int64)
@@ -31,11 +42,18 @@ def test_edges_shared_tri_count():
 def test_edges_to_nodes():
     tri = [1,2,3]
     tris = np.array([[1,2,3],[2,3,4]]).astype(np.int64)
-    nodes_ans = np.array([[1, 2], [2, 3], [1, 3], [3, 4], [2, 4]]).astype(np.int64)
+    nodes_ans = np.array([[1,2], [2,3], [1,3], [3,4], [2,4]]).astype(np.int64)
     edges = sf.triangulation.tris_to_edges(tris)
     nodes = sf.triangulation.edges_to_nodes(edges)
     assert np.all(np.equal(nodes,nodes_ans))
 
+def test_nodes_to_edges():
+    nodes = np.array([[1,2], [2,3], [1,3], [3,4], [2,4]]).astype(np.int64)
+    edges = sf.triangulation.nodes_to_edges(nodes)
+    assert edges[1] == [0,2]
+    assert edges[2] == [0,1,4]
+    assert edges[3] == [1,2,3]
+    assert edges[4] == [3,4]
 
 def test_edge_mapping():
     assert sf.triangulation.edge_mapping(2,1) == '1-2'
