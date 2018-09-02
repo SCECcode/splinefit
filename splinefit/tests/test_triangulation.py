@@ -25,11 +25,16 @@ def test_unordered_boundary_edges():
     count = np.array([1, 1, 0, 0, 0]) 
     bnd_edges = sf.triangulation.unordered_boundary_edges(nodes, count)
     bnd_edges_ans = np.array([[1,2], [2,3]])
-    assert np.all(np.equal(bnd_edges,bnd_edges))
+    assert np.all(np.equal(bnd_edges,bnd_edges_ans))
 
 def test_ordered_boundary_edges():
-    nodes = np.array([[2,3], [1,2], [3,4]]).astype(np.int64)
-    nodes_ans = np.array([[1,2], [2,3], [3,4]])
+    nodes = np.array([[2,6], [1,4], [6,4], [1,2]]).astype(np.int64)
+    bnd_edges_ans = np.array([[2,6], [6,4], [4,1], [1,2]])
+    nodes_to_edges = sf.triangulation.nodes_to_edges(nodes)
+    edges_to_nodes = nodes
+    bnd_edges = sf.triangulation.ordered_boundary_edges(edges_to_nodes,
+            nodes_to_edges)
+    assert np.all(np.equal(bnd_edges,bnd_edges_ans))
 
 def test_edges_shared_tri_count():
     tri = [1,2,3]
@@ -84,6 +89,3 @@ def test_is_edge():
     assert sf.triangulation.is_edge((int(1),int(10)))
     assert not sf.triangulation.is_edge((int(1),int(1)))
     assert not sf.triangulation.is_edge((int(1),int(1),int(2)))
-
-
-
