@@ -1,6 +1,6 @@
 # Splinefit
 
-Experimental python package for building a geometric description of a small subset of the [Community Fault Model](https://scec.usc.edu/scecpedia/CFM) using splines. This package has currently only been tested using Python 2.7.12+.
+Experimental python package for building a geometric description of a small subset of the [Community Fault Model](https://scec.usc.edu/scecpedia/CFM) using splines. 
 
 # Installation
 ```bash
@@ -13,7 +13,7 @@ $ python [sudo] setup.py install [--user]
 ## Convert GOCAD tsurf to gmsh
 Use `tsurfmsh` to convert a triangular mesh stored in the `.tsurf` file format to the gmsh `.msh` file format. 
 ```bash
-$ tsurfmesh (input) (output)
+$ tsurfmsh (input) (output)
 
 ```
 
