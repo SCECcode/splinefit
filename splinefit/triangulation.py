@@ -2,6 +2,7 @@
 Module for querying and manipulating triangulations
 
 """
+import numpy as np
 
 def tris_to_edges(tris):
     """
@@ -22,13 +23,24 @@ def tris_to_edges(tris):
 
     edges = {}
 
-    #for idx, tri in enumerate(tris):
-    #    tri_edges = tri_to_edges(tri)
-    #    for edge_i in tri_edges:
-    #        key = edge_mapping(edge_i)
-    #        if key not in tri_edges:
-    #            edges[key] = {'orientation' : [], 'triangles' : []}
-    #            edges[key]['orientation'].append(
+    edge_id = 0
+
+    for tri_id, tri in enumerate(tris):
+        tri_edges = tri_to_edges(tri)
+        for edge_i in tri_edges:
+            key = edge_mapping(*edge_i)
+            # Insert new edge
+            if key not in edges:
+                edges[key] = {'id': edge_id, 'orientation' : [], 
+                              'triangles' : []}
+                edges[key]['orientation'].append(edge_reorder(edge_i) == edge_i)
+                edges[key]['triangles'].append(tri_id)
+                edge_id += 1
+            else:
+                # Key already exists
+                edges[key]['orientation'].append(edge_reorder(edge_i) == edge_i)
+                edges[key]['triangles'].append(tri_id)
+    return edges
 
 
 def tri_to_edges(tri):
@@ -48,11 +60,11 @@ def edge_reorder(edge):
     Reorder the nodes in an edge so that the node with the least index appears
     first.
     """
+    import numpy as np
     id1 = edge[0]
     id2 = edge[1]
 
-    assert isinstance(id1, int)
-    assert isinstance(id2, int)
+    assert is_node(id1) and is_node(id2)
     assert id1 != id2
     min_id = min(id1, id2)
     max_id = max(id1, id2)
@@ -64,4 +76,17 @@ def edge_mapping(id1, id2):
 
     """
     return "%s-%s" % edge_reorder((id1, id2))
+
+
+def is_node(idx):
+    """
+    Check if the given index satisfies the constraints that define a node.
+    """
+    correct_type = isinstance(idx, np.int64) or isinstance(idx, np.int) \
+           or isinstance(idx, int) 
+    try:
+        nonnegative = idx >= 0
+    except:
+        return False
+    return correct_type and nonnegative
 
