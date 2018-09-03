@@ -90,7 +90,7 @@ def unordered_boundary_edges(nodes, tri_count, boundary_count=1):
         classified as a boundary edge.
 
     """
-    return np.array(nodes[tri_count == boundary_count,:])
+    return np.array(nodes[tri_count == boundary_count,:]).astype(np.int64)
 
 def ordered_boundary_edges(edges_to_nodes, nodes_to_edges):
     """
@@ -104,7 +104,7 @@ def ordered_boundary_edges(edges_to_nodes, nodes_to_edges):
 
     """
     num_edges = len(edges_to_nodes)
-    out = np.zeros((num_edges,2))
+    out = np.zeros((num_edges,2)).astype(np.int64)
     # Start ordering with some arbitrary edge
     node1 = edges_to_nodes[0][0]
     node2 = edges_to_nodes[0][1]

@@ -1,11 +1,21 @@
+PY=python3
 cfm=/usr/local/CFM5_release_2017/obj/CFM5_preferred/native
 out=meshes
+data=data
+figures=figures
 
 all: convert-easy convert-moderate-difficulty convert-difficult
 
 define mesh =
-	mkdir -p $(out)/$(1)
+	@mkdir -p $(out)/$(1)
 	tsurfmsh $(cfm)/$(2).ts $(out)/$(1)/$(2).msh
+endef
+
+define boundary =
+	@mkdir -p $(data)/$(1)
+	@mkdir -p $(figures)/$(1)
+	$(PY) boundary.py $(out)/$(1)/$(2).msh $(data)/$(1)/$(2)_boundary \
+		$(figures)/$(1)/$(2)_boundary.png
 endef
 
 
@@ -27,3 +37,6 @@ convert-difficult:
 	$(call mesh,hard2,PNRA-NIRC-LABS-Newport-Inglewood_fault-dip_w_splays-split-CFM5)
 	$(call mesh,hard2,PNRA-CSTL-SJQH-San_Joaquin_Hills_fault-truncated-CFM3)
 	$(call mesh,hard2,PNRA-CEPS-LABS-Compton-Los_Alamitos_fault-CFM2)
+
+boundary-easy:
+	$(call boundary,easy2,GRFS-GRFZ-WEST-Garlock_fault-CFM5)
