@@ -206,6 +206,22 @@ def edge_inverse_mapping(key, orientation=True):
     else:
         return (ids[1], ids[0])
 
+def vectors(edges, coords):
+    """
+    Convert edges to vectors.
+
+    Arguments:
+        edges : An np.array of size m x n, where m is the number of edges and
+            `n=2` is the node ids.
+        coords : An np.array of size p x q, where q is the number of nodes and
+            `q=3` is their coordinates in 3D space.
+
+    """
+    
+    pts1 = coords[edges[:,0],:]
+    pts2 = coords[edges[:,1],:]
+    return pts2 - pts1
+
 def is_node(idx):
     """
     Check if the given index satisfies the constraints that define a node.

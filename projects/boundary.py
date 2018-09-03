@@ -31,8 +31,28 @@ def get_boundary(tris):
     bnd_edges = sf.triangulation.ordered_boundary_edges(bnd_edges,nodes_to_edges)
     return bnd_edges
 
+def segment_boundary(coords, bnd_edges, num_corners=4):
+    vectors = sf.triangulation.vectors(bnd_edges, coords)
+    #FIXME: Boundary segmentation should probably not take place until the data
+    # has been projected onto the best fitting plane.
+    # As a quick hack, just use y, z coordinates (this fails for some meshes)
+    v1 = vectors[1:,2:]
+    v2 = vectors[0:-1,2:]
 
-def make_plot(coords, tris, edges, figfile):
+    num_nodes = v1.shape[0]
+    dots = np.zeros((num_nodes,))
+
+    for i in range(num_nodes):
+        norm_v1 = np.sqrt(v1[i,:].dot(v1[i,:]))
+        norm_v2 = np.sqrt(v2[i,:].dot(v2[i,:]))
+        dots[i] = np.abs(v1[i,:].dot(v2[i,:])/(norm_v1*norm_v2))
+
+    dots_idx = np.argsort(dots)
+
+    dots_idx = dots_idx[0:num_corners]
+    return bnd_edges[dots_idx,1]
+
+def make_plot(coords, tris, edges, seg, figfile):
     if not figfile:
         return
     import matplotlib.pyplot as plt
@@ -48,7 +68,9 @@ def make_plot(coords, tris, edges, figfile):
     ax = fig.gca(projection='3d')
     ax.plot_trisurf(coords[:,1], coords[:,2], coords[:,3], triangles=tris)
     ax.plot(bnd_coords[:,1], bnd_coords[:,2], bnd_coords[:,3],'k')
+    ax.plot(coords[seg,1], coords[seg,2], coords[seg,3],'r*')
     plt.savefig(figfile)
+    plt.show()
     print("Wrote figure:", figfile)
 
 def export(coords, bnd_edges, outputfile):
@@ -68,5 +90,6 @@ def export(coords, bnd_edges, outputfile):
 
 coords, tris = sf.msh.read(inputfile)
 bnd_edges = get_boundary(tris)
-make_plot(coords, tris, bnd_edges, figfile)
+segments = segment_boundary(coords, bnd_edges)
+make_plot(coords, tris, bnd_edges, segments, figfile)
 export(coords, bnd_edges, outputfile)

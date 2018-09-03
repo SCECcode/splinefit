@@ -73,6 +73,14 @@ def test_edge_inverse_mapping():
     assert sf.triangulation.edge_inverse_mapping(key, True) == (1,2)
     assert sf.triangulation.edge_inverse_mapping(key, False) == (2,1)
 
+def test_vectors():
+    coords = np.array([[0.0, 1.0, 2.0],[1.0, -1.0, -2.0], [2.0, 3.0, 4.0]])
+    edges = np.array([[0, 1], [1, 2]]).astype(np.int64)
+    vectors = sf.triangulation.vectors(edges, coords)
+    assert vectors.shape[0] == edges.shape[0]
+    assert vectors.shape[1] == coords.shape[1]
+    assert np.all(np.equal(vectors[0,:], coords[1,:] - coords[0,:]))
+
 def test_edge_reorder():
     assert sf.triangulation.edge_reorder((2,1)) == (1,2)
     assert sf.triangulation.edge_reorder((1,2)) == (1,2)
