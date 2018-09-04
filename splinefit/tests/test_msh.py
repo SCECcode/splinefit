@@ -1,3 +1,4 @@
+import numpy as np
 from splinefit import msh
 
 def load(test='test'):
@@ -33,5 +34,16 @@ def test_elements():
     assert elems[0][3] == 0
     assert elems[0][4] == 5
     assert elems[0][5] == 1
+
+def test_get_data():
+    txt = load()
+    elems = msh.elements(txt)
+    tris = msh.get_data(elems, num_members=3, index=1)
+    assert tris.shape[1] == 3
+    assert tris[0][0] == 0
+    assert tris[0][1] == 5
+    assert tris[0][2] == 1
+
+
 
 

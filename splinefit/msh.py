@@ -1,7 +1,8 @@
 """
-Parser for the gmsh msh file format
+Parser for the gmsh file format
 
 """
+import numpy as np
 _nodes = '\$Nodes\n(\d+)\n([\w\W]+)\n\$EndNodes'
 _elements = '\$Elements\n(\d+)\n([\w\W]+)\n\$EndElements'
 _meshformat = '$MeshFormat\n2.2 0 8\n$EndMeshFormat\n'
@@ -69,11 +70,32 @@ def elements(txt):
     out = []
     for line in elem:
         data = line.split(' ')
-        out.append([int(x) for x in data])
+        out.append([np.int(x) for x in data])
 
     out = np.array(out)
     return out
 
+def get_data(elem, num_members=2, index=0):
+    """
+    Return the data from a gmsh data structure
 
+    Arguments:
+        elem : Gmsh data structure.
+        num_members (optional) : Number of data members to extract. Defaults to
+            `2` (edge).
+        index (optional) : Convert to zero indexing. Enabled by default.
+
+    """
+
+    data = []
+    for ei in elem:
+        num_fields = len(ei)
+        data.append(ei[num_fields-num_members:])
+    data = np.array(data)
+
+    if index == 0:
+        data = data - 1
+
+    return data
 
 
