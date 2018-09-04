@@ -13,7 +13,7 @@ else:
 def get_boundary(tris):
     
     # Extract triangles from gmsh data and shift to zero indexing
-    tris = tris[:,5:8] - 1
+    tris = msh.get_data(tris, num_members=3)
     
     # Extract all edges
     edges = sf.triangulation.tris_to_edges(tris)
@@ -31,13 +31,15 @@ def get_boundary(tris):
     bnd_edges = sf.triangulation.ordered_boundary_edges(bnd_edges,nodes_to_edges)
     return bnd_edges
 
-def segment_boundary(coords, bnd_edges, num_corners=20):
+def segment_boundary(coords, bnd_edges, num_corners=4):
     vectors = sf.triangulation.vectors(bnd_edges, coords)
     #FIXME: Boundary segmentation should probably not take place until the data
     # has been projected onto the best fitting plane.
     # As a quick hack, just use y, z coordinates (this fails for some meshes)
-    v1 = vectors[0:-5,1:]
-    v2 = vectors[5:,1:]
+    width=2
+    vectors = coords[bnd_edges[:-width,0],:] - coords[bnd_edges[width:,0],:]
+    v1 = vectors[0:-1,1:]
+    v2 = vectors[1:,1:]
     num_nodes = v1.shape[0]
 
     for i in range(num_nodes):
@@ -51,7 +53,7 @@ def segment_boundary(coords, bnd_edges, num_corners=20):
     for i in range(num_nodes):
         norm_v1 = np.sqrt(v1[i,:].dot(v1[i,:]))
         norm_v2 = np.sqrt(v2[i,:].dot(v2[i,:]))
-        dots[i] = np.abs(v1[i,:].dot(v2[i,:]))#/(norm_v1*norm_v2))
+        dots[i] = np.abs(v1[i,:].dot(v2[i,:])/(norm_v1*norm_v2))
 
     dots_idx = np.argsort(dots)
 
@@ -108,16 +110,19 @@ def segment_boundary(coords, bnd_edges, num_corners=20):
     ax = fig.gca(projection='3d')
     ax.plot(bnd_coords[:,1], bnd_coords[:,2], bnd_coords[:,3],'ko--')
     ax.plot(coords[seg1,1], coords[seg1,2], coords[seg1,3],'r*')
-    print(w2)
-    ax.plot(coords[seg1,1] + w1[0], coords[seg1,2] + w1[1], coords[seg1,3] +
-            w1[2],'m*')
-    ax.plot(coords[seg1,1] + w2[0], coords[seg1,2] + w2[1], coords[seg1,3] +
-            w2[2],'g*')
+    #print(w2)
+    #ax.plot(coords[seg1,1] + w1[0], coords[seg1,2] + w1[1], coords[seg1,3] +
+    #        w1[2],'m*')
+    #ax.plot(coords[seg1,1] + w2[0], coords[seg1,2] + w2[1], coords[seg1,3] +
+    #        w2[2],'g*')
     #ax.plot(coords[seg2,1], coords[seg2,2], coords[seg2,3],'b*')
+    #hull = ConvexHull(coords)
+    #for simplex in hull.simplices:
+    #    ax.plot(coords[simplex, 1], coords[simplex, 2], coords[simplex, 3], 'k-')
     plt.show()
     return seg1
 
-def make_plot(coords, tris, edges, seg, figfile):
+def make_plot(coords, tris, edges, figfile):
     if not figfile:
         return
     import matplotlib.pyplot as plt
@@ -131,11 +136,9 @@ def make_plot(coords, tris, edges, seg, figfile):
 
     fig = plt.figure()
     ax = fig.gca(projection='3d')
-    #ax.plot_trisurf(coords[:,1], coords[:,2], coords[:,3], triangles=tris)
-    ax.plot(bnd_coords[:,1], bnd_coords[:,2], bnd_coords[:,3],'ko--')
-    ax.plot(coords[seg,1], coords[seg,2], coords[seg,3],'r*')
+    ax.plot_trisurf(coords[:,1], coords[:,2], coords[:,3], triangles=tris)
+    ax.plot(bnd_coords[:,1], bnd_coords[:,2], bnd_coords[:,3],'k-')
     plt.savefig(figfile)
-    plt.show()
     print("Wrote figure:", figfile)
 
 def export(coords, bnd_edges, outputfile):
@@ -145,16 +148,16 @@ def export(coords, bnd_edges, outputfile):
     num_attr = 6
     elems = np.zeros((num_edges, num_attr)).astype(np.int64)
     for i in range(num_edges):
-        elems[i,0] = i
+        elems[i,0] = i + 1
         elems[i,1] = 1
         elems[i,2] = 1
         elems[i,3] = 1
-        elems[i,4] = bnd_edges[i,0]
-        elems[i,5] = bnd_edges[i,1]
+        elems[i,4] = bnd_edges[i,0] + 1
+        elems[i,5] = bnd_edges[i,1] + 1
     sf.msh.write(outputfile, coords, elems)
 
 coords, tris = sf.msh.read(inputfile)
 bnd_edges = get_boundary(tris)
-segments = segment_boundary(coords, bnd_edges)
-#make_plot(coords, tris, bnd_edges, segments, figfile)
+#segments = segment_boundary(coords, bnd_edges)
+make_plot(coords, tris, bnd_edges, figfile)
 export(coords, bnd_edges, outputfile)

@@ -14,8 +14,15 @@ endef
 define boundary =
 	@mkdir -p $(data)/$(1)
 	@mkdir -p $(figures)/$(1)
-	$(PY) boundary.py $(out)/$(1)/$(2).msh $(data)/$(1)/$(2)_boundary \
+	$(PY) boundary.py $(out)/$(1)/$(2).msh $(data)/$(1)/$(2)_boundary.msh \
 		$(figures)/$(1)/$(2)_boundary.png
+endef
+
+define projection =
+	@mkdir -p $(data)/$(1)
+	@mkdir -p $(figures)/$(1)
+	$(PY) projection.py $(data)/$(1)/$(2)_boundary.msh $(data)/$(1)/$(2)_projection.msh \
+		$(figures)/$(1)/$(2)_projection.png
 endef
 
 
@@ -40,6 +47,9 @@ convert-difficult:
 
 boundary-easy:
 	$(call boundary,easy1,PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1)
+
+projection-easy:
+	$(call projection,easy1,PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1)
 	
 
 #$(call boundary,easy2,GRFS-GRFZ-WEST-Garlock_fault-CFM5)
