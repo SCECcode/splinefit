@@ -16,4 +16,9 @@ def test_pca():
     assert eig_vec.shape[1] == num_comp
     assert np.all(np.equal(eig_vec[:,0], np.array([1,0,0])))
     assert np.all(np.equal(eig_vec[:,1], np.array([0,1,0])))
-    assert 0
+
+def test_projection():
+    points = np.array([[0.0, 1.0, 0.0], [1.0, 0.0, 0.0], [0.5, 0.5, 0.0]])
+    basis = np.array([[1.0, 0.0],[0.0, 1.0], [0.0, 0.0]])
+
+    proj = sf.fitting.projection(points, basis)
