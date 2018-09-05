@@ -47,10 +47,10 @@ convert-difficult:
 
 boundary-easy:
 	$(call boundary,easy1,PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1)
+	$(call boundary,easy2,GRFS-GRFZ-WEST-Garlock_fault-CFM5)
+	$(call boundary,easy3,WTRA-NCVS-VNTB-Southern_San_Cayetano_fault-steep-JHAP-CFM5)
 
 projection-easy:
 	$(call projection,easy1,PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1)
-	
-
-#$(call boundary,easy2,GRFS-GRFZ-WEST-Garlock_fault-CFM5)
-#$(call boundary,easy3,WTRA-NCVS-VNTB-Southern_San_Cayetano_fault-steep-JHAP-CFM5)
+	$(call projection,easy2,GRFS-GRFZ-WEST-Garlock_fault-CFM5)
+	$(call projection,easy3,WTRA-NCVS-VNTB-Southern_San_Cayetano_fault-steep-JHAP-CFM5)

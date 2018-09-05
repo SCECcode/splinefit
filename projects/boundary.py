@@ -2,6 +2,7 @@ import sys
 from splinefit import msh
 import splinefit as sf
 import numpy as np
+import helper
 
 inputfile = sys.argv[1]
 outputfile = sys.argv[2]
@@ -13,7 +14,6 @@ else:
 def get_boundary(tris):
     
     # Extract triangles from gmsh data and shift to zero indexing
-    tris = msh.get_data(tris, num_members=3)
     
     # Extract all edges
     edges = sf.triangulation.tris_to_edges(tris)
@@ -127,17 +127,16 @@ def make_plot(coords, tris, edges, figfile):
         return
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
-    
-    pt_ids0 = bnd_edges[:,0]
-    pt_ids1 = bnd_edges[:,1]
-    bnd_coords = coords[pt_ids0,:]
-    bnd_coords2 = coords[pt_ids1,:]
-    bnd_coords = np.vstack((bnd_coords, bnd_coords2[-1,:]))
 
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-    ax.plot_trisurf(coords[:,1], coords[:,2], coords[:,3], triangles=tris)
-    ax.plot(bnd_coords[:,1], bnd_coords[:,2], bnd_coords[:,3],'k-')
+    xyz, mu, std = sf.fitting.normalize(coords[:,1:]) 
+    
+    pt_ids = bnd_edges[:,0]
+    bnd_coords = xyz[pt_ids,:]
+    bnd_coords = helper.close_boundary(bnd_coords)
+
+
+    fig, ax = helper.plot_mesh(xyz, tris)
+    helper.plot_points(bnd_coords, ax=ax, style='k-')
     plt.savefig(figfile)
     print("Wrote figure:", figfile)
 
@@ -157,6 +156,7 @@ def export(coords, bnd_edges, outputfile):
     sf.msh.write(outputfile, coords, elems)
 
 coords, tris = sf.msh.read(inputfile)
+tris = msh.get_data(tris, num_members=3)
 bnd_edges = get_boundary(tris)
 #segments = segment_boundary(coords, bnd_edges)
 make_plot(coords, tris, bnd_edges, figfile)

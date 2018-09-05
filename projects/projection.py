@@ -2,9 +2,8 @@ import sys
 from splinefit import msh
 import splinefit as sf
 import numpy as np
-
+import helper
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
 inputfile = sys.argv[1]
 outputfile = sys.argv[2]
@@ -17,15 +16,13 @@ coords, tris = sf.msh.read(inputfile)
 
 edges = sf.msh.get_data(tris)
 
-print(edges.shape)
-print(edges)
+xyz = helper.close_boundary(coords[edges[:,0],1:])
+xyz, mu, std = sf.fitting.normalize(xyz)
 
-bnd_coords = coords[edges[:,0],:]
 
-xyz = bnd_coords[:,1:]
-
-eig_vec = sf.fitting.pca(xyz)
-fig = plt.figure()
-ax = fig.gca(projection='3d')
-ax.plot(xyz[:,0], xyz[:,1], xyz[:,2],'k')
-plt.show()
+basis = sf.fitting.pca(xyz, num_components=2)
+ax = helper.plot_points(xyz)
+xy = sf.fitting.projection(xyz, basis)
+helper.plot_points(xy, ax, 'b-')
+helper.plot_basis(basis, ax)
+plt.savefig(figfile)
