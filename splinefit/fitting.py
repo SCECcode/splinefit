@@ -17,21 +17,55 @@ def pca(points, num_components=2):
 
     assert points.shape[1] == 3
 
-    mean = np.sum(points,0)/points.shape[0]
+    mu = mean(points)
 
     x = 0*points
 
     for i in range(3):
-        x[:,i] = points[:,i] - mean[i]
+        x[:,i] = points[:,i] - mu[i]
 
     A = x.T.dot(x)
 
     eig, eig_vec = np.linalg.eig(A)
 
-    # Order eigenvalues in descending order
     min_pca = np.argsort(-eig)
 
-    return eig_vec[:,0:num_components]
+    return eig_vec[:,min_pca[0:num_components]]
+
+def mean(points):
+    """
+    Compute the mean of a collection of points in space.
+        
+    Arguments
+        points : An array of coordinates (size: number of coordinates x q)
+
+    Returns:
+        out : mean value of coordinate (size: q)
+
+    """
+    out = np.sum(points,0)/points.shape[0]
+    return out
+
+def normalize(points):
+    """
+
+    Normalize a collection of points by removing the mean and scaling by the
+    variance.
+
+    Returns:
+        out : normalized points with mean removed
+        mu : the mean
+        std : the standard deviation of each coordinate. If all coordinates are
+            zero, std is set to 1 to avoid division by zero.
+
+    """
+    std = np.std(points,0)
+    # Avoid division by zero
+    close = np.isclose(std,0*std)
+    std[close] = 1
+    mu = mean(points)
+    out = (points-mu)/std
+    return out, mu, std
 
 def projection(points, basis):
     """
@@ -50,20 +84,37 @@ def projection(points, basis):
     norms = np.linalg.norm(basis, axis=0)
     b = basis/norms
 
-    out = points.dot(b)
+    out = sum([np.tile(points.dot(b[:,i]), 
+              (points.shape[1], 1)).T*np.tile(b[:,i], 
+              (points.shape[0], 1)) for i in range(b.shape[1])])
     return out
 
 
 
-def normalize(vecs):
+def norms(vecs):
     """
-    Normalize a collection of vectors:
+    Return Normalization constants for a collection of vectors:
         
     Arguments:
         vecs : Array of row vectors.  Here, `vecs[0,:]` is the first vector.
 
+    Returns:
+        out : Normalization constant for each vector.
+
     """
-    norms = np.linalg.norm(vecs, axis=1)
-    norms = np.tile(norms, (vecs.shape[1], 1)).T
-    v = vecs/norms
-    return v
+    out = np.linalg.norm(vecs, axis=1)
+    out = np.tile(out, (vecs.shape[1], 1)).T
+    return out
+
+def renormalize(vecs, mu, std):
+    """
+    Restore normalization and mean value transformations applied to vectors.
+    See `normalize` for computation of mean and standard deviation.
+
+    Arguments:
+        vecs : Array of row vectors.  Here, `vecs[0,:]` is the first vector.
+        mu : Mean value.
+        std : Standard deviation.
+
+    """
+    return vecs*std + mu

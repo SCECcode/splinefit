@@ -22,3 +22,10 @@ def test_projection():
     basis = np.array([[1.0, 0.0],[0.0, 1.0], [0.0, 0.0]])
 
     proj = sf.fitting.projection(points, basis)
+
+def test_normalize():
+    points = np.array([[0.0, 1.0, 0.0], [1.0, 0.0, 0.0], [0.5, 0.5, 0.0]])
+    xn, mu, std = sf.fitting.normalize(points)
+
+    points_restored = sf.fitting.renormalize(xn, mu, std)
+    assert np.all(np.isclose(points,points_restored))
