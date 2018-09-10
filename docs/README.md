@@ -50,7 +50,9 @@ corresponding to the two maximum modulus eigenvalues.
 Altough there probably are plenty of packages that can be used to detect the
 boundary of some triangulation, I decided to implement my own solution. It
 appears that many of the meshes contain multiple surfaces. For now, only one
-surface is treated. Figure 2 shows the boundary detection method in action.
+surface is treated. Figure 2 shows the boundary detection method in action. Finding the additional surfaces in the
+triangulation is simply of matter rerunning the algorithm on the mesh after haviing removed the first boundary detected,
+and then repeating the process until no more boundaries are detected.
 
 
 ![](figures/PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1_boundary.png)
@@ -70,9 +72,31 @@ then selecting the next node by looking for its nearest neighbor, and by
 excluding itself or a previous node from the search. 
 
 Once the boundary edges have been detected, they are split into four boundary
-segments. To identify the corner nodes, the angle between two neighboring edges
+segments. The reason for wanting to split the boundary into separate segments is becuse BSpline curves assume
+smoothness, but there is no continuity at the corner points. To identify the corner nodes, the angle between two neighboring edges
 is measured at each node on the boundary. A node is marked as a corner point if it
-is among the top four nodes that have the angles closest to being orthogonal.
+is among the top four nodes that have the angles closest to being orthogonal. Unfortunately, this simple strategy does
+not succesfully detect corner points in 3D. Due to variability in the data it is comppletely possible that non-corner
+points are flagged as being corner points. Perhaps this difficulity is overcome by first projecting the boundary points
+onto the best fitting plane, discussed next.
 
+## 2D Plane Projection
+After boundary detection, the boundary points are projected onto the best fitting plane. While there is a some global origin
+defined for the entire point cloud, a new coordinate system is introduced which defines its origin as a point on the plane. This change of coordinates simplifies the construction of the plane.
+This new origin is defined by taking the mean of the coordinates of the boundary points . In addition, each point on the
+boundary is
+renormalized using the standard deviation. The plane to use for the projection is computed by using principal component
+analysis (PCA). The two eigenvectors that are paired with the two eigenvalues of largest and sencod largest eigenvalues are
+selected as the basis vectors that span the plane. Naturally, the eigenvector corresponding to the eigenvalues of
+smallest magnitude defines the normal to this plane. The reason why PCA has been chosen for selecting this plane is
+because this method finds the plane that minimizes the orthogonal distance from the plane to the boundary points. Once the plane has been found, its basis vectors are used to project the boundary points onto the best fitting plane.
 
+Figure 3 shows the basis vectors defining the plane, and the projection of the boundary onto the plane.
 
+![](figures/PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1_projection.png) 
+![](figures/GRFS-GRFZ-WEST-Garlock_fault-CFM5_projection.png)
+![](figures/WTRA-NCVS-VNTB-Southern_San_Cayetano_fault-steep-JHAP-CFM5_projection.png)
+
+**Figure 3:** Projection of boundary points (black) onto the best fitting plane (blue). The orange and green lines show
+the basis vectors spanning the plane. The gap in the boundary is because it is not plotted as closed loop. This issue
+will be addressed in the near future. 
