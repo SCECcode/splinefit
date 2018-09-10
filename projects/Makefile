@@ -6,19 +6,19 @@ figures=figures
 
 all: convert-easy convert-moderate-difficulty convert-difficult
 
-define mesh =
-	@mkdir -p $(out)/$(1)
+define mesh 
+	mkdir -p $(out)/$(1)
 	tsurfmsh $(cfm)/$(2).ts $(out)/$(1)/$(2).msh
 endef
 
-define boundary =
+define boundary 
 	@mkdir -p $(data)/$(1)
 	@mkdir -p $(figures)/$(1)
 	$(PY) boundary.py $(out)/$(1)/$(2).msh $(data)/$(1)/$(2)_boundary.msh \
 		$(figures)/$(1)/$(2)_boundary.png
 endef
 
-define projection =
+define projection 
 	@mkdir -p $(data)/$(1)
 	@mkdir -p $(figures)/$(1)
 	$(PY) projection.py $(data)/$(1)/$(2)_boundary.msh $(data)/$(1)/$(2)_projection.msh \
