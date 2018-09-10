@@ -3,7 +3,7 @@ Implementation of the 3L algorithm
 
 The 3L Algorithm for Fitting Implicit
 Polynomial Curves and Surfaces to Data
-Michael M. Blane, Zhibin Lei, Member, IEEE, Hakan CË ivi, and David B. Cooper,
+Michael M. Blane, Zhibin Lei, Member, IEEE, Hakan CE ivi, and David B. Cooper,
 Fellow, IEEE
 IEEE TRANSACTIONS ON PATTERN ANALYSIS AND MACHINE INTELLIGENCE, VOL. 22, NO. 3,
 MARCH 2000
