@@ -26,9 +26,10 @@ These are the key components to the surface fitting,
 
 1. Boundary segment detection
 2. 2D Plane projection
-3. BSpline boundary curve fitting
-4. Surface parameterization
-5. BSpline surface fitting
+3. 2D Plane rotation
+4. BSpline boundary curve fitting
+5. Surface parameterization
+6. BSpline surface fitting
 
 Below follows an overview of what each step does.
 
@@ -100,3 +101,23 @@ Figure 3 shows the basis vectors defining the plane, and the projection of the b
 **Figure 3:** Projection of boundary points (black) onto the best fitting plane (blue). The orange and green lines show
 the basis vectors spanning the plane. The gap in the boundary is because it is not plotted as closed loop. This issue
 will be addressed in the near future. 
+
+## 2D Plane rotation
+Once the boundary has been projected onto the best fitting plane it is rotated
+to align with the coordinate axes. The purpose of this rotation is to make sure
+that the data is better aligned with the UV grid that will be covered by BSpline
+basis functions. Also, this rotation makes it easier to identity each boundary
+segment (described in the next step). To perform the rotation, the points
+defining the boundary segments are rotated about their mean coordinate. The
+angle of rotation is computed using a simple unconstrained optimization
+procedure (Nelder-Mead). In this optimization procedure, the area of the
+bounding box is chosen as the objective function. Figure 4 shows the initial
+bounding box before finding the optimal rotation (blue) and after applying the
+optimal rotation (red) that approximately minimizes the area of the bounding box.
+
+![](figures/PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1_rotation.png) 
+![](figures/GRFS-GRFZ-WEST-Garlock_fault-CFM5_rotation.png)
+![](figures/WTRA-NCVS-VNTB-Southern_San_Cayetano_fault-steep-JHAP-CFM5_rotation.png)
+
+**Figure 4:** Rotation of projected boundary so that it aligns with the
+coordinate axes.

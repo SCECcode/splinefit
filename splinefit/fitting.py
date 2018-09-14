@@ -158,4 +158,16 @@ def bbox2_vol(bbox):
     """
     return (bbox[1,0] - bbox[0,0])*(bbox[2,1] - bbox[1,1])
 
+def rotate2(xy, mu, theta):
+    """
+    Perform a 2D coordinate rotation specified by the angular parameter `theta`. 
+    This parameter increases when the points `xy` are rotated in the counter clockwise direction.
+
+    """
+    R = np.array([[np.cos(theta), -np.sin(theta)],
+                  [np.sin(theta), np.cos(theta)]])
+
+    rxy = mu + R.dot(xy.T- mu.T).T
+    return rxy
+
 

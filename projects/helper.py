@@ -8,7 +8,7 @@ def close_boundary(points):
         points : Array of points (size: num points x 3).
 
     """
-    return np.vstack((points, points[-1,:]))
+    return np.vstack((points, points[0,:]))
 
 
 def plot_mesh(points, triangles, ax=None):
@@ -57,6 +57,12 @@ def plot_points(points, ax=None, style='-'):
     ax.plot(points[:,0], points[:,1], points[:,2],style)
     return ax
 
+def plot_points2(points, style='-'):
+    import matplotlib.pyplot as plt
+
+    plt.plot(points[:,0], points[:,1],style)
+
+
 def plot_basis(basis, ax=None, style=''):
     """
     Plot basis vectors in 3D space
@@ -85,3 +91,16 @@ def plot_basis(basis, ax=None, style=''):
         ax.plot(*[vec(basis, i, basis_j) for i in range(basis.shape[0])], style)
 
     return ax
+
+class Struct(dict):
+    """
+    Make a dict behave as a struct.
+
+    Example:
+    
+        test = Struct(a=1, b=2, c=3)
+
+    """
+    def __init__(self,**kw):
+        dict.__init__(self,kw)
+        self.__dict__ = self
