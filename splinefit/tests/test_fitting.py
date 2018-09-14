@@ -29,3 +29,16 @@ def test_normalize():
 
     points_restored = sf.fitting.renormalize(xn, mu, std)
     assert np.all(np.isclose(points,points_restored))
+
+def test_bbox2():
+
+    points = np.array([[0.0, 1.0], [1.0, 0.0], [0.5, 0.5]])
+    bbox = sf.fitting.bbox2(points)
+    assert bbox[0,0] == 0.0
+    assert bbox[0,1] == 0.0
+    assert bbox[1,0] == 1.0
+    assert bbox[1,1] == 0.0
+    assert bbox[2,0] == 1.0
+    assert bbox[2,1] == 1.0
+    assert bbox[3,0] == 0.0
+    assert bbox[3,1] == 1.0

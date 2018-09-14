@@ -118,3 +118,31 @@ def renormalize(vecs, mu, std):
 
     """
     return vecs*std + mu
+
+def bbox2(points):
+    """
+    Compute the bounding box for a set of points in 2D
+
+    Arguments:
+        points : An array of size num points x 2 that contains the point cloud.
+            Here, `points[0,:]` is the first point with coordinates 
+            `x_0, x_1`
+
+    Returns:
+        Coordinates that define the bounding box, starting with the bottom left,
+        then bottom right, top right, and top left coordinate.
+
+    """
+
+    min_v = [0]*2
+    max_v = [0]*2
+    for i in range(2):
+        min_v[i] = np.min(points[:,i])
+        max_v[i] = np.max(points[:,i])
+
+    return np.array([[min_v[0], min_v[1]],
+                     [max_v[0], min_v[1]], 
+                     [max_v[0], max_v[1]],
+                     [min_v[0], max_v[1]]])
+
+
