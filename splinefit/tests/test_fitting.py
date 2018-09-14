@@ -42,3 +42,9 @@ def test_bbox2():
     assert bbox[2,1] == 1.0
     assert bbox[3,0] == 0.0
     assert bbox[3,1] == 1.0
+
+def test_bbox2_area():
+
+    points = np.array([[0.0, 1.0], [1.0, 0.0], [0.5, 0.5]])
+    bbox = sf.fitting.bbox2(points)
+    assert sf.fitting.bbox2_vol(bbox) == 1.0

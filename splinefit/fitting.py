@@ -145,4 +145,17 @@ def bbox2(points):
                      [max_v[0], max_v[1]],
                      [min_v[0], max_v[1]]])
 
+def bbox2_vol(bbox):
+    """
+    Compute the volume (area) of a two dimensional bounding box
+
+    Arguments:
+        bbox : Points defining a bounding box (see bbox2)
+
+    Returns:
+        The area of the bounding box.
+
+    """
+    return (bbox[1,0] - bbox[0,0])*(bbox[2,1] - bbox[1,1])
+
 
