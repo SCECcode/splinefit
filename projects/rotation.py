@@ -37,13 +37,16 @@ T = data.proj_basis
 xy = T.T.dot(data.bnd_xyz.T).T
 
 
-mu = sf.fitting.mean(xy) 
-mu = np.tile(mu, (xy.shape[0],1)) 
+center = sf.fitting.mean(xy) 
+center = np.tile(center, (xy.shape[0],1)) 
 
-obj = lambda theta : objective_function(xy, mu, theta)
+obj = lambda theta : objective_function(xy, center, theta)
 
 var = scipy.optimize.minimize(obj, (0.0,), method='Nelder-Mead')['x']
-rxy = sf.fitting.rotate2(xy, mu, var[0])
+data.theta = var[0]
+data.center = center
+rxy = sf.fitting.rotate2(xy, center, data.theta)
+data.rxy = rxy
 
 plt.plot(xy[:,0], xy[:,1], 'bo')
 plt.plot(rxy[:,0], rxy[:,1], 'ro')
@@ -54,3 +57,4 @@ helper.plot_points2(helper.close_boundary(bbox),'r')
 plt.legend(['Before rotation', 'After rotation'])
 plt.savefig(figfile)
 plt.show()
+pickle.dump(data, open('.'.join(outputfile.split('.')[:-1]) + '.p', 'wb'))

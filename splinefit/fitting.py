@@ -158,7 +158,7 @@ def bbox2_vol(bbox):
     """
     return (bbox[1,0] - bbox[0,0])*(bbox[2,1] - bbox[1,1])
 
-def rotate2(xy, mu, theta):
+def rotate2(points, mu, theta):
     """
     Perform a 2D coordinate rotation specified by the angular parameter `theta`.
     This parameter increases when the points `xy` are rotated in the counter

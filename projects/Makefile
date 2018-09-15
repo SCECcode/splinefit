@@ -16,7 +16,7 @@ fault7b=WTRA-SBTS-SMMT-Santa_Monica_thrust_fault-CFM1
 fault8a=PNRA-NIRC-LABS-Newport-Inglewood_fault-dip_w_splays-split-CFM5
 fault8b=PNRA-CSTL-SJQH-San_Joaquin_Hills_fault-truncated-CFM3            
 fault8c=PNRA-CEPS-LABS-Compton-Los_Alamitos_fault-CFM2                   
-fault=$(fault1)
+fault=$(fault2)
 
 all: test-convert test-boundary test-projection test-rotation
 define mesh 
