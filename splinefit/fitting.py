@@ -237,3 +237,29 @@ def sdquad2(p, p0, p1, p2, p3):
     d0 = sdtriangle2(p, p0, p1, p3)
     d1 = sdtriangle2(p, p1, p2, p3)
     return min(d0, d1)
+
+
+def triangle_vol(p0, p1, p2):
+    """
+    Compute the area of a triangle. The triangle may be defined in either 2D or
+    3D space.
+
+    Arguments:
+        p0, p1, p2 : Vertices of the triangle.
+
+    """
+
+    e1 = p1 - p0
+    e2 = p2 - p0
+    z = np.cross(e1, e2)
+    return 0.5*np.linalg.norm(z)
+
+def quad_vol(p0, p1, p2, p3):
+    """
+    Compute the area of a quadrilateral. The vertices of the quadrilateral must
+    be ordered.
+
+    Arguments:
+        p0, p1, p2, p3 : Vertices of quadrilateral.
+    """
+    return triangle_vol(p0, p1, p3) + triangle_vol(p1, p2, p3)

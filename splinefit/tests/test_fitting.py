@@ -59,7 +59,6 @@ def test_sdtriangle2():
     assert dist > 0
 
 def test_sdquad2():
-
     p0 = np.array((0.0, 0.0))
     p1 = np.array((1.0, 0.0))
     p2 = np.array((1.0, 1.0))
@@ -68,4 +67,20 @@ def test_sdquad2():
     assert d(0.25,0.25) < 0
     assert d(1.10,1.15) > 0
     assert d(-0.10,0.0) > 0
+
+def test_triangle2_vol():
+    p0 = np.array((0.0, 0.0))
+    p1 = np.array((1.0, 0.0))
+    p2 = np.array((0.0, 1.0))
+    area = sf.fitting.triangle_vol(p0, p1, p2)
+    assert np.isclose(area, 0.5)
+
+def test_quad_vol():
+    p0 = np.array((0.0, 0.0))
+    p1 = np.array((1.0, 0.0))
+    p2 = np.array((1.0, 1.0))
+    p3 = np.array((0.0, 1.0))
+    area = sf.fitting.quad_vol(p0, p1, p2, p3)
+    assert np.isclose(area, 1.0)
+
 
