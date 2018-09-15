@@ -24,12 +24,14 @@ that I believe while have some chance at succeeding.
 
 These are the key components to the surface fitting, 
 
-1. Boundary segment detection
-2. 2D Plane projection
-3. 2D Plane rotation
-4. BSpline boundary curve fitting
-5. Surface parameterization
-6. BSpline surface fitting
+1. [Boundary detection](#boundary-detection)
+2. [2D Plane projection](#2d-plane-projection)
+3. [2D Plane rotation](#2d-plane-rotation)
+4. [Quadrilateral fitting](#quadrilateral-fitting) (deprecated)
+5. [Boundary segmentation](#boundary-segmentation)
+6. [BSpline boundary curve fitting](#bspline-boundary-curve-fitting)
+7. Surface parameterization
+8. BSpline surface fitting
 
 Below follows an overview of what each step does.
 
@@ -47,7 +49,7 @@ the best fitting 2D plane. This plane is simply found by performing principal
 component analysis (PCA) and defining the plane using the eigenvectors
 corresponding to the two maximum modulus eigenvalues.
 
-## Boundary segment detection
+## Boundary detection
 Altough there probably are plenty of packages that can be used to detect the
 boundary of some triangulation, I decided to implement my own solution. It
 appears that many of the meshes contain multiple surfaces. For now, only one
@@ -70,16 +72,14 @@ boundary of the mesh if this edge only appears in a single triangle. Edges that
 are shared by two triangles are interior edges. Once the boundary edges have
 been detected, they are ordered by starting at some arbitrary boundary node and
 then selecting the next node by looking for its nearest neighbor, and by
-excluding itself or a previous node from the search. 
+excluding itself or a previous node from the search. The search terminates when
+a previously visited node is revisited. 
 
-Once the boundary edges have been detected, they are split into four boundary
-segments. The reason for wanting to split the boundary into separate segments is becuse BSpline curves assume
-smoothness, but there is no continuity at the corner points. To identify the corner nodes, the angle between two neighboring edges
-is measured at each node on the boundary. A node is marked as a corner point if it
-is among the top four nodes that have the angles closest to being orthogonal. Unfortunately, this simple strategy does
-not succesfully detect corner points in 3D. Due to variability in the data it is comppletely possible that non-corner
-points are flagged as being corner points. Perhaps this difficulity is overcome by first projecting the boundary points
-onto the best fitting plane, discussed next.
+It is possible, and in fact, some meshes contain multiple boundaries. The
+multiple boundaries come from having multiple surfaces in the same file, or come
+from hole structures.
+
+
 
 ## 2D Plane Projection
 After boundary detection, the boundary points are projected onto the best fitting plane. While there is a some global origin
@@ -122,7 +122,7 @@ optimal rotation (red) that approximately minimizes the area of the bounding box
 **Figure 4:** Rotation of projected boundary so that it aligns with the
 coordinate axes.
 
-### Quadrilateral fit
+### Quadrilateral fitting
 **WARNING:** This step is not working correctly. It must either be improved or
 removed.
 
@@ -155,8 +155,20 @@ encloses all boundary points.
 
 ### Boundary segmentation
 
-To perform the boundary segmentation, the boundary point closest to a vertex is
-selected as a corner point. This assignment process is repeated for each vertex.
-When all four vertices have been assigned, the boundary is simply segmented by
-traversing it and splitting it up each time a new corner point is encountered.
+While the quadrilateral step is currently not working, boundary segmentation
+using the bounding box information works quite well.  Corner points are selected
+by finding the boundary points that are the closest to each vertex of the
+bounding box in the L1 norm. Once the corner points have been selected, the
+boundary segments can easily be extracted for each side. Figure 6 shows the
+result of applying the boundary segmentation step to some of the faults.
+
+![](figures/PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1_segment.png) 
+![](figures/GRFS-GRFZ-WEST-Garlock_fault-CFM5_segment.png)
+![](figures/WTRA-NCVS-VNTB-Southern_San_Cayetano_fault-steep-JHAP-CFM5_segment.png)
+![](figures/WTRA-ORFZ-SFNV-Northridge-Frew_fault-CFM2_segment.png)
+
+**Figure 6:** Detection of corner points using L1 distance and boundary
+segmentation.
+
+### BSpline boundary curve fitting
 
