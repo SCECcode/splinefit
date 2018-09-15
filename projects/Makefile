@@ -16,9 +16,9 @@ fault7b=WTRA-SBTS-SMMT-Santa_Monica_thrust_fault-CFM1
 fault8a=PNRA-NIRC-LABS-Newport-Inglewood_fault-dip_w_splays-split-CFM5
 fault8b=PNRA-CSTL-SJQH-San_Joaquin_Hills_fault-truncated-CFM3            
 fault8c=PNRA-CEPS-LABS-Compton-Los_Alamitos_fault-CFM2                   
-fault=$(fault2)
+fault=$(fault3)
 
-test: test-convert test-boundary test-projection test-rotation test-quad
+test: test-convert test-boundary test-projection test-rotation test-segment
 define mesh 
 	mkdir -p $(out)/$(1)
 	tsurfmsh $(cfm)/$(2).ts $(out)/$(1)/$(2).msh
@@ -27,14 +27,14 @@ endef
 define boundary 
 	@mkdir -p $(data)/$(1)
 	@mkdir -p $(figures)/$(1)
-	$(PY) boundary.py $(out)/$(1)/$(2).msh $(data)/$(1)/$(2)_boundary.msh \
+	$(PY) boundary.py $(out)/$(1)/$(2).msh $(data)/$(1)/$(2)_boundary.p \
 		$(figures)/$(1)/$(2)_boundary.png
 endef
 
 define projection 
 	@mkdir -p $(data)/$(1)
 	@mkdir -p $(figures)/$(1)
-	$(PY) projection.py $(data)/$(1)/$(2)_boundary.msh $(data)/$(1)/$(2)_projection.msh \
+	$(PY) projection.py $(data)/$(1)/$(2)_boundary.p $(data)/$(1)/$(2)_projection.p \
 		$(figures)/$(1)/$(2)_projection.png
 endef
 
@@ -54,8 +54,15 @@ define quad
 		$(figures)/$(1)/$(2)_quad.png
 endef
 
+define segment
+	@mkdir -p $(data)/$(1)
+	@mkdir -p $(figures)/$(1)
+	$(PY) segment.py $(data)/$(1)/$(2)_rotation.p \
+		$(data)/$(1)/$(2)_segment.p \
+		$(figures)/$(1)/$(2)_segment.png
+endef
 
-# Select all "easy" faults and convert to .msh files
+
 test-convert:
 	$(call mesh,test,$(fault))
 
@@ -70,6 +77,9 @@ test-rotation:
 
 test-quad:
 	$(call quad,test,$(fault))
+
+test-segment:
+	$(call segment,test,$(fault))
 
 convert-easy:
 	$(call mesh,easy1,$(fault1))

@@ -13,13 +13,14 @@ if len(sys.argv) < 4:
 else:
     figfile = sys.argv[3]
 
-coords, tris = sf.msh.read(inputfile)
-pcl_xyz = coords[:,1:]
+
+data = pickle.load(open(inputfile, 'rb'))
+pcl_xyz = data.coords[:,1:]
 pcl_xyz, mu, std = sf.fitting.normalize(pcl_xyz)
 
-edges = sf.msh.get_data(tris)
+edges = data.bnd_edges
 
-bnd_xyz = helper.close_boundary(pcl_xyz[edges[:,0],:])
+bnd_xyz =pcl_xyz[edges[:,0],:]
 
 
 basis = sf.fitting.pca(bnd_xyz, num_components=3)
@@ -41,5 +42,5 @@ data.bnd_xyz = bnd_xyz
 data.bnd_xy = bnd_xy
 data.pcl_xyz = pcl_xyz
 data.pcl_xy = pcl_xy
-pickle.dump(data, open('.'.join(outputfile.split('.')[:-1]) + '.p', 'wb'))
+pickle.dump(data, open(outputfile, 'wb'))
 

@@ -104,3 +104,18 @@ class Struct(dict):
     def __init__(self,**kw):
         dict.__init__(self,kw)
         self.__dict__ = self
+
+def export_msh(coords, bnd_edges, outputfile):
+    #TODO: Export to gmsh. This exporter is not yet working.
+    num_edges = bnd_edges.shape[0]
+    # id, elem type, num tags, tags, node list
+    num_attr = 6
+    elems = np.zeros((num_edges, num_attr)).astype(np.int64)
+    for i in range(num_edges):
+        elems[i,0] = i + 1
+        elems[i,1] = 1
+        elems[i,2] = 1
+        elems[i,3] = 1
+        elems[i,4] = bnd_edges[i,0] + 1
+        elems[i,5] = bnd_edges[i,1] + 1
+    sf.msh.write(outputfile, coords, elems)

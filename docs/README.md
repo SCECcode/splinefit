@@ -123,6 +123,9 @@ optimal rotation (red) that approximately minimizes the area of the bounding box
 coordinate axes.
 
 ### Quadrilateral fit
+**WARNING:** This step is not working correctly. It must either be improved or
+removed.
+
 The purpose behind this step is to obtain a better fit by reshaping the bounding box into 
 quadrilateral. This quadrilateral can then be used to identify corner points by
 picking the boundary points that lie closest to the vertices of the
@@ -135,13 +138,25 @@ prevent the optimization procedure from trying to minimize the area of the
 quadrilateral by collapsing it into a triangle. The minimization of the area
 is constrained by requiring that all boundary points lie inside the
 quadrilateral. Figure 5 shows the result of applying this optimization
-procedure. As can be seen in the figure, the optimization fails for the last
-test case (Southern San Cayetano fault)
+procedure. As can be seen in the figure, the optimization fails for the third
+test case (Southern San Cayetano fault). An additional test case is included,
+featuring a fault from the medium dataset. This fault is not so easily to map to
+a plane and the fitting a quad to it - its projection lacks clear edges.
+
+
 
 ![](figures/PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1_quad.png) 
 ![](figures/GRFS-GRFZ-WEST-Garlock_fault-CFM5_quad.png)
 ![](figures/WTRA-NCVS-VNTB-Southern_San_Cayetano_fault-steep-JHAP-CFM5_quad.png)
+![](figures/WTRA-ORFZ-SFNV-Northridge-Frew_fault-CFM2_quad.png)
 
 **Figure 5:** First attempt at finding a minimum area quadrilateral that
 encloses all boundary points.
+
+### Boundary segmentation
+
+To perform the boundary segmentation, the boundary point closest to a vertex is
+selected as a corner point. This assignment process is repeated for each vertex.
+When all four vertices have been assigned, the boundary is simply segmented by
+traversing it and splitting it up each time a new corner point is encountered.
 
