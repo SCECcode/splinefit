@@ -244,3 +244,38 @@ def is_edge(edge):
     unique_ids = id1 != id2
 
     return is_node(id1) and is_node(id2) and unique_ids
+
+def close_boundary(points):
+    """
+    Close the boundary by adding the first point to the end of the array.
+
+    Arguments:
+        points : Array of points (size: num points x 3).
+
+    """
+    return np.vstack((points, points[0,:]))
+
+def normals2(points):
+    """
+    Compute normals along a boundary segment. Determines the normals for either
+    an open or closed boundary (use `close_boundary` to close a boundary
+    segment).
+
+    The outward pointing normal is returned if the boundary points are ordered
+    counter-clockwise.
+
+    Arguments:
+        points : Array of points (size: num points x 2).
+
+    Returns:
+        out : Normal at edge. The edges are defined as e_i = (p_{i+1}, p_i) 
+
+    """
+    ex = points[0:-1,0] - points[1:,0]
+    ey = points[0:-1,1] - points[1:,1]
+
+    nx = -ey
+    ny = ex
+    n = np.vstack((nx,ny)).T
+    return n
+

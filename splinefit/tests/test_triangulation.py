@@ -97,3 +97,13 @@ def test_is_edge():
     assert sf.triangulation.is_edge((int(1),int(10)))
     assert not sf.triangulation.is_edge((int(1),int(1)))
     assert not sf.triangulation.is_edge((int(1),int(1),int(2)))
+
+def test_normal2():
+    coords = np.array([[0.0, 0.0],[1.0, 0.0], [1.0, 1.0], [0.0, 1.0]])
+    normals = sf.triangulation.normals2(coords)
+    print(normals.shape)
+    assert normals.shape[0] == coords.shape[0] - 1
+    assert np.isclose(normals[0,0], 0)
+    assert np.isclose(normals[0,1], -1)
+
+
