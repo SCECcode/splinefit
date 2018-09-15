@@ -259,10 +259,10 @@ def normals2(points):
     """
     Compute normals along a boundary segment. Determines the normals for either
     an open or closed boundary (use `close_boundary` to close a boundary
-    segment).
+    segment). 
 
-    The outward pointing normal is returned if the boundary points are ordered
-    counter-clockwise.
+    The boundary points must be ordered. The outward pointing normal is returned
+    if the boundary points are ordered counter-clockwise.
 
     Arguments:
         points : Array of points (size: num points x 2).
@@ -278,4 +278,23 @@ def normals2(points):
     ny = ex
     n = np.vstack((nx,ny)).T
     return n
+
+def orientation2(points, normals):
+    """
+    Determine the orientation of an ordered list of points along a boundary
+    segment. 
+
+    Arguments:
+        points : Array of points (size: num points x 2).
+        normals : Array of normal components (size num points - 1 x 2).
+
+    Returns:
+        out. Boundary orientation. `out > 0` if the boundary points are ordered
+        counter-clockwise.
+
+    """
+    mx = points[0:-1,0] + points[1:,0]
+    my = points[0:-1,1] + points[1:,1]
+
+    return(sum(mx*normals[:,0] + my*normals[:,1]))
 

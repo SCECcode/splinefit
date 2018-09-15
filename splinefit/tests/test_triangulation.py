@@ -101,9 +101,18 @@ def test_is_edge():
 def test_normal2():
     coords = np.array([[0.0, 0.0],[1.0, 0.0], [1.0, 1.0], [0.0, 1.0]])
     normals = sf.triangulation.normals2(coords)
-    print(normals.shape)
     assert normals.shape[0] == coords.shape[0] - 1
     assert np.isclose(normals[0,0], 0)
     assert np.isclose(normals[0,1], -1)
+
+def test_orientation2():
+    coords = np.array([[0.0, 0.0],[1.0, 0.0], [1.0, 1.0], [0.0, 1.0]])
+    normals = sf.triangulation.normals2(coords)
+    is_ccw = sf.triangulation.orientation2(coords, normals)
+    assert is_ccw > 0 
+    coords = coords[::-1,:]
+    normals = sf.triangulation.normals2(coords)
+    is_ccw = sf.triangulation.orientation2(coords, normals)
+    assert is_ccw < 0 
 
 
