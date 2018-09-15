@@ -212,3 +212,28 @@ def sdtriangle2(p, p0, p1, p2):
     out = -np.sqrt(d[0])*np.sign(d[1])
     return out
 
+
+def sdquad2(p, p0, p1, p2, p3):
+    """
+    Signed distance function for a quadrilateral element in 2D
+    The vertices should be counter clockwise ordered.
+
+    This function is based on computing the signed distance function for a
+    triangle by splitting the quad into two triangles and taking the union. A
+    side effect of this approach is that the shared edge of the triangles in the
+    quad is also accounted for. Hence, this function does not compute the actual
+    distance function for a quad.
+
+    Arguments:
+        p : Query point.
+        p0, p1, p2, p3 : Vertices of quadrilateral.
+
+    Returns:
+        out : The signed distance function. `out > 0` if `p` is outside the
+        quad and `out < 0` if `p` is inside the quad. 
+    """
+
+
+    d0 = sdtriangle2(p, p0, p1, p3)
+    d1 = sdtriangle2(p, p1, p2, p3)
+    return min(d0, d1)
