@@ -48,3 +48,13 @@ def test_bbox2_area():
     points = np.array([[0.0, 1.0], [1.0, 0.0], [0.5, 0.5]])
     bbox = sf.fitting.bbox2(points)
     assert sf.fitting.bbox2_vol(bbox) == 1.0
+
+def test_triangle():
+    p0 = np.array((0.0, 0.0))
+    p1 = np.array((-0.5, 0.0))
+    p2 = np.array((0.0, 0.5))
+
+    p = np.array((0.25, 0.25))
+    dist = sf.fitting.sdtriangle2(p, p0, p1, p2)
+    assert dist > 0
+

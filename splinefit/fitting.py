@@ -160,14 +160,55 @@ def bbox2_vol(bbox):
 
 def rotate2(xy, mu, theta):
     """
-    Perform a 2D coordinate rotation specified by the angular parameter `theta`. 
-    This parameter increases when the points `xy` are rotated in the counter clockwise direction.
+    Perform a 2D coordinate rotation specified by the angular parameter `theta`.
+    This parameter increases when the points `xy` are rotated in the counter
+    clockwise direction.
+
+    Arguments:
+        points : An array of size num points x 2 that contains the point cloud.
+            Here, `points[0,:]` is the first point with coordinates 
+            `x_0, x_1`
+        mu : Point to rotate around.
+        theta : Angle to rotate by.
 
     """
     R = np.array([[np.cos(theta), -np.sin(theta)],
                   [np.sin(theta), np.cos(theta)]])
 
-    rxy = mu + R.dot(xy.T- mu.T).T
+    rxy = mu + R.dot(points.T- mu.T).T
     return rxy
 
+def sdtriangle2(p, p0, p1, p2):
+    """
+    Signed distance function for a triangle in 2D
+    
+    Source:
+    https://iquilezles.org/www/articles/distfunctions2d/distfunctions2d.htm
+
+    Arguments:
+        p : Query point.
+        p0, p1, p2 : Vertices of triangle.
+
+    Returns:
+        out : The signed distance function. `out > 0` if `p` is outside the
+        triangle and `out < 0` if `p` is inside the triangle. 
+
+    """
+    e0 = p1-p0
+    e1 = p2-p1
+    e2 = p0-p2
+    v0 = p-p0
+    v1 = p-p1
+    v2 = p-p2
+
+    pq0 = v0 - e0*np.clip( np.dot(v0,e0)/np.dot(e0,e0), 0.0, 1.0 )
+    pq1 = v1 - e1*np.clip( np.dot(v1,e1)/np.dot(e1,e1), 0.0, 1.0 )
+    pq2 = v2 - e2*np.clip( np.dot(v2,e2)/np.dot(e2,e2), 0.0, 1.0 )
+    
+    s = np.sign( e0[0]*e2[1] - e0[1]*e2[0] )
+    d = min(min((np.dot(pq0,pq0), s*(v0[0]*e0[1]-v0[1]*e0[0])),
+                     (np.dot(pq1,pq1), s*(v1[0]*e1[1]-v1[1]*e1[0]))),
+                     (np.dot(pq2,pq2), s*(v2[0]*e2[1]-v2[1]*e2[0])))
+    out = -np.sqrt(d[0])*np.sign(d[1])
+    return out
 
