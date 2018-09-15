@@ -108,6 +108,8 @@ def ordered_boundary_edges(edges_to_nodes, nodes_to_edges):
     # Start ordering with some arbitrary edge
     node1 = edges_to_nodes[0][0]
     node2 = edges_to_nodes[0][1]
+    visited = {}
+    num_traversed = 0
     # Find the next edge that connects to node2, but isn't node1
     for i in range(num_edges):
         out[i,0] = node1
@@ -123,8 +125,15 @@ def ordered_boundary_edges(edges_to_nodes, nodes_to_edges):
             if edge_j[1] != old_node1 and edge_j[1] != node2:
                 node2 = edge_j[1]
                 break
+        if node2 in visited:
+            break
+        else:
+            visited[node2] = 1
+        num_traversed += 1
 
-    return out
+
+
+    return out[:num_traversed,:]
 
 def tri_to_edges(tri):
     """
