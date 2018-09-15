@@ -83,4 +83,16 @@ def test_quad_vol():
     area = sf.fitting.quad_vol(p0, p1, p2, p3)
     assert np.isclose(area, 1.0)
 
+def test_argnearest():
+
+    points = np.array([[0.0, 0.0, 0.0],
+                       [1.0,0.0,0.0],
+                       [1.0,1.0,0.0],
+                       [0.0,1.0,0.0]])
+    query = points[1,:] + 1e-2
+    nearest = sf.fitting.argnearest(points, query)
+    assert nearest == 1
+
+
+
 
