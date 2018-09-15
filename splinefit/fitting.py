@@ -266,7 +266,7 @@ def quad_vol(p0, p1, p2, p3):
     A2 = triangle_vol(p1, p2, p3)
     return A1 + A2
 
-def argnearest(points, p):
+def argnearest(points, p, ord=2):
     """
     Find the index of the point that is closest to a query point `p`
 
@@ -278,5 +278,6 @@ def argnearest(points, p):
 
     """
 
-    dist = np.linalg.norm(points - np.tile(p, (points.shape[0], 1)), axis=1)
+    dist = np.linalg.norm(points - np.tile(p, (points.shape[0], 1)), axis=1, 
+            ord=ord)
     return np.argmin(dist)
