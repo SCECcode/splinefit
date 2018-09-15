@@ -121,3 +121,27 @@ optimal rotation (red) that approximately minimizes the area of the bounding box
 
 **Figure 4:** Rotation of projected boundary so that it aligns with the
 coordinate axes.
+
+### Quadrilateral fit
+The purpose behind this step is to obtain a better fit by reshaping the bounding box into 
+quadrilateral. This quadrilateral can then be used to identify corner points by
+picking the boundary points that lie closest to the vertices of the
+quadrilateral. Unfortunately, this step is currently quite slow and also not
+very robust. To obtain the quadrilateral, a nonlinear constrained optimization
+problem needs to be solved. The objective function is defined as the minimum of
+area of the quadrilateral or triangle that can be generated using any three
+vertices. The reason for defining the objective function in this way is to
+prevent the optimization procedure from trying to minimize the area of the
+quadrilateral by collapsing it into a triangle. The minimization of the area
+is constrained by requiring that all boundary points lie inside the
+quadrilateral. Figure 5 shows the result of applying this optimization
+procedure. As can be seen in the figure, the optimization fails for the last
+test case (Southern San Cayetano fault)
+
+![](figures/PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1_quad.png) 
+![](figures/GRFS-GRFZ-WEST-Garlock_fault-CFM5_quad.png)
+![](figures/WTRA-NCVS-VNTB-Southern_San_Cayetano_fault-steep-JHAP-CFM5_quad.png)
+
+**Figure 5:** First attempt at finding a minimum area quadrilateral that
+encloses all boundary points.
+

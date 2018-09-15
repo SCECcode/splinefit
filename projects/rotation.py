@@ -47,6 +47,7 @@ data.theta = var[0]
 data.center = center
 rxy = sf.fitting.rotate2(xy, center, data.theta)
 data.rxy = rxy
+data.proj_xy = xy
 
 plt.plot(xy[:,0], xy[:,1], 'bo')
 plt.plot(rxy[:,0], rxy[:,1], 'ro')

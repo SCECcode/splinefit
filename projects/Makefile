@@ -18,7 +18,7 @@ fault8b=PNRA-CSTL-SJQH-San_Joaquin_Hills_fault-truncated-CFM3
 fault8c=PNRA-CEPS-LABS-Compton-Los_Alamitos_fault-CFM2                   
 fault=$(fault2)
 
-all: test-convert test-boundary test-projection test-rotation
+test: test-convert test-boundary test-projection test-rotation test-quad
 define mesh 
 	mkdir -p $(out)/$(1)
 	tsurfmsh $(cfm)/$(2).ts $(out)/$(1)/$(2).msh
@@ -46,6 +46,14 @@ define rotation
 		$(figures)/$(1)/$(2)_rotation.png
 endef
 
+define quad
+	@mkdir -p $(data)/$(1)
+	@mkdir -p $(figures)/$(1)
+	$(PY) quad.py $(data)/$(1)/$(2)_rotation.p \
+		$(data)/$(1)/$(2)_quad.p \
+		$(figures)/$(1)/$(2)_quad.png
+endef
+
 
 # Select all "easy" faults and convert to .msh files
 test-convert:
@@ -59,6 +67,9 @@ test-projection:
 
 test-rotation:
 	$(call rotation,test,$(fault))
+
+test-quad:
+	$(call quad,test,$(fault))
 
 convert-easy:
 	$(call mesh,easy1,$(fault1))

@@ -262,4 +262,6 @@ def quad_vol(p0, p1, p2, p3):
     Arguments:
         p0, p1, p2, p3 : Vertices of quadrilateral.
     """
-    return triangle_vol(p0, p1, p3) + triangle_vol(p1, p2, p3)
+    A1 = triangle_vol(p0, p1, p3)
+    A2 = triangle_vol(p1, p2, p3)
+    return A1 + A2
