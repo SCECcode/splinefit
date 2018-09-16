@@ -38,10 +38,31 @@ def normalize(pts, n):
         pts : List of points (array of size (m,))
         n : Number of control points - 1.
 
+    Returns:
+        out : Normalized points
+        nc : Normalization constants
+
     """
     pmin = np.min(pts) 
     pmax = np.max(pts)
     out = n*(pts - pmin)/(pmax - pmin)
+    nc = (pmin, pmax)
+    return out, nc 
+
+def denormalize(npts, nc, n):
+    """
+    Restore normalized points, to their original, unnormalized representation
+
+    Arguments:
+        npts : List of normalized points (array of size (m,))
+        nc : Normalization constants (see `normalize`)
+        n : Number of control points - 1.
+
+    Returns:
+        out : Normalized points
+
+    """
+    out = npts*(nc[1] - nc[0])/n + nc[0]
     return out
 
 def lower(pts):

@@ -40,9 +40,12 @@ def test_curve():
 def test_normalize():
     P = np.array([1.0, 1.0, 0.4, 0.0, 0.0, 0.0, 0.4, 1.0, 1.0])
     n = 5
-    nP = sf.bspline.normalize(P, n)
+    nP, nc = sf.bspline.normalize(P, n)
     assert np.isclose(min(nP),0)
     assert np.isclose(max(nP),n)
+
+    rP = sf.bspline.denormalize(nP, nc, n)
+    assert np.all(np.isclose(P - rP,0))
 
 
 
