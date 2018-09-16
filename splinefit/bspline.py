@@ -178,8 +178,9 @@ def basisfuns(i,u,p,U):
 
     return N
 
-def curvepoint(n, p, U, P, u):
+def curvepoint(p, U, P, u):
     C = 0.0
+    n = len(P) - p
     span = int(np.floor(u)) + p
     span = findspan(n, p, u, U)
     N = basisfuns(span,u,p,U)
