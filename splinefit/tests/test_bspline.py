@@ -37,6 +37,14 @@ def test_curve():
     #plt.show()
 
 
+def test_normalize():
+    P = np.array([1.0, 1.0, 0.4, 0.0, 0.0, 0.0, 0.4, 1.0, 1.0])
+    n = 5
+    nP = sf.bspline.normalize(P, n)
+    assert np.isclose(min(nP),0)
+    assert np.isclose(max(nP),n)
+
+
 
 
 

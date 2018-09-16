@@ -29,3 +29,34 @@ def cubic(t):
 
     out = u.dot(B)
     return out
+
+def normalize(pts, n):
+    """
+    Renormalize points so that for each point `pt`, we have `0 <= pt <= n`.
+
+    Arguments:
+        pts : List of points (array of size (m,))
+        n : Number of control points - 1.
+
+    """
+    pmin = np.min(pts) 
+    pmax = np.max(pts)
+    out = n*(pts - pmin)/(pmax - pmin)
+    return out
+
+def lower(pts):
+    """
+    Determine the lowest index of the control points that lie in the
+    neighborhood of the query points `pts`.
+
+    Arguments:
+        pts : Query points, must be normalized to 0 <= pts <= n, where n+1 is
+            the number of control points.
+    """
+    return np.floor(pts) - 1
+
+def upper(pts):
+    """
+    Same as `lower`, but returns the highest index.
+    """
+    return np.floor(pts) + 2
