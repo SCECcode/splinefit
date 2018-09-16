@@ -38,6 +38,7 @@ def test_minimize():
     """
     Compare least square minimization procedure to scipy's 
     """
+    pass
     npts = 60
     px = np.linspace(-3+1e-2, 3-1e-2, npts)
     py = np.exp(-px**2) + 0.01 * np.random.randn(npts)
@@ -61,4 +62,31 @@ def test_minimize():
     plt.plot(px, py, 'bo')
     plt.plot(u, spl(u), 'g-', lw=3, label='LSQ spline')
     plt.plot(u, z,'k')
+    plt.show()
+
+def test_bspline_curve():
+
+    npts = 60
+    px = np.linspace(-3+1e-2, 3-1e-2, npts)
+    py = np.exp(-px**2) + 0.01 * np.random.randn(npts)
+    from scipy.interpolate import make_lsq_spline, BSpline
+
+    n = 9
+    p = 3
+    t = np.linspace(-2,2,20)
+    U = np.r_[(px[0],)*(p+1),
+              t,
+              (px[-1],)*(p+1)]
+
+    Px = sf.bspline.bspline_lsq(px, py, U, p)
+    Py = sf.bspline.bspline_lsq(py, px, U, p)
+
+    zx = []
+    zy = []
+    u = np.linspace(-3,3,100)
+    for ui in u:
+        zx.append(sf.bspline.curvepoint(nctrl, p, U, Px, ui))
+        zy.append(sf.bspline.curvepoint(nctrl, p, U, Py, ui))
+
+    plt.plot(zx, zy,'ko')
     plt.show()
