@@ -65,32 +65,20 @@ def test_minimize():
     plt.show()
 
 def test_bspline_curve():
-
     npts = 60
     a = -2
-    b = 3
+    b = 2
     px = np.linspace(a+1e-2, b-1e-2, npts)
     py = np.exp(-px**2) + 0.01 * np.random.randn(npts)
-    from scipy.interpolate import make_lsq_spline, BSpline
 
     p = 3
-    t = np.linspace(-2,2,12)
+    t = np.linspace(a,b,12)
     U = np.r_[(px[0],)*(p+1),
               t,
               (px[-1],)*(p+1)]
 
-    # Map data points to parameters using using the l2 distance between data
-    # points
-    dx = px[1:] - px[0:-1]
-    dy = py[1:] - py[0:-1]
-    dists = np.sqrt(dx**2 + dy**2)
-    d = 0*np.zeros((npts,))
-    for i in range(len(dists)):
-        d[i+1] = d[i] + dists[i]
-
-    d = (b-a)*(d-min(d))/(max(d)-min(d)) + a
-    Px = sf.bspline.bspline_lsq(d, px, U, p)
-    Py = sf.bspline.bspline_lsq(d, py, U, p)
+    s = sf.bspline.l2map(px, py, a=a, b=b)
+    Px, Py = sf.bspline.lsq2(s, px, py, U, p)
 
     zx = []
     zy = []
@@ -100,7 +88,6 @@ def test_bspline_curve():
         zy.append(sf.bspline.curvepoint(p, U, Py, ui))
 
     plt.clf()
-    plt.plot(zx, zy,'ko')
-    plt.plot(px, py,'g-')
+    plt.plot(zx, zy,'k-')
+    plt.plot(px, py,'go')
     plt.show()
-    assert 0

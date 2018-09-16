@@ -188,7 +188,7 @@ def curvepoint(p, U, P, u):
         C = C + N[i]*P[span-p+i]
     return C
 
-def bspline_lsq(x, y, U, p):
+def lsq(x, y, U, p):
     """
     Computes the least square fit to the data (x,y) using the knot vector U.
 
@@ -219,5 +219,48 @@ def bspline_lsq(x, y, U, p):
     p0 = np.linalg.lstsq(A, b, rcond=None)[0]
     P[0:nctrl] = p0
     return P
+
+def l2map(x, y, a=0, b=1):
+    """
+    Map (x_j, y_j) to the interval a <= s_j <=b using the L2 distance between
+    each point.
+
+    s_0 = a 
+    s_1 = a + d_1, 
+    s_j = s_{j-1} + d_j
+    where d_j = dist(P_j - P_{j-1}), and P_j = (x_j, y_j).
+
+    """
+    dx = x[1:] - x[0:-1]
+    dy = y[1:] - y[0:-1]
+    dists = np.sqrt(dx**2 + dy**2)
+    d = np.zeros((len(x),))
+    for i in range(len(dists)):
+        d[i+1] = d[i] + dists[i]
+
+    d = (b-a)*(d-min(d))/(max(d)-min(d)) + a
+    return d
+
+def lsq2(s, x, y, U, p):
+    """
+    Fit a curve C(s) = sum_i B_i(s) P, where control points P = (P_x, P_y)
+
+    s defines the mapping of each data point (x_j, y_j) to the curve parameter
+    s_j. A simple mapping to use is the L2 distance between points `see l2map`.
+
+    Arguments:
+        s : Mapping of (x,y) to the curve
+        U : Knot vector
+        p : Polynomial degree.
+
+    Returns:
+        Px, Py : The coordinates of the control points.
+
+    """
+    Px = lsq(s, x, U, p)
+    Py = lsq(s, y, U, p)
+    return Px, Py
+
+
 
 
