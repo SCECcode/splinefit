@@ -33,9 +33,11 @@ def get_corners(points, bbox, norm=1):
 
 def get_segment(points, id1, id2):
     if id2 < id1:
-        return np.vstack((points[id1:,:],points[:id2+1,:]))
+        ids = list(range(id1, points.shape[0])) + list(range(id2+1))
+        return np.vstack((points[id1:,:],points[:id2+1,:])),ids
     else:
-        return points[id1:id2+1,:]
+        ids = list(range(id1, id2+1))
+        return points[id1:id2+1,:], ids
 
 def fix_orientation(points):
     """
@@ -48,11 +50,11 @@ def fix_orientation(points):
     return points
 
 def edges(points, corner_ids):
-    bottom = get_segment(points, corner_ids[0], corner_ids[1])
-    right = get_segment(points, corner_ids[1], corner_ids[2])
-    top = get_segment(points, corner_ids[2], corner_ids[3])
-    left = get_segment(points, corner_ids[3], corner_ids[0])
-    return bottom, right, top, left
+    bottom, bottom_ids = get_segment(points, corner_ids[0], corner_ids[1])
+    right, right_ids = get_segment(points, corner_ids[1], corner_ids[2])
+    top, top_ids = get_segment(points, corner_ids[2], corner_ids[3])
+    left, left_ids = get_segment(points, corner_ids[3], corner_ids[0])
+    return bottom, right, top, left, bottom_ids, right_ids, top_ids, left_ids
 
 def make_plot(data):
     helper.plot_points2(data.rxy,'bo')
@@ -70,8 +72,10 @@ data = pickle.load(open(inputfile, 'rb'))
 data.rxy = fix_orientation(data.rxy)
 bbox = sf.fitting.bbox2(data.rxy)
 corner_ids = get_corners(data.rxy, bbox)
-data.bottom, data.right, data.top, data.left = edges(data.rxy, corner_ids)
+data.bottom, data.right, data.top, data.left, data.bottom_ids, data.right_ids,\
+data.top_ids, data.left_ids = edges(data.rxy, corner_ids)
 data.corners = data.rxy[corner_ids]
+data.corner_ids = corner_ids
 
 make_plot(data)
 
