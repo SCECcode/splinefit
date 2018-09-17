@@ -172,3 +172,55 @@ segmentation.
 
 ### BSpline boundary curve fitting
 
+A BSpline curve `C(s) = sum_i B_i C` is fitted to each of the boundary segments extracted in the
+previous step. To perform the fit, a mapping between each data point `(x,y)` and
+the arclength parameter `s`, satisyfing `0 <= s <=1`, is defined. The mapping
+used is the L2 distance between two neighboring data points and the previous
+parameter value. For example, `P_0 = (x_0, y_0)` maps to `s_0 =0`, and `P1 =
+(x_1, y_1)` maps to `s_1 = s_0 + dist(P_0, P_1)` and so forth. Once all mapping
+values have been defined, they are normalized to `0 <= s <= 1`. The position
+of knots, or breakpoints for the curve are taken to be uniform. The control
+points of the curve are chosen by minimizing `\sum _i ||C_x(s_i) - x_i||^2`
+for the x-components and similarily for the y-components. 
+
+A free parameter in the procedure is the number of knots to use. The more knots
+used, that more flexibility is gained, but also the risk of introducing unwanted
+oscillations, and overfitting is increased. To find a suitable number of knots
+to use, a wide range of knots is tried until the residual of the least squares
+fit reaches some predetermined threshold.
+
+Below are some figures showing the BSpline curves obtained by running the
+procedure for each of the boundary segments obtained in the previous step. 
+
+![](figures/PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1_bspline-boundary.png) 
+![](figures/GRFS-GRFZ-WEST-Garlock_fault-CFM5_bspline-boundary.png)
+![](figures/WTRA-NCVS-VNTB-Southern_San_Cayetano_fault-steep-JHAP-CFM5_bspline-boundary.png)
+![](figures/WTRA-ORFZ-SFNV-Northridge-Frew_fault-CFM2_bspline-boundary.png)
+
+**Figure 7:** BSpline curves fitted to each boundary segment.
+
+Some more work is needed to make the fitting procedure more robust. A little bit
+of manual labor is needed to set a good threshold. Some attempts resulted in
+instability. There are also some divide by zero errors that can arise in the
+BSpline basis evaluation. 
+
+
+**Example program output**
+```
+python3 bspline-boundary.py data/test/WTRA-ORFZ-SFNV-Northridge-Frew_fault-CFM2_segment.p data/test/WTRA-ORFZ-SFNV-Northridge-Frew_fault-CFM2_bspline-boundary.p 3 0.4 figures/test/WTRA-ORFZ-SFNV-Northridge-Frew_fault-CFM2_bspline-boundary.png
+Determining number of u knots..
+Iteration: 1, number of interior knots: 1, residual: 0.678383
+Iteration: 2, number of interior knots: 3, residual: 0.631804
+Iteration: 3, number of interior knots: 5, residual: 0.564876
+Iteration: 4, number of interior knots: 7, residual: 0.540487
+Iteration: 5, number of interior knots: 9, residual: 0.521067
+Iteration: 6, number of interior knots: 11, residual: 0.476231
+Iteration: 7, number of interior knots: 13, residual: 0.446917
+Iteration: 8, number of interior knots: 15, residual: 0.432751
+Iteration: 9, number of interior knots: 17, residual: 0.403929
+Iteration: 10, number of interior knots: 19, residual: 0.364851
+Determining number of v knots..
+Iteration: 1, number of interior knots: 1, residual: 0.423652
+Iteration: 2, number of interior knots: 3, residual: 0.365569
+Number of UV control points: [7, 23]
+```
