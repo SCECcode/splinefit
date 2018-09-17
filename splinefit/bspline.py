@@ -186,12 +186,18 @@ def curvepoint(p, U, P, u):
         C = C + N[i]*P[span-p+i]
     return C
 
+def evalcurve(p, U, P, u):
+    y = 0*u
+    for i in range(len(u)):
+        y[i] = curvepoint(p, U, P, u[i])
+    return y
+
 def uniformknots(m, p, a=0, b=1):
     """
     Construct a uniform knot vector
 
     Arguments:
-    m : Number of knots
+    m : Number of interior knots
     p : Polynomial degree
     a(optional) : left boundary knot
     b(optional) : right boundary knot
@@ -278,3 +284,37 @@ def lsq2(s, x, y, U, p):
     Px, rx = lsq(s, x, U, p)
     Py, ry = lsq(s, y, U, p)
     return Px, Py, (rx, ry)
+ 
+def smoothing(x, y, sm=0.1, mmax=100, disp=False, p=3):
+    """
+    Perform least squares fitting by successively increasing the number of knots
+    until a desired residual threshold is reached.
+
+    Returns:
+        Px, Py : Control points
+        U : Knot vector
+
+    """
+
+    m = 2
+    it = 0
+    res = sm + 1
+    while (res > sm and m < mmax):
+        it += 1
+        Px, Py, U, res = lsq2l2(x, y, m, p)
+        res = np.linalg.norm(res)
+        if disp:
+            print("Iteration: %d, number of knots: %d, residual: %g" % (it, m,
+                res))
+        m = 2+m
+    return Px, Py, U
+
+
+def lsq2l2(x, y, m, p):
+    """
+    Perform least squares fitting using `m` number of knots and `L2` mapping.
+    """
+    s = l2map(x, y, a=0, b=1)
+    U = uniformknots(m, p, a=0, b=1)
+    Px, Py, res = lsq2(s, x, y, U, p)
+    return Px, Py, U, res

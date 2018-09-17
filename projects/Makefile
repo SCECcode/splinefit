@@ -3,6 +3,10 @@ cfm=/usr/local/CFM5_release_2017/obj/CFM5_preferred/native
 out=meshes
 data=data
 figures=figures
+# p: polynomial degree
+# sb : smoothing parameter for boundary curve fitting
+p=3
+sb=0.15
 
 fault1=PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1
 fault2=GRFS-GRFZ-WEST-Garlock_fault-CFM5
@@ -16,7 +20,7 @@ fault7b=WTRA-SBTS-SMMT-Santa_Monica_thrust_fault-CFM1
 fault8a=PNRA-NIRC-LABS-Newport-Inglewood_fault-dip_w_splays-split-CFM5
 fault8b=PNRA-CSTL-SJQH-San_Joaquin_Hills_fault-truncated-CFM3            
 fault8c=PNRA-CEPS-LABS-Compton-Los_Alamitos_fault-CFM2                   
-fault=$(fault4)
+fault=$(fault1)
 
 test: test-init test-convert test-boundary test-projection test-rotation \
       test-segment test-bspline-boundary
@@ -63,6 +67,7 @@ endef
 define bspline-boundary
 	$(PY) bspline-boundary.py $(data)/$(1)/$(2)_segment.p \
 		$(data)/$(1)/$(2)_bspline-boundary.p \
+		$(p) $(sb) \
 		$(figures)/$(1)/$(2)_bspline-boundary.png
 endef
 
