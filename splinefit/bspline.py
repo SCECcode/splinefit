@@ -215,7 +215,8 @@ def lsq(x, y, U, p):
         p : Degree of BSpline
 
     Returns:
-        Control points P
+        P : Control points,
+        res : residuals
 
     """
     assert len(x) == len(y)
@@ -234,8 +235,9 @@ def lsq(x, y, U, p):
         b[i] = y[i]
 
     p0 = np.linalg.lstsq(A, b, rcond=None)[0]
+    res = np.linalg.norm(A.dot(p0) - b)
     P[0:nctrl] = p0
-    return P
+    return P, res
 
 def l2map(x, y, a=0, b=1):
     """
@@ -272,11 +274,12 @@ def lsq2(s, x, y, U, p):
 
     Returns:
         Px, Py : The coordinates of the control points.
+        res : Residuals.
 
     """
-    Px = lsq(s, x, U, p)
-    Py = lsq(s, y, U, p)
-    return Px, Py
+    Px, rx = lsq(s, x, U, p)
+    Py, ry = lsq(s, y, U, p)
+    return Px, Py, (rx, ry)
 
 
 
