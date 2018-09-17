@@ -186,23 +186,21 @@ def curvepoint(p, U, P, u):
         C = C + N[i]*P[span-p+i]
     return C
 
-def uniformknots(m, p, ai=0, bi=1, ab=0, bb=1):
+def uniformknots(m, p, a=0, b=1):
     """
     Construct a uniform knot vector
 
     Arguments:
     m : Number of knots
     p : Polynomial degree
-    ai(optional) : left interior knot 
-    bi(optional) : right interior knot
-    ab : left boundary knot
-    bb : left boundary knot
+    a(optional) : left boundary knot
+    b(optional) : right boundary knot
 
     """
-    t = np.linspace(ai,bi,m)
-    U = np.r_[(ab,)*(p+1),
-              t,
-              (bb,)*(p+1)]
+    t = np.linspace(a,b,m+2)
+    U = np.r_[(a,)*(p+1),
+              t[1:-1],
+              (b,)*(p+1)]
     return U
 
 def lsq(x, y, U, p):
@@ -280,7 +278,3 @@ def lsq2(s, x, y, U, p):
     Px, rx = lsq(s, x, U, p)
     Py, ry = lsq(s, y, U, p)
     return Px, Py, (rx, ry)
-
-
-
-

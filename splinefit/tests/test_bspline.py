@@ -73,7 +73,7 @@ def test_bspline_curve():
     px = np.linspace(a, b-1e-2, npts)
     py = np.exp(-px**2) + 0.01 * np.random.randn(npts)
 
-    U = sf.bspline.uniformknots(m, p, ai=a, bi=b, ab=px[0], bb=px[-1])
+    U = sf.bspline.uniformknots(m, p, a=px[0], b=px[-1])
     s = sf.bspline.l2map(px, py, a=a, b=b)
     Px, Py, res = sf.bspline.lsq2(s, px, py, U, p)
     zx = []
