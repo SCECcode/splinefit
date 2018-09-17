@@ -68,15 +68,12 @@ def test_bspline_curve():
     npts = 60
     a = -2
     b = 2
-    px = np.linspace(a+1e-2, b-1e-2, npts)
+    p = 3
+    m = 12
+    px = np.linspace(a, b-1e-2, npts)
     py = np.exp(-px**2) + 0.01 * np.random.randn(npts)
 
-    p = 3
-    t = np.linspace(a,b,12)
-    U = np.r_[(px[0],)*(p+1),
-              t,
-              (px[-1],)*(p+1)]
-
+    U = sf.bspline.uniformknots(m, p, ai=a, bi=b, ab=px[0], bb=px[-1])
     s = sf.bspline.l2map(px, py, a=a, b=b)
     Px, Py = sf.bspline.lsq2(s, px, py, U, p)
 

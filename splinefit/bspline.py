@@ -159,8 +159,6 @@ def findspan(n, p, u, U):
         mid = int((low + high)/2)
     return mid
 
-
-
 def basisfuns(i,u,p,U):
     N = np.zeros((p+1,))
     left = np.zeros((p+1,))
@@ -187,6 +185,25 @@ def curvepoint(p, U, P, u):
     for i in range(p+1):
         C = C + N[i]*P[span-p+i]
     return C
+
+def uniformknots(m, p, ai=0, bi=1, ab=0, bb=1):
+    """
+    Construct a uniform knot vector
+
+    Arguments:
+    m : Number of knots
+    p : Polynomial degree
+    ai(optional) : left interior knot 
+    bi(optional) : right interior knot
+    ab : left boundary knot
+    bb : left boundary knot
+
+    """
+    t = np.linspace(ai,bi,m)
+    U = np.r_[(ab,)*(p+1),
+              t,
+              (bb,)*(p+1)]
+    return U
 
 def lsq(x, y, U, p):
     """
