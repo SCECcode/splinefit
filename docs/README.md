@@ -208,7 +208,7 @@ BSpline basis evaluation.
 **Example program output**
 ```
 python3 bspline-boundary.py data/test/WTRA-ORFZ-SFNV-Northridge-Frew_fault-CFM2_segment.p data/test/WTRA-ORFZ-SFNV-Northridge-Frew_fault-CFM2_bspline-boundary.p 3 0.4 figures/test/WTRA-ORFZ-SFNV-Northridge-Frew_fault-CFM2_bspline-boundary.png
-Determining number of u knots..
+Determining number of u-knots...
 Iteration: 1, number of interior knots: 1, residual: 0.678383
 Iteration: 2, number of interior knots: 3, residual: 0.631804
 Iteration: 3, number of interior knots: 5, residual: 0.564876
@@ -219,7 +219,7 @@ Iteration: 7, number of interior knots: 13, residual: 0.446917
 Iteration: 8, number of interior knots: 15, residual: 0.432751
 Iteration: 9, number of interior knots: 17, residual: 0.403929
 Iteration: 10, number of interior knots: 19, residual: 0.364851
-Determining number of v knots..
+Determining number of v-knots...
 Iteration: 1, number of interior knots: 1, residual: 0.423652
 Iteration: 2, number of interior knots: 3, residual: 0.365569
 Number of UV control points: [7, 23]

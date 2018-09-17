@@ -68,9 +68,9 @@ def make_plot(curve, figfile, save=0, npts=100):
 
 data = pickle.load(open(inputfile, 'rb'))
 
-print("Determining number of u knots..")
+print("Determining number of u-knots...")
 bottom, top = make_curves(data.bottom, data.top, p, sm, disp=1)
-print("Determining number of v knots..")
+print("Determining number of v-knots...")
 left, right = make_curves(data.left, data.right, p, sm, disp=1)
 
 mu = max(get_num_ctrlpts(left), get_num_ctrlpts(right))
@@ -83,3 +83,5 @@ make_plot(bottom, figfile)
 make_plot(right, figfile)
 make_plot(top, figfile, save=1)
 plt.show()
+
+pickle.dump((left, right, bottom, top, data), open(outputfile, 'wb'))
