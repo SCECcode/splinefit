@@ -67,12 +67,12 @@ endef
 define bspline-boundary
 	$(PY) bspline-boundary.py $(data)/$(1)/$(2)_segment.p \
 		$(data)/$(1)/$(2)_bspline-boundary.p \
-		$(p) $(sb) \
+		$(3) $(4) \
 		$(figures)/$(1)/$(2)_bspline-boundary.png
 endef
 
 test-init:
-	$(call init,test,$(fault))
+	$(call init,test)
 
 test-convert:
 	$(call mesh,test,$(fault))
@@ -93,42 +93,36 @@ test-segment:
 	$(call segment,test,$(fault))
 
 test-bspline-boundary:
-	$(call bspline-boundary,test,$(fault))
+	$(call bspline-boundary,test,$(fault),$(p),$(sm))
 
+init-easy:
+	$(call init,easy)
 convert-easy:
-	$(call mesh,easy1,$(fault1))
-	$(call mesh,easy2,$(fault2))
-	$(call mesh,easy3,$(fault3))
-
-convert-moderate-difficulty:
-	$(call mesh,medium1,$(fault4))
-	$(call mesh,medium2,$(fault5))
-	$(call mesh,medium3,$(fault6))
-	$(call mesh,medium3,$(fault6b))
-
-convert-difficult:
-	$(call mesh,hard1,$(fault7a))
-	$(call mesh,hard1,$(fault7b))
-	$(call mesh,hard2,$(fault8a))
-	$(call mesh,hard2,$(fault8b))
-	$(call mesh,hard2,$(fault8c))
+	$(call mesh,easy,$(fault1))
+	$(call mesh,easy,$(fault2))
+	$(call mesh,easy,$(fault3))
 
 boundary-easy:
-	$(call boundary,easy1,$(fault1))
-	$(call boundary,easy2,$(fault2))
-	$(call boundary,easy3,$(fault3))
-
-boundary-moderate-difficulty:
-	$(call boundary,easy1,$(fault1))
-	$(call boundary,easy2,$(fault2))
-	$(call boundary,easy3,$(fault3))
+	$(call boundary,easy,$(fault1))
+	$(call boundary,easy,$(fault2))
+	$(call boundary,easy,$(fault3))
 
 projection-easy:
-	$(call projection,easy1,$(fault1))
-	$(call projection,easy2,$(fault2))
-	$(call projection,easy3,$(fault3))
+	$(call projection,easy,$(fault1))
+	$(call projection,easy,$(fault2))
+	$(call projection,easy,$(fault3))
 
 rotation-easy:
-	$(call rotation,easy1,$(fault1))
-	$(call rotation,easy2,$(fault2))
-	$(call rotation,easy3,$(fault3))
+	$(call rotation,easy,$(fault1))
+	$(call rotation,easy,$(fault2))
+	$(call rotation,easy,$(fault3))
+
+segment-easy:
+	$(call segment,easy,$(fault1))
+	$(call segment,easy,$(fault2))
+	$(call segment,easy,$(fault3))
+
+bspline-boundary-easy:
+	#$(call bspline-boundary,easy,$(fault1),3,0.1)
+	#$(call bspline-boundary,easy,$(fault2),3,0.1)
+	$(call bspline-boundary,easy,$(fault3),3,0.15)

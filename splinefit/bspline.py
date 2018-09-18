@@ -264,6 +264,21 @@ def l2map(x, y, a=0, b=1):
     d = (b-a)*(d-min(d))/(max(d)-min(d)) + a
     return d
 
+def xmap(x, num_cells, a=0, b=1):
+    """
+    Map real number x to the interval a <= s_j <=b by dividing the range into
+    num_cells and using the nearest cell.
+
+    """
+
+    denom = max(x)-min(x)
+    if np.isclose(denom,0):
+        denom = 1
+    d = (x-min(x))/denom
+    d = (b-a)*d + a
+    
+    return d
+
 def lsq2(s, x, y, U, p):
     """
     Fit a curve C(s) = sum_i B_i(s) P, where control points P = (P_x, P_y)
@@ -315,6 +330,19 @@ def lsq2l2(x, y, m, p):
     Perform least squares fitting using `m` number of knots and `L2` mapping.
     """
     s = l2map(x, y, a=0, b=1)
+    U = uniformknots(m, p, a=0, b=1)
+    Px, Py, res = lsq2(s, x, y, U, p)
+    return Px, Py, U, res
+
+def lsq2x(x, y, m, p, axis=0):
+    """
+    Perform least squares fitting using `m` number of knots and `L1` mapping.
+    """
+    if axis == 0:
+        s = xmap(x, m, a=0, b=1)
+    else:
+        s = xmap(y, m, a=0, b=1)
+
     U = uniformknots(m, p, a=0, b=1)
     Px, Py, res = lsq2(s, x, y, U, p)
     return Px, Py, U, res
