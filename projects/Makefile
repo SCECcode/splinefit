@@ -7,6 +7,7 @@ figures=figures
 # sb : smoothing parameter for boundary curve fitting
 p=3
 sb=0.15
+sf=0.15
 
 fault1=PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1
 fault2=GRFS-GRFZ-WEST-Garlock_fault-CFM5
@@ -20,7 +21,7 @@ fault7b=WTRA-SBTS-SMMT-Santa_Monica_thrust_fault-CFM1
 fault8a=PNRA-NIRC-LABS-Newport-Inglewood_fault-dip_w_splays-split-CFM5
 fault8b=PNRA-CSTL-SJQH-San_Joaquin_Hills_fault-truncated-CFM3            
 fault8c=PNRA-CEPS-LABS-Compton-Los_Alamitos_fault-CFM2                   
-fault=$(fault5)
+fault=$(fault3)
 
 test: test-init test-convert test-boundary test-projection test-rotation \
       test-segment test-bspline-boundary
@@ -71,6 +72,13 @@ define bspline-boundary
 		$(figures)/$(1)/$(2)_bspline-boundary.png
 endef
 
+define bspline-surface
+	$(PY) bspline-surface.py $(data)/$(1)/$(2)_bspline-boundary.p \
+		$(data)/$(1)/$(2)_bspline-boundary.p \
+		$(3) $(4) \
+		$(figures)/$(1)/$(2)_bspline-surface.png
+endef
+
 test-init:
 	$(call init,test)
 
@@ -93,7 +101,10 @@ test-segment:
 	$(call segment,test,$(fault))
 
 test-bspline-boundary:
-	$(call bspline-boundary,test,$(fault),$(p),$(sm))
+	$(call bspline-boundary,test,$(fault),$(p),$(sb))
+
+test-bspline-surface:
+	$(call bspline-surface,test,$(fault),$(p),$(sf))
 
 init-easy:
 	$(call init,easy)

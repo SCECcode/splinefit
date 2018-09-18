@@ -243,6 +243,54 @@ def lsq(x, y, U, p):
     P[0:nctrl] = p0
     return P, res
 
+def lsq2surf(u, v, z, U, V, p):
+    """
+    Computes the least square fit to the mapped data z(u, v) using the knot
+    vector U, V.
+
+    Arguments:
+        x, y : Data points
+        U : Knot vector
+        p : Degree of BSpline
+
+    Returns:
+        P : Control points (size: mu x mv),
+        res : residuals
+
+    """
+    assert len(u) == len(v)
+    assert len(u) == len(z)
+
+    #FIXME: fails if mu = 1
+    mu = len(U) - 1
+    mv = len(V) - 1
+    nu = mu - p - 1
+    nv = mv - p - 1
+    npts = len(z)
+    P = np.zeros((mu,mv))
+
+    A = np.zeros((npts, mu*mv))
+    b = np.zeros((npts,))
+    for i in range(npts):
+        ui = u[i]
+        vi = v[i]
+        zi = z[i]
+        span_u = findspan(nu, p, ui, U)
+        span_v = findspan(nv, p, vi, V)
+        Nu = basisfuns(span_u, ui, p, U)
+        Nv = basisfuns(span_v, vi, p, V)
+        for k, Nk in enumerate(Nu):
+            for l, Nl in enumerate(Nv):
+                A[i, (span_u + k - p)*mv + (span_v + l - p)] = Nk*Nl
+        b[i] = zi
+
+    p0 = np.linalg.lstsq(A, b, rcond=None)[0]
+    res = np.linalg.norm(A.dot(p0) - b)
+    print("Residual", res)
+    P = p0.reshape((mv, mu))
+    return P, res
+
+
 def l2map(x, y, a=0, b=1):
     """
     Map (x_j, y_j) to the interval a <= s_j <=b using the L2 distance between
@@ -336,7 +384,9 @@ def lsq2l2(x, y, m, p):
 
 def lsq2x(x, y, m, p, axis=0):
     """
-    Perform least squares fitting using `m` number of knots and `L1` mapping.
+    Perform least squares fitting using `m` number of knots and normalization of
+    input coordinates to 0 <= s <= 1. Argument `axis` controls which coordinate
+    to use in the mapping process.
     """
     if axis == 0:
         s = xmap(x, m, a=0, b=1)

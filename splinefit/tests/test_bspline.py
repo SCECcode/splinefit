@@ -65,6 +65,7 @@ def test_minimize():
     plt.show()
 
 def test_bspline_curve():
+    return
     npts = 60
     a = -2
     b = 2
@@ -87,4 +88,30 @@ def test_bspline_curve():
     plt.plot(zx, zy,'k-')
     plt.plot(px, py,'go')
     plt.show()
+
+def test_bspline_surface():
+
+    nu = 16
+    nv = 16
+    #FIXME: p = 3, 4, .. doesn't work
+    p = 2
+    u = np.linspace(0, 1, nu)
+    v = np.linspace(0, 1, nv)
+    U, V = np.meshgrid(u, v)
+    X = (0.2 + V + 1e-2*np.random.randn(nv,nu))*np.cos(U)
+    Y = (0.2 + V + 1e-2*np.random.randn(nv,nu))*np.sin(U)
+    plt.clf()
+    plt.plot(X[:], Y[:], 'bo-')
+    plt.plot(X.T[:], Y.T[:], 'bo-')
+
+    u = np.linspace(0, 1, 9)
+    v = np.linspace(0, 1, 9)
+    Px, res = sf.bspline.lsq2surf(U.flatten(), V.flatten(), X.flatten(), u, v, p)
+    Py, res = sf.bspline.lsq2surf(U.flatten(), V.flatten(), Y.flatten(), u, v, p)
+    plt.plot(Px[:-p,:-p], Py[:-p,:-p], 'ro-')
+    plt.plot(Px.T[:-p,:-p], Py.T[:-p,:-p], 'ro-')
+    plt.legend()
+    plt.show()
     assert 0
+    
+
