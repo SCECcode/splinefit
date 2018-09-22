@@ -107,26 +107,31 @@ def fixboundaries(xl, yl, xr, yr, xb, yb, xt, yt, silent=False):
             warnings.warn(message)
 
     bnd_data = {}
-    bnd_data['left'] = yl
-    bnd_data['right'] = yr
-    bnd_data['bottom'] = xb
-    bnd_data['top'] = xt
+    bnd_data['left'] = [yl, xl]
+    bnd_data['right'] = [yr, xr]
+    bnd_data['bottom'] = [xb, yb]
+    bnd_data['top'] = [xt, yt]
 
     ok = 1
     for side in bnd_data:
-        if not test_orientation(bnd_data[side]):
-            bnd_data[side] = fix_orientation(bnd_data[side])
+        if not test_orientation(bnd_data[side][0]):
+            bnd_data[side][0] = fix_orientation(bnd_data[side][0])
+            bnd_data[side][1] = fix_orientation(bnd_data[side][1])
             # Retest after attempting to fix
-            if not test_orientation(bnd_data[side]):
+            if not test_orientation(bnd_data[side][0]):
                 warn("Unable to fix orientation for boundary `%s`." % side)
                 ok = 0
 
-    yl = bnd_data['left']  
-    yr = bnd_data['right'] 
-    xb = bnd_data['bottom']
-    xt = bnd_data['top']   
+    yl = bnd_data['left'][0]
+    yr = bnd_data['right'][0]
+    xb = bnd_data['bottom'][0]
+    xt = bnd_data['top'][0]
+    xl = bnd_data['left'][1]
+    xr = bnd_data['right'][1]
+    yb = bnd_data['bottom'][1]
+    yt = bnd_data['top'][1]
 
-    return ok, (xl, yl, xr, yr, xt, yt, xb, yb)
+    return ok, (xl, yl, xr, yr, xb, yb, xt, yt)
 
 def fixcorners(xl, yl, xr, yr, xb, yb, xt, yt):
     """

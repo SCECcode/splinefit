@@ -24,8 +24,10 @@ def make_curves(data1, data2, p, sm, disp=True, axis=0):
     curve2.x = data2[:,0]
     curve2.y = data2[:,1]
     curve1.p = p
+    curve2.p = p
     curve1.Px, curve1.Py, curve1.U, curve2.Px, curve2.Py, curve2.U =\
-            fit(curve1.x, curve1.y, curve2.x, curve2.y, p, sm, disp=disp, axis=axis)
+            fit(curve1.x, curve1.y, curve2.x, curve2.y, p, sm, 
+                disp=disp, axis=axis)
     curve1.px = curve1.Px[:-p]
     curve1.py = curve1.Py[:-p]
     curve2.px = curve2.Px[:-p]
@@ -62,9 +64,7 @@ def fit(x1, y1, x2, y2, p, sm, disp=False, mmax=100, axis=0):
 def make_plot(curve, figfile, save=0, npts=100, color=1):
     if not figfile:
         return
-    u = np.linspace(curve.U[0], curve.U[-1], 100)
-    cx = sf.bspline.evalcurve(p, curve.U, curve.Px, u)
-    cy = sf.bspline.evalcurve(p, curve.U, curve.Py, u)
+    cx, cy = helper.evalcurve(curve, npts)
     plt.plot(curve.x,curve.y,'ko')
     plt.plot(cx,cy,'C%d-'%color)
     plt.plot(curve.px, curve.py, 'C%do-'%color, alpha=0.3)

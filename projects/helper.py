@@ -1,4 +1,5 @@
 import numpy as np
+import splinefit as sf
 
 def close_boundary(points):
     """
@@ -10,6 +11,11 @@ def close_boundary(points):
     """
     return np.vstack((points, points[0,:]))
 
+def evalcurve(curve, num):
+    u = np.linspace(curve.U[0], curve.U[-1], num)
+    cx = sf.bspline.evalcurve(curve.p, curve.U, curve.Px, u)
+    cy = sf.bspline.evalcurve(curve.p, curve.U, curve.Py, u)
+    return cx, cy
 
 def plot_mesh(points, triangles, ax=None):
     """
@@ -29,6 +35,21 @@ def plot_mesh(points, triangles, ax=None):
     
     ax.plot_trisurf(points[:,0], points[:,1], points[:,2], triangles=triangles,
                     shade=False)
+    return fig, ax
+
+def plot_grid(X, Y, ax=None):
+    """
+    Plot a structured grid.
+    
+    """
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
+    if not ax:
+        fig = plt.figure()
+        ax = fig.gca(projection='3d', proj_type = 'ortho')
+    ax=fig.gca(projection=Axes3D.name)
+    ax.plot_wireframe(X,Y,0*X)
+    #ax.view_init(90, -90)
     return fig, ax
 
 def plot_points(points, ax=None, style='-'):
