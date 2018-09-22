@@ -169,7 +169,11 @@ def basisfuns(i,u,p,U):
         right[j] = U[i+j] - u
         saved = 0.0
         for r in range(j):
-            temp = N[r]/(right[r+1] + left[j-r])
+            denom = right[r+1] + left[j-r]
+            if np.isclose(denom,0):
+                N[r] = 1
+                break
+            temp = N[r]/denom
             N[r] = saved+right[r+1]*temp
             saved = left[j-r]*temp
         N[j] = saved
