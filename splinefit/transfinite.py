@@ -128,6 +128,54 @@ def fixboundaries(xl, yl, xr, yr, xb, yb, xt, yt, silent=False):
 
     return ok, (xl, yl, xr, yr, xt, yt, xb, yb)
 
+def fixcorners(xl, yl, xr, yr, xb, yb, xt, yt):
+    """
+    This function removes any non-overlapping corners by assigning the average
+    of two corners points that should overlap.
+
+    Arguments:
+        xl, yl : x,y-coordinates for the left boundary
+        xr, yr : x,y-coordinates for the right boundary
+        xb, yb : x,y-coordinates for the bottom boundary
+        xt, yt : x,y-coordinates for the top boundary
+        
+    Return value:
+        bnd : Tuple containing updated boundary values, ordered as the input
+            arguments (`xl, yl, xr, ...`).
+
+    """
+    xlb = 0.5*(xl[0] + xb[0])
+    ylb = 0.5*(yl[0] + yb[0])
+    xlt = 0.5*(xl[-1] + xt[0])
+    ylt = 0.5*(yl[-1] + yt[0])
+
+    xrb = 0.5*(xr[0] + xb[-1])
+    yrb = 0.5*(yr[0] + yb[-1])
+    xrt = 0.5*(xr[-1] + xt[-1])
+    yrt = 0.5*(yr[-1] + yt[-1])
+
+    xl[0] = xlb
+    yl[0] = ylb
+    xl[-1] = xlt
+    yl[-1] = ylt
+
+    xr[0] = xrb
+    yr[0] = yrb
+    xr[-1] = xrt
+    yr[-1] = yrt
+
+    xb[0] = xlb
+    yb[0] = ylb
+    xb[-1] = xrb
+    yb[-1] = yrb
+
+    xt[0] = xlt
+    yt[0] = ylt
+    xt[-1] = xrt
+    yt[-1] = yrt
+
+    return xl, yl, xr, yr, xb, yb, xt, yt
+
 def bilinearinterp(xl, yl, xr, yr, xt, yt, xb, yb, U, V):
     """
     Generates a 2D structured grid by performing linear transfinite

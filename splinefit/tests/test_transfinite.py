@@ -33,9 +33,7 @@ def wavy_boundary(nu=50, nv=50, A=0.2):
 
     return xl, yl, xr, yr, xb, yb, xt, yt
 
-
 def test_checkcorners():
-
     xl, yl, xr, yr, xb, yb, xt, yt = boundaries()
     assert sf.transfinite.checkcorners(xl, yl, xr, yr, xb, yb, xt, yt)
     xl[0] = 0.1
@@ -63,14 +61,26 @@ def test_checkboundaries():
     assert status == 0
 
 def test_fixboundaries():
-    return
-    
     xl, yl, xr, yr, xb, yb, xt, yt = boundaries()
     yl[1] = -0.2
     with pytest.warns(UserWarning) : status = sf.transfinite.fixboundaries(xl, yl,
                                             xr, yr, xb, yb, xt, yt)[0]
     assert status == 0
 
+def test_fixcorners():
+    xl, yl, xr, yr, xb, yb, xt, yt = boundaries()
+    xl2, yl2, xr2, yr2, xb2, yb2, xt2, yt2 = sf.transfinite.fixcorners(xl, yl,
+                                                                       xr, yr, 
+                                                                       xb, yb, 
+                                                                       xt, yt)
+    assert np.all(np.isclose(xl2,xl))
+    assert np.all(np.isclose(yl2,yl))
+    assert np.all(np.isclose(xr2,xr))
+    assert np.all(np.isclose(yr2,yr))
+    assert np.all(np.isclose(xb2,xb))
+    assert np.all(np.isclose(yb2,yb))
+    assert np.all(np.isclose(xt2,xt))
+    assert np.all(np.isclose(yt2,yt))
 
 def test_bilinearinterp():
     import matplotlib.pyplot as plt
