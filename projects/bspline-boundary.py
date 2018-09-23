@@ -25,9 +25,11 @@ def make_curves(data1, data2, p, sm, disp=True, axis=0):
     curve2.y = data2[:,1]
     curve1.p = p
     curve2.p = p
-    curve1.Px, curve1.Py, curve1.U, curve2.Px, curve2.Py, curve2.U =\
+    curve1.Px, curve1.Py, curve1.U, curve2.Px, curve2.Py, curve2.U, int_knot =\
             fit(curve1.x, curve1.y, curve2.x, curve2.y, p, sm, 
                 disp=disp, axis=axis)
+    curve1.int_knot = int_knot
+    curve2.int_knot = int_knot
     curve1.px = curve1.Px[:-p]
     curve1.py = curve1.Py[:-p]
     curve2.px = curve2.Px[:-p]
@@ -45,6 +47,8 @@ def fit(x1, y1, x2, y2, p, sm, disp=False, mmax=100, axis=0):
     Returns:
         Px, Py : Control points
         U : Knot vector
+        int_knot : Number of interior knots
+
 
     """
     m = 1
@@ -59,7 +63,8 @@ def fit(x1, y1, x2, y2, p, sm, disp=False, mmax=100, axis=0):
             print("Iteration: %d, number of interior knots: %d, residual: %g" %
                     (it, m, res))
         m = 2+m
-    return Px1, Py1, U1, Px2, Py2, U2
+    int_knot = m - 2
+    return Px1, Py1, U1, Px2, Py2, U2, int_knot
 
 def make_plot(curve, figfile, save=0, npts=100, color=1):
     if not figfile:

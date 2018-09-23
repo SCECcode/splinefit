@@ -183,18 +183,39 @@ def basisfuns(i,u,p,U):
 def curvepoint(p, U, P, u):
     C = 0.0
     n = len(P) - p
-    span = int(np.floor(u)) + p
     span = findspan(n, p, u, U)
     N = basisfuns(span,u,p,U)
     for i in range(p+1):
         C = C + N[i]*P[span-p+i]
     return C
 
+def surfacepoint(p, U, V, P, u, v):
+    S = 0.0
+    nv = P.shape[0] - p
+    nu = P.shape[1] - p
+    span_u = int(np.floor(u)) + p
+    span_u = findspan(nu, p, u, U)
+    span_v = int(np.floor(v)) + p
+    span_v = findspan(nv, p, v, V)
+    Nu = basisfuns(span_u,u,p,U)
+    Nv = basisfuns(span_v,v,p,V)
+    for i in range(p+1):
+        for j in range(p+1):
+            S = S + Nu[i]*Nv[j]*P[span_v-p+j, span_u-p+i]
+    return S
+
 def evalcurve(p, U, P, u):
     y = 0*u
     for i in range(len(u)):
         y[i] = curvepoint(p, U, P, u[i])
     return y
+
+def evalsurface(p, U, V, P, u, v):
+    w = np.zeros((len(u), len(v)))
+    for i in range(w.shape[0]):
+        for j in range(w.shape[1]):
+            w[i,j] = surfacepoint(p, U, V, P, u[i], v[j])
+    return w
 
 def uniformknots(m, p, a=0, b=1):
     """
@@ -231,7 +252,6 @@ def lsq(x, y, U, p):
     nctrl = len(U) - 1
     n = nctrl - p - 1
     npts = len(x)
-    P = np.zeros((nctrl,))
 
     A = np.zeros((npts, nctrl))
     b = np.zeros((npts,))
@@ -244,8 +264,7 @@ def lsq(x, y, U, p):
 
     p0 = np.linalg.lstsq(A, b, rcond=None)[0]
     res = np.linalg.norm(A.dot(p0) - b)
-    P[0:nctrl] = p0
-    return P, res
+    return p0, res
 
 def lsq2surf(u, v, z, U, V, p):
     """
@@ -253,8 +272,8 @@ def lsq2surf(u, v, z, U, V, p):
     vector U, V.
 
     Arguments:
-        x, y : Data points
-        U : Knot vector
+        u, v : Mapping of (x, y) coordinates of data points to parameterization
+        U, V : Knot vector
         p : Degree of BSpline
 
     Returns:
@@ -285,7 +304,7 @@ def lsq2surf(u, v, z, U, V, p):
         Nv = basisfuns(span_v, vi, p, V)
         for k, Nk in enumerate(Nu):
             for l, Nl in enumerate(Nv):
-                A[i, (span_u + k - p)*mv + (span_v + l - p)] = Nk*Nl
+                A[i, (span_v + l - p)*mu + (span_u + k - p)] = Nk*Nl
         b[i] = zi
 
     p0 = np.linalg.lstsq(A, b, rcond=None)[0]
@@ -316,10 +335,9 @@ def l2map(x, y, a=0, b=1):
     d = (b-a)*(d-min(d))/(max(d)-min(d)) + a
     return d
 
-def xmap(x, num_cells, a=0, b=1):
+def xmap(x, a=0, b=1):
     """
-    Map real number x to the interval a <= s_j <=b by dividing the range into
-    num_cells and using the nearest cell.
+    Map real number x to the interval a <= s_j <=b by normalizing values.
 
     """
 
@@ -330,6 +348,21 @@ def xmap(x, num_cells, a=0, b=1):
     d = (b-a)*d + a
     
     return d
+
+def argsort2(u, v):
+    """
+    Sort the two arrays `u` and `v` treating them as separate dimensions. 
+    The order of the output is 
+    `w[0] = i[0] + nu*j[0]`
+    `w[1] = i[1] + nu*j[0]`
+    where `i[0]` is `argmin(u)` and `j[0]` is `argmin(v)`. Hence, `i[1]` is the
+    index of the second smallest value in `u` and so forth.
+    """
+    assert len(u) == len(v)
+    i = np.argsort(u)
+    j = np.argsort(v)
+    w = np.zeros((len(u),))
+
 
 def lsq2(s, x, y, U, p):
     """

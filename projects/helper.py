@@ -37,7 +37,7 @@ def plot_mesh(points, triangles, ax=None):
                     shade=False)
     return fig, ax
 
-def plot_grid(X, Y, ax=None):
+def plot_grid(X, Y, Z=0, ax=None):
     """
     Plot a structured grid.
     
@@ -47,10 +47,10 @@ def plot_grid(X, Y, ax=None):
     if not ax:
         fig = plt.figure()
         ax = fig.gca(projection='3d', proj_type = 'ortho')
-    ax=fig.gca(projection=Axes3D.name)
-    ax.plot_wireframe(X,Y,0*X)
+        ax=fig.gca(projection=Axes3D.name)
+    ax.plot_wireframe(X,Y,Z)
     #ax.view_init(90, -90)
-    return fig, ax
+    return ax
 
 def plot_points(points, ax=None, style='-'):
     """

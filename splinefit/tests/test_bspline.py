@@ -65,53 +65,85 @@ def test_minimize():
     plt.show()
 
 def test_bspline_curve():
-    return
+    from scipy.interpolate import BSpline
+    #return
     npts = 60
     a = -2
     b = 2
     p = 3
-    m = 12
-    px = np.linspace(a, b-1e-2, npts)
+    m = 10
+    px = np.linspace(a, b, npts)
     py = np.exp(-px**2) + 0.01 * np.random.randn(npts)
 
-    U = sf.bspline.uniformknots(m, p, a=px[0], b=px[-1])
+    a = 0
+    b = 1
+    U = sf.bspline.uniformknots(m, p, a=a, b=b)
     s = sf.bspline.l2map(px, py, a=a, b=b)
     Px, Py, res = sf.bspline.lsq2(s, px, py, U, p)
     zx = []
     zy = []
-    u = np.linspace(-3,3,100)
+    u = np.linspace(a,b,100)
+    spl_x = BSpline(U, Px, p)
+    spl_y = BSpline(U, Py, p)
+    sx = []
+    sy = []
     for ui in u:
         zx.append(sf.bspline.curvepoint(p, U, Px, ui))
         zy.append(sf.bspline.curvepoint(p, U, Py, ui))
+        sx.append(spl_x(ui))
+        sy.append(spl_y(ui))
 
     plt.clf()
-    plt.plot(zx, zy,'k-')
-    plt.plot(px, py,'go')
+    plt.plot(sx, sy,'k-')
+    plt.plot(zx, zy,'b--')
+    plt.plot(px, py,'k*')
+    plt.plot(Px, Py,'go')
     plt.show()
+    assert 0
 
 def test_bspline_surface():
-
-    nu = 16
-    nv = 16
-    #FIXME: p = 3, 4, .. doesn't work
-    p = 2
-    u = np.linspace(0, 1, nu)
-    v = np.linspace(0, 1, nv)
-    U, V = np.meshgrid(u, v)
-    X = (0.2 + V + 1e-2*np.random.randn(nv,nu))*np.cos(U)
-    Y = (0.2 + V + 1e-2*np.random.randn(nv,nu))*np.sin(U)
+    n1 = 16
+    n2 = 16
+    nu = 4
+    nv = 4
+    p = 3
+    u = np.linspace(0, 1, n1)
+    v = np.linspace(0, 1, n2)
+    u, v = np.meshgrid(u, v)
+    X = (0.2 + v + 1e-2*np.random.randn(n1,n2))*np.cos(u)
+    Y = (0.2 + v + 1e-2*np.random.randn(n1,n2))*np.sin(u)
     plt.clf()
     plt.plot(X[:], Y[:], 'bo-')
     plt.plot(X.T[:], Y.T[:], 'bo-')
 
-    u = np.linspace(0, 1, 9)
-    v = np.linspace(0, 1, 9)
-    Px, res = sf.bspline.lsq2surf(U.flatten(), V.flatten(), X.flatten(), u, v, p)
-    Py, res = sf.bspline.lsq2surf(U.flatten(), V.flatten(), Y.flatten(), u, v, p)
-    plt.plot(Px[:-p,:-p], Py[:-p,:-p], 'ro-')
-    plt.plot(Px.T[:-p,:-p], Py.T[:-p,:-p], 'ro-')
+    u = u.flatten()
+    v = v.flatten()
+    x = X.flatten()
+    y = Y.flatten()
+    # Make sure that ordering if points doesn't matter
+    idx = np.random.permutation(len(u))
+    u = u[idx]
+    v = v[idx]
+    x = x[idx]
+    y = y[idx]
+
+
+    U = sf.bspline.uniformknots(nu, p)
+    V = sf.bspline.uniformknots(nv, p)
+    Px, res = sf.bspline.lsq2surf(u, v, x, U, V, p)
+    Py, res = sf.bspline.lsq2surf(u, v, y, U, V, p)
+
+    r = 3
+    plt.plot(Px[:-r,:-r], Py[:-r,:-r], 'go-')
+    plt.plot(Px.T[:-r,:-r], Py.T[:-r,:-r], 'go-')
+
+    u = np.linspace(0, 1, 12)
+    v = np.linspace(0, 1, 12)
+    X = sf.bspline.evalsurface(p, U, V, Px, u, v)
+    Y = sf.bspline.evalsurface(p, U, V, Py, u, v)
+    plt.plot(X, Y, 'ro-')
+    plt.plot(X.T, Y.T, 'ro-')
     plt.legend()
     plt.show()
-    assert 0
     
 
