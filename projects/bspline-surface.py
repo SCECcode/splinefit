@@ -102,27 +102,19 @@ nu = X.shape[0] -2*p-1
 nv = X.shape[1] -2*p-1
 int_knot_v = bnds[0].int_knot # left
 int_knot_u = bnds[2].int_knot # bottom
-#nu = 6
-#nv = 6
+
+U = sf.bspline.uniformknots(int_knot_u, p)
+V = sf.bspline.uniformknots(int_knot_v, p)
 
 Px = X
 Py = Y
 Px = add_zeros2(Px, p)
 Py = add_zeros2(Py, p)
 
-
-
-print(Px.shape[1]-2*p-1, int_knot_u)
-U = sf.bspline.uniformknots(int_knot_u, p)
-V = sf.bspline.uniformknots(int_knot_v, p)
 x = pcl[:,0]
 y = pcl[:,1]
 z = pcl[:,2]
 Pz = fit_surface(p, x, y, z, U, V)
-
-print(Px.shape)
-print(Py.shape)
-print(Pz.shape)
 
 nu = 9
 nv = 9
@@ -132,17 +124,8 @@ v = np.linspace(0, 1.0, 37)
 r = 0
 px =  Px[0]
 py =  Py[0]
-print("interior knots:", int_knot_u, int_knot_v) 
-x = sf.bspline.evalcurve(p, U, px, u)
-y = sf.bspline.evalcurve(p, U, py, v)
 X = sf.bspline.evalsurface(p, U, V, Px, u, v)
 Y = sf.bspline.evalsurface(p, U, V, Py, u, v)
-plt.plot(x,y,'o-')
-plt.plot(px,py,'go')
-plt.plot(X,Y,'ko')
-plt.plot(X.T,Y.T,'ko')
-plt.plot(Px,Py,'go')
-plt.plot(Px.T,Py.T,'go')
 Z = sf.bspline.evalsurface(p, U, V, Pz, u, v)
 ax = helper.plot_grid(X, Y, Z)
 helper.plot_points(pcl, ax=ax, style='ro')
