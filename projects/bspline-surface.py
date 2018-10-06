@@ -6,12 +6,13 @@ import helper
 import pickle
 import matplotlib.pyplot as plt
 
+print(sys.argv)
 inputfile = sys.argv[1]
 outputfile = sys.argv[2]
 p = int(sys.argv[3])
 sm = float(sys.argv[4])
 
-if len(sys.argv) < 6:
+if len(sys.argv) < 5:
     figfile = None
 else:
     figfile = sys.argv[5]

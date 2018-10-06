@@ -16,16 +16,18 @@ fault4=WTRA-ORFZ-SFNV-Northridge-Frew_fault-CFM2
 fault5=WTRA-SSFZ-MULT-Santa_Susana_fault-CFM1
 fault6a=SAFS-SAFZ-MULT-Garnet_Hill_fault_strand-CFM4
 fault6b=SAFS-SAFZ-COAV-Southern_San_Andreas_fault-CFM4
-fault7a=WTRA-SFFS-SMMT-Santa_Monica_fault-steep-CFM5                     
-fault7b=WTRA-SBTS-SMMT-Santa_Monica_thrust_fault-CFM1                    
+fault7a=WTRA-SFFS-SMMT-Santa_Monica_fault-steep-CFM5
+fault7b=WTRA-SBTS-SMMT-Santa_Monica_thrust_fault-CFM1
 fault8a=PNRA-NIRC-LABS-Newport-Inglewood_fault-dip_w_splays-split-CFM5
-fault8b=PNRA-CSTL-SJQH-San_Joaquin_Hills_fault-truncated-CFM3            
-fault8c=PNRA-CEPS-LABS-Compton-Los_Alamitos_fault-CFM2                   
-fault=$(fault7b)
+fault8b=PNRA-CSTL-SJQH-San_Joaquin_Hills_fault-truncated-CFM3
+fault8c=PNRA-CEPS-LABS-Compton-Los_Alamitos_fault-CFM2
+fault=$(fault8c)
 
 test: test-init test-convert test-boundary test-projection test-rotation \
-      test-segment test-bspline-boundary
+      test-segment test-bspline-boundary test-bspline-surface
 
+copy:
+	cp $(cfm)/$(fault).ts faults/.
 
 define init
 	@mkdir -p $(data)/$(1)
@@ -73,8 +75,9 @@ define bspline-boundary
 endef
 
 define bspline-surface
-	$(PY) bspline-surface.py $(data)/$(1)/$(2)_bspline-boundary.p \
+	$(PY) bspline-surface.py \
 		$(data)/$(1)/$(2)_bspline-boundary.p \
+		$(data)/$(1)/$(2)_bspline-surface.p \
 		$(3) $(4) \
 		$(figures)/$(1)/$(2)_bspline-surface.png
 endef
