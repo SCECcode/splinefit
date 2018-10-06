@@ -14,6 +14,13 @@ if len(sys.argv) == 1:
 inputfile = sys.argv[1]
 outputfile = sys.argv[2]
 
+i = 0
 p, t = tsurf.read(inputfile)
-e = tsurf.msh(t)
-msh.write(outputfile, p, e)
+print('Found %d surface(s)' % len(p))
+for pi, ti in zip(p, t): 
+    ei = tsurf.msh(ti)
+    filename= '%s_%d.msh'%('.'.join(outputfile.split('.')[0:-1]), i)
+    msh.write(filename, pi, ei)
+    print('Wrote: %s' % filename)
+
+    i += 1

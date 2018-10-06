@@ -7,11 +7,19 @@ _version = 'GOCAD TSurf (\d+)'
 _header = 'HEADER \{([\w\W]+?)\}'
 _vrtx = 'VRTX (\d+) ([-\w\.]+) ([-\w\.]+) ([-\w\.]+)'
 _tri = 'TRGL (\d+) (\d+) (\d+)'
+_surf = 'TFACE'
 
 def read(filename):
     txt = open(filename).read() 
-    p = vrtx(txt)
-    t = tri(txt)
+    # Extract all triangular surfaces and process them one by one.
+    surfs = txt.split(_surf)[1:]
+
+    p = []
+    t = []
+
+    for surf in surfs:
+        p.append(vrtx(txt))
+        t.append(tri(txt))
     return p, t
 
 def version(txt):

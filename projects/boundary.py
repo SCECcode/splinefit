@@ -29,6 +29,7 @@ def get_boundary(tris):
     # Order boundary edges so that boundary can be easily traversed
     nodes_to_edges = sf.triangulation.nodes_to_edges(bnd_edges)
     bnd_edges = sf.triangulation.ordered_boundary_edges(bnd_edges,nodes_to_edges)
+    print("Number of boundary edges:", bnd_edges.shape[0])
     return bnd_edges
 
 def make_plot(coords, tris, edges, figfile):
@@ -46,6 +47,7 @@ def make_plot(coords, tris, edges, figfile):
     fig, ax = helper.plot_mesh(xyz, tris)
     helper.plot_points(bnd_coords, ax=ax, style='k-')
     plt.savefig(figfile)
+    plt.show()
 
 coords, tris = sf.msh.read(inputfile)
 tris = msh.get_data(tris, num_members=3)

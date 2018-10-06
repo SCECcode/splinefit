@@ -1,6 +1,6 @@
 from splinefit import tsurf
 
-def load(test='Newport-Inglewood_fault'):
+def load(test='Newport-Inglewood_fault-dip_w_splays'):
     txt = open('mesh/' + test + '.ts').read() 
     return txt
 
@@ -43,5 +43,8 @@ def test_msh():
     from splinefit import msh
     filename = 'Newport-Inglewood_fault'
     p, t = tsurf.read('mesh/%s.ts'%filename)
-    e = tsurf.msh(t)
-    msh.write('mesh/%s.msh'%filename, p, e)
+    i = 0
+    for pi, ti in zip(p, t): 
+        ei = tsurf.msh(ti)
+        msh.write('mesh/%s_%d.msh'%(filename, i), pi, ei)
+        i += 1

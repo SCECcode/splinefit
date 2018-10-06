@@ -52,10 +52,12 @@ corresponding to the two maximum modulus eigenvalues.
 ## Boundary detection
 Altough there probably are plenty of packages that can be used to detect the
 boundary of some triangulation, I decided to implement my own solution. It
-appears that many of the meshes contain multiple surfaces. For now, only one
-surface is treated. Figure 2 shows the boundary detection method in action. Finding the additional surfaces in the
-triangulation is simply of matter rerunning the algorithm on the mesh after haviing removed the first boundary detected,
-and then repeating the process until no more boundaries are detected.
+appears that many of the meshes contain multiple surfaces. To simplify matters,
+each surface is written to its own file when converting from `.ts` to `.msh`.
+The `.msh` files are labelled as `mesh_0.msh`, `mesh_1.msh`, etc. Here, `mesh_0`
+contains the first surface found in the `.ts` file.
+
+Figure 2 shows the boundary detection method in action. 
 
 
 ![](figures/PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1_boundary.png)
