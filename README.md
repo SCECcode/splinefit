@@ -5,17 +5,32 @@ Experimental python package for building a geometric description of a small subs
 # Installation
 ```bash
 $ git clone https://github.com/ooreilly/splinefit
-$ python [sudo] setup.py install [--user]
+$ pip install .
 ```
 
-# Commandline tools
+# Command line tools
 
 ## Convert GOCAD tsurf to gmsh
-Use `tsurfmsh` to convert a triangular mesh stored in the `.tsurf` file format to the gmsh `.msh` file format. 
+Use `tsurfmsh` to convert a triangular mesh stored in the `.ts` file format to the gmsh `.msh` file format. 
 ```bash
 $ tsurfmsh (input) (output)
 
 ```
+If the `.tsurf` file contains multiple surfaces, `tsurfmesh` will save one
+surface per file. The surfaces are labelled as `output_0`, `output_1`, in the
+order in which the surfaces are listed in the `.ts` file.
+
+## Convert gmsh to vtk
+Use `mshvtk` to convert a triangular mesh stored in the `.msh` file format to
+the VTK legacy file format
+```
+$ mshvtk (input) (output)
+```
+
+![](docs/figures/vtk_view.png)
+View of a couple of fault surfaces in Paraview. The input files were first
+converted from `.ts` to `.msh`, and then to `.vtk`.
+
 
 # Parsers
 

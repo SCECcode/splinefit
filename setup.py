@@ -8,5 +8,5 @@ setup(name='splinefit',
       author_email='ooreilly@stanford.edu',
       license='MIT',
       packages=['splinefit'],
-      scripts=['splinefit/bin/tsurfmsh'],
+      scripts=['splinefit/bin/tsurfmsh', 'splinefit/bin/mshvtk'],
       zip_safe=False)

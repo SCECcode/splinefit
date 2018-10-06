@@ -18,9 +18,32 @@ def read(filename):
     t = []
 
     for surf in surfs:
-        p.append(vrtx(txt))
-        t.append(tri(txt))
+        ti = tri(surf)
+        pi = vrtx(surf)
+        pi, ti = swap(pi, ti)
+        p.append(pi)
+        t.append(ti)
+
+
     return p, t
+
+def swap(p, t):
+    """
+    Replace node ID by the order in which it occurs in the node array "pt".
+
+    """
+    import numpy as np
+    new_tri = np.copy(t)
+    new_p = np.copy(p)
+
+    for i in range(p.shape[0]):
+        new_p[i,0] = i
+        old_i = p[i,0]
+        for k in range(3):
+            ids = t[:,k] == old_i
+            new_tri[ids,k] = i
+
+    return new_p, new_tri
 
 def version(txt):
     import re

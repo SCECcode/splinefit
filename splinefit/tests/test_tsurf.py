@@ -42,6 +42,7 @@ def test_read():
 def test_msh():
     from splinefit import msh
     filename = 'Newport-Inglewood_fault'
+    filename = 'Newport-Inglewood_fault-dip_w_splays'
     p, t = tsurf.read('mesh/%s.ts'%filename)
     i = 0
     for pi, ti in zip(p, t): 

@@ -9,6 +9,7 @@ category. A view of the mesh for this fault geometry is shown in Figure 1.
 
 
 
+
 ## Outline of fitting procedure
 The faults in the community fault model and the ones that have been selected for
 testing out the automatic meshing procedure have a variety of different

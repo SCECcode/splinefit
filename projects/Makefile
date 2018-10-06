@@ -1,3 +1,4 @@
+SHELL := bash
 PY=python3
 cfm=/usr/local/CFM5_release_2017/obj/CFM5_preferred/native
 out=meshes
@@ -21,7 +22,7 @@ fault7b=WTRA-SBTS-SMMT-Santa_Monica_thrust_fault-CFM1
 fault8a=PNRA-NIRC-LABS-Newport-Inglewood_fault-dip_w_splays-split-CFM5
 fault8b=PNRA-CSTL-SJQH-San_Joaquin_Hills_fault-truncated-CFM3
 fault8c=PNRA-CEPS-LABS-Compton-Los_Alamitos_fault-CFM2
-fault=$(fault4)
+fault=$(fault6a)
 
 test: test-init test-convert test-boundary test-projection test-rotation \
       test-segment test-bspline-boundary test-bspline-surface
@@ -37,6 +38,10 @@ endef
 define mesh 
 	mkdir -p $(out)/$(1)
 	tsurfmsh $(cfm)/$(2).ts $(out)/$(1)/$(2).msh
+
+       for filename in $(out)/$(1)/$(2)_*.msh; do \
+		mshvtk $${filename%.*}.msh $${filename%.*}.vtk;\
+	done;
 endef
 
 define boundary 

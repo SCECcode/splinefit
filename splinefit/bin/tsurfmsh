@@ -4,7 +4,7 @@ from splinefit import msh
 from splinefit import tsurf
 
 if len(sys.argv) == 1:
-    msg = 'tsurfmsh.py (input) (output)\n'
+    msg = 'tsurfmsh (input) (output)\n'
     msg += 'usage: Converts triangular meshes in GOCAD .tsurf to gmsh .msh\n' 
     msg += 'input : is the .tsurf file to read\n'
     msg += 'output : is the .msh file to write'
@@ -21,6 +21,7 @@ for pi, ti in zip(p, t):
     ei = tsurf.msh(ti)
     filename= '%s_%d.msh'%('.'.join(outputfile.split('.')[0:-1]), i)
     msh.write(filename, pi, ei)
-    print('Wrote: %s' % filename)
+    print('Wrote <%d tris, %d nodes> : %s ' % (ei.shape[0], pi.shape[0], 
+          filename))
 
     i += 1
