@@ -47,10 +47,9 @@ def make_plot(coords, tris, edges, figfile):
     fig, ax = helper.plot_mesh(xyz, tris)
     helper.plot_points(bnd_coords, ax=ax, style='k-')
     plt.savefig(figfile)
-    plt.show()
 
 coords, tris = sf.msh.read(inputfile)
-tris = msh.get_data(tris, num_members=3)
+tris = msh.get_data(tris, num_members=3, index=1)
 bnd_edges = get_boundary(tris)
 make_plot(coords, tris, bnd_edges, figfile)
 

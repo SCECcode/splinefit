@@ -66,7 +66,6 @@ def make_plot(data):
 
     if figfile:
         plt.savefig(figfile)
-    plt.show()
 
 data = pickle.load(open(inputfile, 'rb'))
 data.rxy = fix_orientation(data.rxy)

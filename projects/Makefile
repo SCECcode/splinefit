@@ -1,147 +1,94 @@
-SHELL := bash
 PY=python3
 cfm=/usr/local/CFM5_release_2017/obj/CFM5_preferred/native
-out=meshes
-data=data
+out=output
 figures=figures
-# p: polynomial degree
-# sb : smoothing parameter for boundary curve fitting
-p=3
-sb=0.5
-sf=0.15
+fig=png
+pydata=pydata
 
+### Options for BSpline fitting
+bnd_degree = 3
+bnd_residual = 0.2
+surf_degree = 3
+surf_residual = 0.1
+
+# List of faults to process
+# Each fault is processed sequentially by calling `make num=1`
+# where `num` is the index of the fault in the array.
+num=3
 fault1=PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1
 fault2=GRFS-GRFZ-WEST-Garlock_fault-CFM5
 fault3=WTRA-NCVS-VNTB-Southern_San_Cayetano_fault-steep-JHAP-CFM5
 fault4=WTRA-ORFZ-SFNV-Northridge-Frew_fault-CFM2
 fault5=WTRA-SSFZ-MULT-Santa_Susana_fault-CFM1
-fault6a=SAFS-SAFZ-MULT-Garnet_Hill_fault_strand-CFM4
-fault6b=SAFS-SAFZ-COAV-Southern_San_Andreas_fault-CFM4
-fault7a=WTRA-SFFS-SMMT-Santa_Monica_fault-steep-CFM5
-fault7b=WTRA-SBTS-SMMT-Santa_Monica_thrust_fault-CFM1
-fault8a=PNRA-NIRC-LABS-Newport-Inglewood_fault-dip_w_splays-split-CFM5
-fault8b=PNRA-CSTL-SJQH-San_Joaquin_Hills_fault-truncated-CFM3
-fault8c=PNRA-CEPS-LABS-Compton-Los_Alamitos_fault-CFM2
-fault=$(fault6a)
+fault6=SAFS-SAFZ-MULT-Garnet_Hill_fault_strand-CFM4
+fault7=SAFS-SAFZ-COAV-Southern_San_Andreas_fault-CFM4
+fault8=WTRA-SFFS-SMMT-Santa_Monica_fault-steep-CFM5
+fault9=WTRA-SBTS-SMMT-Santa_Monica_thrust_fault-CFM1
+fault10=PNRA-NIRC-LABS-Newport-Inglewood_fault-dip_w_splays-split-CFM5
+fault11=PNRA-CSTL-SJQH-San_Joaquin_Hills_fault-truncated-CFM3
+fault12=PNRA-CEPS-LABS-Compton-Los_Alamitos_fault-CFM2
+faults=$(fault1) $(fault2) $(fault3) $(fault4) $(fault5) $(fault6) $(fault7)
+fault=$(word $(num), $(faults)).msh
 
-test: test-init test-convert test-boundary test-projection test-rotation \
-      test-segment test-bspline-boundary test-bspline-surface
+meshdir=$(out)/$(basename $(fault))
+meshes=$(basename $(wildcard $(meshdir)/*.msh))
 
-copy:
-	cp $(cfm)/$(fault).ts faults/.
+all: init gmsh boundary projection rotation segmentation bspline-boundary
 
-define init
-	@mkdir -p $(data)/$(1)
-	@mkdir -p $(figures)/$(1)
-endef
+init:
+	mkdir -p $(out)
+	mkdir -p $(meshdir)
+	mkdir -p $(meshdir)/$(pydata)
+	mkdir -p $(meshdir)/$(figures)
 
-define mesh 
-	mkdir -p $(out)/$(1)
-	tsurfmsh $(cfm)/$(2).ts $(out)/$(1)/$(2).msh
+$(meshdir)/%.msh:
+	tsurfmsh $(cfm)/$(notdir $(basename $@)).ts $(meshdir)/part.msh
 
-       for filename in $(out)/$(1)/$(2)_*.msh; do \
-		mshvtk $${filename%.*}.msh $${filename%.*}.vtk;\
-	done;
-endef
+%.vtk: %.msh
+	mshvtk $< $@
 
-define boundary 
-	$(PY) boundary.py $(out)/$(1)/$(2).msh $(data)/$(1)/$(2)_boundary.p \
-		$(figures)/$(1)/$(2)_boundary.png
-endef
+$(meshdir)/$(pydata)/%_bnd.p: $(meshdir)/%.msh
+	@echo Extracting boundary data from triangular mesh: $(notdir $<)
+	$(PY) python/boundary.py $< $(meshdir)/$(pydata)/$(notdir $@) \
+ 	$(meshdir)/$(figures)/$(basename $(notdir $@)).$(fig)
 
-define projection 
-	$(PY) projection.py $(data)/$(1)/$(2)_boundary.p $(data)/$(1)/$(2)_projection.p \
-		$(figures)/$(1)/$(2)_projection.png
-endef
+$(meshdir)/$(pydata)/%_proj.p: $(meshdir)/$(pydata)/%_bnd.p
+	@echo Projecting boundary data onto bestfitting plane for $(notdir $<)
+	$(PY) python/projection.py $< $(meshdir)/$(pydata)/$(notdir $@) \
+ 	$(meshdir)/$(figures)/$(basename $(notdir $@)).$(fig)
 
-define rotation
-	$(PY) rotation.py $(data)/$(1)/$(2)_projection.p \
-		$(data)/$(1)/$(2)_rotation.p \
-		$(figures)/$(1)/$(2)_rotation.png
-endef
+$(meshdir)/$(pydata)/%_rot.p: $(meshdir)/$(pydata)/%_proj.p
+	@echo Rotating coordinate system for $(notdir $<)
+	$(PY) python/rotation.py $< $(meshdir)/$(pydata)/$(notdir $@) \
+ 	$(meshdir)/$(figures)/$(basename $(notdir $@)).$(fig)
 
-define quad
-	$(PY) quad.py $(data)/$(1)/$(2)_rotation.p \
-		$(data)/$(1)/$(2)_quad.p \
-		$(figures)/$(1)/$(2)_quad.png
-endef
+$(meshdir)/$(pydata)/%_seg.p: $(meshdir)/$(pydata)/%_rot.p
+	@echo Detecting boundary segments for $(notdir $<)
+	$(PY) python/segment.py $< $(meshdir)/$(pydata)/$(notdir $@) \
+ 	$(meshdir)/$(figures)/$(basename $(notdir $@)).$(fig)
 
-define segment
-	$(PY) segment.py $(data)/$(1)/$(2)_rotation.p \
-		$(data)/$(1)/$(2)_segment.p \
-		$(figures)/$(1)/$(2)_segment.png
-endef
+$(meshdir)/$(pydata)/%_bspline_bnd.p: $(meshdir)/$(pydata)/%_seg.p
+	@echo Fitting BSpline curve through boundary for $(notdir $<)
+	$(PY) python/bspline-boundary.py $< $(meshdir)/$(pydata)/$(notdir $@) \
+	$(bnd_degree) $(bnd_residual)\
+ 	$(meshdir)/$(figures)/$(basename $(notdir $@)).$(fig)
 
-define bspline-boundary
-	$(PY) bspline-boundary.py $(data)/$(1)/$(2)_segment.p \
-		$(data)/$(1)/$(2)_bspline-boundary.p \
-		$(3) $(4) \
-		$(figures)/$(1)/$(2)_bspline-boundary.png
-endef
+$(meshdir)/$(pydata)/%_bspline_surf.p: $(meshdir)/$(pydata)/%_bspline_bnd.p
+	@echo Fitting BSpline surface for $(notdir $<)
+	$(PY) python/bspline-surface.py $< $(meshdir)/$(pydata)/$(notdir $@) \
+	$(surf_degree) $(surf_residual)\
+ 	$(meshdir)/$(figures)/$(basename $(notdir $@)).$(fig)
+	      
+gmsh: init $(meshdir)/$(fault)
 
-define bspline-surface
-	$(PY) bspline-surface.py \
-		$(data)/$(1)/$(2)_bspline-boundary.p \
-		$(data)/$(1)/$(2)_bspline-surface.p \
-		$(3) $(4) \
-		$(figures)/$(1)/$(2)_bspline-surface.png
-endef
+vtk: $(foreach mesh,$(meshes),$(mesh).vtk)
 
-test-init:
-	$(call init,test)
+boundary: $(foreach mesh,$(meshes),$(meshdir)/$(pydata)/$(notdir $(mesh))_bnd.p)
+projection: $(foreach mesh,$(meshes),$(meshdir)/$(pydata)/$(notdir $(mesh))_proj.p)
+rotation: $(foreach mesh,$(meshes),$(meshdir)/$(pydata)/$(notdir $(mesh))_rot.p)
+segmentation: $(foreach mesh,$(meshes),$(meshdir)/$(pydata)/$(notdir $(mesh))_seg.p)
+bspline-boundary: $(foreach mesh,$(meshes),$(meshdir)/$(pydata)/$(notdir $(mesh))_bspline_bnd.p)
+bspline-surface: $(foreach mesh,$(meshes),$(meshdir)/$(pydata)/$(notdir $(mesh))_bspline_surf.p)
 
-test-convert:
-	$(call mesh,test,$(fault))
-
-test-boundary:
-	$(call boundary,test,$(fault))
-
-test-projection:
-	$(call projection,test,$(fault))
-
-test-rotation:
-	$(call rotation,test,$(fault))
-
-test-quad:
-	$(call quad,test,$(fault))
-
-test-segment:
-	$(call segment,test,$(fault))
-
-test-bspline-boundary:
-	$(call bspline-boundary,test,$(fault),$(p),$(sb))
-
-test-bspline-surface:
-	$(call bspline-surface,test,$(fault),$(p),$(sf))
-
-init-easy:
-	$(call init,easy)
-convert-easy:
-	$(call mesh,easy,$(fault1))
-	$(call mesh,easy,$(fault2))
-	$(call mesh,easy,$(fault3))
-
-boundary-easy:
-	$(call boundary,easy,$(fault1))
-	$(call boundary,easy,$(fault2))
-	$(call boundary,easy,$(fault3))
-
-projection-easy:
-	$(call projection,easy,$(fault1))
-	$(call projection,easy,$(fault2))
-	$(call projection,easy,$(fault3))
-
-rotation-easy:
-	$(call rotation,easy,$(fault1))
-	$(call rotation,easy,$(fault2))
-	$(call rotation,easy,$(fault3))
-
-segment-easy:
-	$(call segment,easy,$(fault1))
-	$(call segment,easy,$(fault2))
-	$(call segment,easy,$(fault3))
-
-bspline-boundary-easy:
-	#$(call bspline-boundary,easy,$(fault1),3,0.1)
-	#$(call bspline-boundary,easy,$(fault2),3,0.1)
-	$(call bspline-boundary,easy,$(fault3),3,0.15)
+clean:
+	rm -rf $(meshdir)

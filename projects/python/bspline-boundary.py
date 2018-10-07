@@ -16,6 +16,9 @@ if len(sys.argv) < 6:
 else:
     figfile = sys.argv[5]
 
+def adjust_poly_deg(num_pts, p):
+    return min(num_pts - 1, p)
+
 def make_curves(data1, data2, p, sm, disp=True, axis=0):
     curve1 = helper.Struct()
     curve1.x = data1[:,0]
@@ -23,8 +26,21 @@ def make_curves(data1, data2, p, sm, disp=True, axis=0):
     curve2 = helper.Struct()
     curve2.x = data2[:,0]
     curve2.y = data2[:,1]
+
+    #Adjust polynomial degree based on number of points
+    p = adjust_poly_deg(len(curve1.x), p)
+    p = adjust_poly_deg(len(curve2.x), p)
     curve1.p = p
     curve2.p = p
+
+    #FIXME: Handle too few points to perform a fit
+    if p == 0:
+        curve1.px = curve1.x[0] 
+        curve1.py = curve1.y[0] 
+        curve2.px = curve2.x[0] 
+        curve2.py = curve2.y[0] 
+
+
     curve1.Px, curve1.Py, curve1.U, curve2.Px, curve2.Py, curve2.U, int_knot =\
             fit(curve1.x, curve1.y, curve2.x, curve2.y, p, sm, 
                 disp=disp, axis=axis)
@@ -93,6 +109,5 @@ make_plot(left, figfile, color=0)
 make_plot(bottom, figfile, color=1)
 make_plot(right, figfile, color=2)
 make_plot(top, figfile, color=3, save=1)
-plt.show()
 
 pickle.dump((left, right, bottom, top, data), open(outputfile, 'wb'))
