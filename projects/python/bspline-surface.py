@@ -32,6 +32,32 @@ def rotate(data):
     xyz[:,0:2] = rxy
     return xyz
 
+def restore(data, X, Y, Z, pcl_xyz):
+    """
+    Rotate surface back to the original coordinate system.
+    Also, remove normalization
+
+    """
+    T = data.proj_basis
+
+    nx = X.shape[0]
+    ny = X.shape[1]
+    xy = np.vstack((X.flatten(), Y.flatten())).T
+    center = sf.fitting.mean(xy) 
+    center = np.tile(center, (xy.shape[0],1)) 
+    rxy = sf.fitting.rotate2(xy, center, -data.theta)
+    xyz = np.vstack((rxy.T, Z.flatten())).T
+    xyz = data.basis.dot(xyz.T).T
+    xyz = sf.fitting.renormalize(xyz, data.mu, data.std)
+    X = np.reshape(xyz[:,0], (nx, ny))
+    Y = np.reshape(xyz[:,1], (nx, ny))
+    Z = np.reshape(xyz[:,2], (nx, ny))
+    coords = sf.fitting.renormalize(pcl_xyz, data.mu, data.std)
+    
+    #xyz[:,0:2] = rxy
+    return X, Y, Z, coords
+
+
 def unpack(bnd_xy):
     return [a for subbnd in bnd_xy for a in subbnd]
 
@@ -91,7 +117,6 @@ cfg = pickle.load(open(inputfile, 'rb'))
 bnds = cfg[0:4]
 data = cfg[4]
 bnd = build_cv_boundary(bnds)
-#bnd = init_interp(bnds)
 xl, yl, xr, yr, xb, yb, xt, yt = bnd
 nu = len(xb)
 nv = len(xl)
@@ -120,15 +145,18 @@ nu = 9
 nv = 9
 
 u = np.linspace(0, 1.0, 37)
-v = np.linspace(0, 1.0, 37)
+v = np.linspace(0, 1.0, 12)
 r = 0
 px =  Px[0]
 py =  Py[0]
 X = sf.bspline.evalsurface(p, U, V, Px, u, v)
 Y = sf.bspline.evalsurface(p, U, V, Py, u, v)
 Z = sf.bspline.evalsurface(p, U, V, Pz, u, v)
+X, Y, Z, data.coords = restore(data, X, Y, Z, data.pcl_xyz)
 ax = helper.plot_grid(X, Y, Z)
-helper.plot_points(pcl, ax=ax, style='ro')
+helper.plot_points(data.coords, ax=ax, style='ro')
 sf.vtk.write_surface(vtkfile, X, Y, Z)
 plt.show()
+# TODO: Build surface struct
+#pickle.dump((X, Y, Z, data), open(outputfile, 'wb'))
 print("Wrote:", vtkfile)
