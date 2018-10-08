@@ -67,18 +67,19 @@ def test_minimize():
 def test_bspline_curve():
     from scipy.interpolate import BSpline
     #return
-    npts = 60
+    npts = 20
     a = -2
     b = 2
     p = 3
-    m = 10
+    m = 12
     px = np.linspace(a, b, npts)
-    py = np.exp(-px**2) + 0.01 * np.random.randn(npts)
+    py = np.sin(px)*np.exp(-px**2)# + 0.1 * np.random.randn(npts)
+    px = np.cos(0.1*px)
 
     a = 0
     b = 1
-    U = sf.bspline.uniformknots(m, p, a=a, b=b)
-    s = sf.bspline.l2map(px, py, a=a, b=b)
+    s = sf.bspline.chords(px, py, a=a, b=b)
+    U = sf.bspline.averageknots(s, m, p, a=a, b=b)
     Px, Py, res = sf.bspline.lsq2(s, px, py, U, p)
     zx = []
     zy = []
@@ -97,11 +98,12 @@ def test_bspline_curve():
     plt.plot(sx, sy,'k-')
     plt.plot(zx, zy,'b--')
     plt.plot(px, py,'k*')
-    plt.plot(Px, Py,'go')
+    #plt.plot(Px, Py,'go')
     plt.show()
     assert 0
 
 def test_bspline_surface():
+    return
     n1 = 16
     n2 = 16
     nu = 4

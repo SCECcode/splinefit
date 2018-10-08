@@ -234,6 +234,20 @@ def uniformknots(m, p, a=0, b=1):
               (b,)*(p+1)]
     return U
 
+def kmeansknots(s, m, p, a=0, b=1):
+    """
+    Construct a knot vector by finding knot positions using kmeans for selecting
+    knots.
+    """
+    t = np.linspace(a,b,m)
+    from scipy.cluster.vq import vq, kmeans
+    t = np.sort(kmeans(s, m)[0])
+    U = np.r_[(a,)*(p+1),
+              t,
+              (b,)*(p+1)]
+    return U
+
+
 def lsq(x, y, U, p):
     """
     Computes the least square fit to the data (x,y) using the knot vector U.
@@ -314,10 +328,10 @@ def lsq2surf(u, v, z, U, V, p):
     return P, res
 
 
-def l2map(x, y, a=0, b=1):
+def chords(x, y, a=0, b=1):
     """
-    Map (x_j, y_j) to the interval a <= s_j <=b using the L2 distance between
-    each point.
+    Map (x_j, y_j) to the interval a <= s_j <=b using the chord length
+    parameterization.
 
     s_0 = a 
     s_1 = a + d_1, 
@@ -410,12 +424,16 @@ def smoothing(x, y, sm=0.1, mmax=100, disp=False, p=3):
     return Px, Py, U
 
 
-def lsq2l2(x, y, m, p):
+def lsq2l2(x, y, m, p, knots='kmeans'):
     """
-    Perform least squares fitting using `m` number of knots and `L2` mapping.
+    Perform least squares fitting using `m` number of knots and chordlength
+    parameterization and averaged knot vector.
     """
-    s = l2map(x, y, a=0, b=1)
-    U = uniformknots(m, p, a=0, b=1)
+    s = chords(x, y, a=0, b=1)
+    if knots == 'uniform':
+        U = uniformknots(m, p, a=0, b=1)
+    elif knots == 'kmeans':
+        U = kmeansknots(s, m, p, a=0, b=1)
     Px, Py, res = lsq2(s, x, y, U, p)
     return Px, Py, U, res
 
