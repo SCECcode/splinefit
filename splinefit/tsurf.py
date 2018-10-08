@@ -9,7 +9,7 @@ _vrtx = 'VRTX (\d+) ([-\w\.]+) ([-\w\.]+) ([-\w\.]+)'
 _tri = 'TRGL (\d+) (\d+) (\d+)'
 _surf = 'TFACE'
 
-def read(filename):
+def read(filename, min_elems=0):
     txt = open(filename).read() 
     # Extract all triangular surfaces and process them one by one.
     surfs = txt.split(_surf)[1:]
@@ -21,6 +21,8 @@ def read(filename):
         ti = tri(surf)
         pi = vrtx(surf)
         pi, ti = swap(pi, ti)
+        if ti.shape[0] < min_elems:
+            continue
         p.append(pi)
         t.append(ti)
 

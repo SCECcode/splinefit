@@ -5,16 +5,19 @@ figures=figures
 fig=png
 pydata=pydata
 
+### Options for mesh conversion
+min_elem = 20
+
 ### Options for BSpline fitting
-bnd_degree = 3
-bnd_residual = 0.010
-surf_degree = 3
-surf_residual = 0.01
+bnd_degree = 2
+bnd_residual = 0.2
+surf_degree = 2
+surf_residual = 0.1
 
 # List of faults to process
 # Each fault is processed sequentially by calling `make num=1`
 # where `num` is the index of the fault in the array.
-num=3
+num=6
 fault1=PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1
 fault2=GRFS-GRFZ-WEST-Garlock_fault-CFM5
 fault3=WTRA-NCVS-VNTB-Southern_San_Cayetano_fault-steep-JHAP-CFM5
@@ -35,6 +38,7 @@ meshes=$(basename $(wildcard $(meshdir)/*.msh))
 
 all: init gmsh boundary projection rotation segmentation bspline-boundary \
      bspline-surface   
+fit: bspline-boundary bspline-surface
 
 init:
 	mkdir -p $(out)
@@ -43,7 +47,7 @@ init:
 	mkdir -p $(meshdir)/$(figures)
 
 $(meshdir)/%.msh:
-	tsurfmsh $(cfm)/$(notdir $(basename $@)).ts $(meshdir)/part.msh
+	tsurfmsh $(cfm)/$(notdir $(basename $@)).ts $(meshdir)/part.msh --min_elem=$(min_elem)
 
 %.vtk: %.msh
 	mshvtk $< $@

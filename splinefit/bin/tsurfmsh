@@ -1,7 +1,24 @@
 #!/usr/bin/env python
+"""Usage: 
+          tsurfmsh <input> <output> [--min_elems num_elems]
+
+Converts triangular meshes in GOCAD .tsurf to gmsh .msh
+
+Arguments:
+    input : .tsurf file to read
+    output : .msh file to write
+
+Options:
+    --min_elems : Skip surfaces with too few elements
+
+"""
 import sys
+import docopt
 from splinefit import msh
 from splinefit import tsurf
+
+if __name__ == '__main__':
+   arguments = docopt.docopt(__doc__)
 
 if len(sys.argv) == 1:
     msg = 'tsurfmsh (input) (output)\n'
@@ -11,11 +28,15 @@ if len(sys.argv) == 1:
     print(msg)
     exit(1)
 
-inputfile = sys.argv[1]
-outputfile = sys.argv[2]
+inputfile = arguments['<input>']
+outputfile = arguments['<output>']
+if arguments['--min_elems']:
+    min_elems = int(arguments['--min_elems'])
+else:
+    min_elems = 0
 
 i = 0
-p, t = tsurf.read(inputfile)
+p, t = tsurf.read(inputfile, min_elems=min_elems)
 print('Found %d surface(s)' % len(p))
 for pi, ti in zip(p, t): 
     ei = tsurf.msh(ti)
