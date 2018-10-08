@@ -23,7 +23,7 @@ the fitting. This procedure outline below, will be the first thing to try and
 evaluate. It is designed to be the simplest procedure that I can think of and 
 that I believe while have some chance at succeeding. 
 
-These are the key components to the surface fitting, 
+These are the key components to the procedure, 
 
 1. [Boundary detection](#boundary-detection)
 2. [2D Plane projection](#2d-plane-projection)
@@ -31,8 +31,8 @@ These are the key components to the surface fitting,
 4. [Quadrilateral fitting](#quadrilateral-fitting) (deprecated)
 5. [Boundary segmentation](#boundary-segmentation)
 6. [BSpline boundary curve fitting](#bspline-boundary-curve-fitting)
-7. Surface parameterization
-8. BSpline surface fitting
+7. [Surface parameterization](#bspline-surface-parameterization)
+8. [BSpline surface fitting](#bspline-surface-fitting)
 
 Below follows an overview of what each step does.
 
@@ -227,3 +227,39 @@ Iteration: 1, number of interior knots: 1, residual: 0.423652
 Iteration: 2, number of interior knots: 3, residual: 0.365569
 Number of UV control points: [7, 23]
 ```
+### BSpline surface parameterization
+Currently, The spline surface parameterization is simply done by mapping data
+points to the nearest `(u, v)` coordinates in the plane. It should be possible to
+improve this mapping by inverting the actual mapping function, 
+This mapping function comes from applying transfinite interpolation in the
+plane. Essentially what is currently done is that the curved grid
+lines in the interior of the surface are obtained by applying linear
+transfinite interpolation in the plane, using the boundary curves obtained in the previous
+step. Hence, this interpolation technique gives us a mapping between points in
+space `(x(u,v),y(u,v),0)` on the surface. The z coordinate is here set to zero
+because the interpolation is carried out in the plane. The forward mapping is easy to
+compute, that is given `(u,v)` determine `(x,y,0)`. The inverse mapping can be found
+using for example Newton's method. That is, given a point `(x,y,0)` on the
+surface find its parameterization `S(u,v)`.  
+
+### BSpline surface fitting
+By specifying the control point coordinates `(Px, Py)` in the plane using the mapping
+function, all that remains is to specify the `Pz`. To explain the first poin in
+more detail, `(Px, Py)` are chosen
+to coincide with the `x,y` coordinates computed from the transfinite
+interpolation when evaluating the boundary curves at the knots. To specify `Pz`,
+a linear least square fit is performed. After the fitting is completed, the
+surface is rotated and translated back to the original coordinate system.
+
+The output of applying this procedure is in most cases highly unreliable, but
+do in some cases generate a surface that resembles the original surface.
+Needless to say, more work is needed, and several improvements are underway.
+
+![](figures/west_garlock_fit_version_1.png)
+**Figure 8** Initial BSpline surface fit obtained for the Garlock fault geometry
+shown in Figure 1. The slightly transparent surface rendered with a green
+wireframe is the BSpline surface evaluated using `37 x 12` grid points.
+
+
+
+
