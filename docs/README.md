@@ -249,7 +249,9 @@ more detail, `(Px, Py)` are chosen
 to coincide with the `x,y` coordinates computed from the transfinite
 interpolation when evaluating the boundary curves at the knots. To specify `Pz`,
 a linear least square fit is performed. After the fitting is completed, the
-surface is rotated and translated back to the original coordinate system.
+surface is rotated and translated back to the original coordinate system. Figure
+8 and 9 show the original surface and the fitted bspline surface using two
+different thresholds.
 
 The output of applying this procedure is in most cases highly unreliable, but
 do in some cases generate a surface that resembles the original surface.
@@ -259,6 +261,11 @@ Needless to say, more work is needed, and several improvements are underway.
 **Figure 8** Initial BSpline surface fit obtained for the Garlock fault geometry
 shown in Figure 1. The slightly transparent surface rendered with a green
 wireframe is the BSpline surface evaluated using `37 x 12` grid points.
+Threshold: `0.2`.
+
+![](figures/west_garlock_fit_version_2.png)
+**Figure 9** Improved BSpline surface fit (c.f. Fig. 9) that has been obtained
+by adjusting the boundary fitting threshold slightly. Threshold: `0.01`.
 
 
 

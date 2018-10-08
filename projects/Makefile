@@ -6,10 +6,10 @@ fig=png
 pydata=pydata
 
 ### Options for BSpline fitting
-bnd_degree = 2
-bnd_residual = 0.2
-surf_degree = 2
-surf_residual = 0.1
+bnd_degree = 3
+bnd_residual = 0.010
+surf_degree = 3
+surf_residual = 0.01
 
 # List of faults to process
 # Each fault is processed sequentially by calling `make num=1`

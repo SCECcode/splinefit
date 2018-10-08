@@ -122,7 +122,6 @@ nu = len(xb)
 nv = len(xl)
 pcl = rotate(data)
 X, Y = build_grid(bnd, nu, nv)
-p = 3
 nu = X.shape[0] -2*p-1 
 nv = X.shape[1] -2*p-1
 int_knot_v = bnds[0].int_knot # left
@@ -140,9 +139,6 @@ x = pcl[:,0]
 y = pcl[:,1]
 z = pcl[:,2]
 Pz = fit_surface(p, x, y, z, U, V)
-
-nu = 9
-nv = 9
 
 u = np.linspace(0, 1.0, 37)
 v = np.linspace(0, 1.0, 12)
