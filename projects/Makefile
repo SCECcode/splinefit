@@ -33,7 +33,8 @@ fault=$(word $(num), $(faults)).msh
 meshdir=$(out)/$(basename $(fault))
 meshes=$(basename $(wildcard $(meshdir)/*.msh))
 
-all: init gmsh boundary projection rotation segmentation bspline-boundary
+all: init gmsh boundary projection rotation segmentation bspline-boundary \
+     bspline-surface   
 
 init:
 	mkdir -p $(out)
@@ -77,7 +78,7 @@ $(meshdir)/$(pydata)/%_bspline_surf.p: $(meshdir)/$(pydata)/%_bspline_bnd.p
 	@echo Fitting BSpline surface for $(notdir $<)
 	$(PY) python/bspline-surface.py $< $(meshdir)/$(pydata)/$(notdir $@) \
 	$(surf_degree) $(surf_residual)\
- 	$(meshdir)/$(figures)/$(basename $(notdir $@)).$(fig)
+ 	$(meshdir)/$(basename $(notdir $@))_fit.vtk
 	      
 gmsh: init $(meshdir)/$(fault)
 

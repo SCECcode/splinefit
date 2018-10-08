@@ -6,16 +6,15 @@ import helper
 import pickle
 import matplotlib.pyplot as plt
 
-print(sys.argv)
 inputfile = sys.argv[1]
 outputfile = sys.argv[2]
 p = int(sys.argv[3])
 sm = float(sys.argv[4])
 
 if len(sys.argv) < 5:
-    figfile = None
+    vtkfile = None
 else:
-    figfile = sys.argv[5]
+    vtkfile = sys.argv[5]
 
 
 def rotate(data):
@@ -130,5 +129,6 @@ Y = sf.bspline.evalsurface(p, U, V, Py, u, v)
 Z = sf.bspline.evalsurface(p, U, V, Pz, u, v)
 ax = helper.plot_grid(X, Y, Z)
 helper.plot_points(pcl, ax=ax, style='ro')
+sf.vtk.write_surface(vtkfile, X, Y, Z)
 plt.show()
-#print(pcl.shape)
+print("Wrote:", vtkfile)

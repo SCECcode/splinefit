@@ -12,6 +12,13 @@ if len(sys.argv) < 4:
 else:
     figfile = sys.argv[3]
 
+def check_num_tris(tris, min_elem=16):
+    # Make sure that there are a sufficient number of elements to treat
+
+    if tris.shape[0] <= min_elem:
+        print("Not enough elements! Boundary extraction aborted.")
+        exit(0)
+
 def get_boundary(tris):
     # Extract triangles from gmsh data and shift to zero indexing
     
@@ -50,6 +57,7 @@ def make_plot(coords, tris, edges, figfile):
 
 coords, tris = sf.msh.read(inputfile)
 tris = msh.get_data(tris, num_members=3, index=1)
+check_num_tris(tris)
 bnd_edges = get_boundary(tris)
 make_plot(coords, tris, bnd_edges, figfile)
 
