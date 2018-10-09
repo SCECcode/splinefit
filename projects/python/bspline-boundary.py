@@ -70,6 +70,7 @@ def fit(x1, y1, x2, y2, p, sm, disp=False, mmax=100, axis=0):
     m = 1
     it = 0
     res = sm + 1
+    mmax = min(mmax, len(x1), len(x2))
     while (res > sm and m < mmax):
         it += 1
         Px1, Py1, U1, res1 = sf.bspline.lsq2l2(x1, y1, m, p)
@@ -92,7 +93,6 @@ def make_plot(curve, figfile, save=0, npts=100, color=1):
 
     if save:
         plt.savefig(figfile)
-
 data = pickle.load(open(inputfile, 'rb'))
 
 print("Determining number of u-knots...")
@@ -109,5 +109,7 @@ make_plot(left, figfile, color=0)
 make_plot(bottom, figfile, color=1)
 make_plot(right, figfile, color=2)
 make_plot(top, figfile, color=3, save=1)
+plt.show()
+
 
 pickle.dump((left, right, bottom, top, data), open(outputfile, 'wb'))
