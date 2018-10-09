@@ -424,7 +424,7 @@ def smoothing(x, y, sm=0.1, mmax=100, disp=False, p=3):
     return Px, Py, U
 
 
-def lsq2l2(x, y, m, p, knots='kmeans'):
+def lsq2l2(x, y, m, p, knots='kmeans', exclude_endpts=0):
     """
     Perform least squares fitting using `m` number of knots and chordlength
     parameterization and averaged knot vector.
@@ -434,7 +434,16 @@ def lsq2l2(x, y, m, p, knots='kmeans'):
         U = uniformknots(m, p, a=0, b=1)
     elif knots == 'kmeans':
         U = kmeansknots(s, m, p, a=0, b=1)
-    Px, Py, res = lsq2(s, x, y, U, p)
+    if exclude_endpts:
+        # Use interpolation at end points
+        sf = s[1:-1]
+        xf = x[1:-1]
+        yf = y[1:-1]
+        Pxf, Pyf, res = lsq2(s, x, y, U[1:-1], p)
+        Px = np.r_[x[0],Pxf[1:-1], x[-1]]
+        Py = np.r_[y[0],Pyf[1:-1], y[-1]]
+    else:
+        Px, Py, res = lsq2(s, x, y, U, p)
     return Px, Py, U, res
 
 def lsq2x(x, y, m, p, axis=0):
