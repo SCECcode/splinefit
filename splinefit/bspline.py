@@ -185,6 +185,8 @@ def curvepoint(p, U, P, u):
     n = len(P) - p
     span = findspan(n, p, u, U)
     N = basisfuns(span,u,p,U)
+    if U[-1] == u:
+        return P[-1]
     for i in range(p+1):
         C = C + N[i]*P[span-p+i]
     return C
@@ -234,7 +236,7 @@ def uniformknots(m, p, a=0, b=1):
               (b,)*(p+1)]
     return U
 
-def kmeansknots(s, m, p, a=0, b=1):
+def kmeansknots(s, m, p, a=0, b=1.0):
     """
     Construct a knot vector by finding knot positions using kmeans for selecting
     knots.
@@ -248,7 +250,29 @@ def kmeansknots(s, m, p, a=0, b=1):
     return U
 
 
-def lsq(x, y, U, p):
+def svd_inv(A, b, s, tol=1e-8):
+    """
+    Solve Ax = b using least squares SVD and regularization. 
+
+    That is solve the regularized Normal equations: 
+    (A.T*A + s*I)*x = A.T*b
+
+    """
+    M = A.T.dot(A) + s*np.eye(A.shape[1])
+    uh, sh, vh = np.linalg.svd(M, full_matrices=False)
+    m = sh.shape[0]
+    shi = 0*np.zeros((m,))
+    for i in range(m):
+        if sh[i] > tol:
+            shi[i] = 1/sh[i]
+        else:
+            shi[i] = 0
+            
+    v = A.T.dot(b)
+    Mi = (vh.T*shi).dot(uh.T)
+    return Mi.dot(A.T.dot(b) )
+
+def lsq(x, y, U, p, s=0, tol=1e-8):
     """
     Computes the least square fit to the data (x,y) using the knot vector U.
 
@@ -256,6 +280,7 @@ def lsq(x, y, U, p):
         x, y : Data points
         U : Knot vector
         p : Degree of BSpline
+        s : Smoothing parameter
 
     Returns:
         P : Control points,
@@ -267,7 +292,7 @@ def lsq(x, y, U, p):
     n = nctrl - p - 1
     npts = len(x)
 
-    A = np.zeros((npts, nctrl))
+    A = np.zeros((npts, nctrl - p))
     b = np.zeros((npts,))
     for i, xi in enumerate(x):
         span = findspan(n, p, xi, U)
@@ -276,8 +301,16 @@ def lsq(x, y, U, p):
             A[i, span + j - p] = Nj
         b[i] = y[i]
 
-    p0 = np.linalg.lstsq(A, b, rcond=None)[0]
+
+
+    #p0 = np.linalg.lstsq(A, b, rcond=None)[0]
+    p0 = svd_inv(A, b, s, tol) 
     res = np.linalg.norm(A.dot(p0) - b)
+    A[-1,:] = 0
+    A[-1,-1] = 1
+    # Interpolate ends
+    p0[0] = y[0] 
+    p0[-1] = y[-1] 
     return p0, res
 
 def lsq2surf(u, v, z, U, V, p):
@@ -378,7 +411,7 @@ def argsort2(u, v):
     w = np.zeros((len(u),))
 
 
-def lsq2(s, x, y, U, p):
+def lsq2(s, x, y, U, p, smooth=0):
     """
     Fit a curve C(s) = sum_i B_i(s) P, where control points P = (P_x, P_y)
 
@@ -395,8 +428,8 @@ def lsq2(s, x, y, U, p):
         res : Residuals.
 
     """
-    Px, rx = lsq(s, x, U, p)
-    Py, ry = lsq(s, y, U, p)
+    Px, rx = lsq(s, x, U, p, s=smooth)
+    Py, ry = lsq(s, y, U, p, s=smooth)
     return Px, Py, (rx, ry)
  
 def smoothing(x, y, sm=0.1, mmax=100, disp=False, p=3):
@@ -424,7 +457,7 @@ def smoothing(x, y, sm=0.1, mmax=100, disp=False, p=3):
     return Px, Py, U
 
 
-def lsq2l2(x, y, m, p, knots='kmeans', exclude_endpts=0):
+def lsq2l2(x, y, m, p, knots='uniform', smooth=0):
     """
     Perform least squares fitting using `m` number of knots and chordlength
     parameterization and averaged knot vector.
@@ -434,16 +467,7 @@ def lsq2l2(x, y, m, p, knots='kmeans', exclude_endpts=0):
         U = uniformknots(m, p, a=0, b=1)
     elif knots == 'kmeans':
         U = kmeansknots(s, m, p, a=0, b=1)
-    if exclude_endpts:
-        # Use interpolation at end points
-        sf = s[1:-1]
-        xf = x[1:-1]
-        yf = y[1:-1]
-        Pxf, Pyf, res = lsq2(s, x, y, U[1:-1], p)
-        Px = np.r_[x[0],Pxf[1:-1], x[-1]]
-        Py = np.r_[y[0],Pyf[1:-1], y[-1]]
-    else:
-        Px, Py, res = lsq2(s, x, y, U, p)
+    Px, Py, res = lsq2(s, x, y, U, p, smooth=smooth)
     return Px, Py, U, res
 
 def lsq2x(x, y, m, p, axis=0):

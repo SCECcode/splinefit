@@ -71,7 +71,7 @@ def test_bspline_curve():
     a = -2
     b = 2
     p = 3
-    m = 12
+    m = 5 
     px = np.linspace(a, b, npts)
     py = np.sin(px)*np.exp(-px**2)# + 0.1 * np.random.randn(npts)
     px = np.cos(0.1*px)
@@ -79,7 +79,7 @@ def test_bspline_curve():
     a = 0
     b = 1
     s = sf.bspline.chords(px, py, a=a, b=b)
-    U = sf.bspline.averageknots(s, m, p, a=a, b=b)
+    U = sf.bspline.kmeansknots(s, m, p, a=a, b=b)
     Px, Py, res = sf.bspline.lsq2(s, px, py, U, p)
     zx = []
     zy = []
