@@ -94,11 +94,24 @@ def build_grid(bnd, nu, nv):
     X, Y = sf.transfinite.bilinearinterp(*bnd, U, V)
     return X, Y
 
-def fit_surface(S, x, y, z):
+def fit_surface(S, bnd, x, y, z):
     u = sf.bspline.xmap(x)
     v = sf.bspline.xmap(y)
-    print(u)
-    print(v)
+
+    l, r, b, t = bnd
+
+    #u = np.linspace(0, 1, 20)
+    #v = np.linspace(0, 1, 20)
+    #u, v = np.meshgrid(u, v)
+    #u = u.flatten()
+    #v = v.flatten()
+
+    print("Mapping (x, y) coordinates to (u, v) coordinates")
+    for i in range(len(u)):
+        u[i], v[i] = sf.bspline.uvinv(x[i], y[i], u[i], v[i], l, r, b, t)
+        print("%d out of = %d points completed" % (i, len(u)))
+    plt.plot(u, v, 'bo')
+    plt.show()
     S.Pz, res = sf.bspline.lsq2surf(u, v, z, S.U, S.V, S.pu, S.pv)
     return S
 
@@ -165,7 +178,7 @@ x = pcl[:,0]
 y = pcl[:,1]
 z = pcl[:,2]
 S = sf.bspline.Surface(U, V, pu, pv, Px, Py, 0*Px)
-S = fit_surface(S, x, y, z)
+S = fit_surface(S, bnds, x, y, z)
 S.eval(20,20)
 
 u = np.linspace(0, 1.0, 40)

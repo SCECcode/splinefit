@@ -228,6 +228,75 @@ def evalsurface(pu, pv, U, V, P, u, v):
             w[i,j] = surfacepoint(pu, pv, U, V, P, u[i], v[j])
     return w
 
+def uvinv(xp, yp, u0, v0, l, r, b, t):
+    """
+    Invert transfinite interpolation mapping. That is, given (x,y) determine
+    (u,v). Secant method is used to find the root. 
+    Nearest index in rectangular grid can be used as initial guess.
+
+    """
+    import scipy.optimize 
+
+    xb0 = curvepoint(b.p, b.U, b.Px, 0)
+    xb1 = curvepoint(b.p, b.U, b.Px, 1)
+
+    xt0 = curvepoint(t.p, t.U, t.Px, 0)
+    xt1 = curvepoint(t.p, t.U, t.Px, 1)
+
+    yl0 = curvepoint(l.p, l.U, l.Py, 0)
+    yl1 = curvepoint(l.p, l.U, l.Py, 1)
+    
+    yr0 = curvepoint(r.p, r.U, r.Py, 0)
+    yr1 = curvepoint(r.p, r.U, r.Py, 1)
+
+    def swap(a, b, curve):
+        if a < b:
+            tmp = a
+            a = b
+            b = tmp
+            curve.Px = curve.Px[::-1]
+            curve.Py = curve.Py[::-1]
+
+        return a, b, curve
+
+    xt1, xt0, t = swap(xt1, xt0, t)
+    xb1, xb0, b = swap(xb1, xb0, b)
+    yl1, yl0, l = swap(yl1, yl0, l)
+    yr1, yr0, r = swap(yr1, yr0, r)
+
+    x = lambda u,v :  (1 - u)*curvepoint(l.p, l.U, l.Px, v) \
+             + u*curvepoint(r.p, r.U, r.Px, v)\
+             + (1 - v)*curvepoint(b.p, b.U, b.Px, u) \
+             + v*curvepoint(t.p, t.U, t.Px, u) \
+        - (1 - u)*(1 - v)*xb0 - (1 - u)*v*xt0 - u*(1 - v)*xb1 -u*v*xt1 \
+        - xp
+    y = lambda u,v : (1 - u)*curvepoint(l.p, l.U, l.Py, v) \
+             + u*curvepoint(r.p, r.U, r.Py, v)\
+             + (1 - v)*curvepoint(b.p, b.U, b.Py, u) \
+             + v*curvepoint(t.p, t.U, t.Py, u) \
+        - (1 - u)*(1 - v)*yl0 - (1 - u)*v*yl1 - u*(1 - v)*yr0 -u*v*yr1 \
+        - yp
+
+    f = lambda u : (x(u[0], u[1]), y(u[0], u[1]))
+ 
+    x0 = [u0, v0]
+    root = scipy.optimize.root(f, x0, args=(), method='broyden1', tol=1e-2,
+            options={'maxiter' : 30}) 
+
+    # Force solution to lie in the uv grid
+    def clamp(x):
+        if x < 0:
+            return 0
+        if x > 1:
+            return 1
+        else:
+            return x
+
+    x = root.x
+    x[0] = clamp(x[0])
+    x[1] = clamp(x[1])
+    return x
+
 def uniformknots(m, p, a=0, b=1):
     """
     Construct a uniform knot vector
@@ -364,8 +433,7 @@ def lsq2surf(u, v, z, U, V, pu, pv):
                 A[i, (span_v + l - pv)*(mu - pu) + (span_u + k - pu)] = Nk*Nl
         b[i] = zi
 
-        if span_u == nu and span_v == nv:
-            print(ui, vi)
+        #if span_u == nu and span_v == nv:
 
         if np.isclose(ui,0) and np.isclose(vi,0):
             c00 = i 
