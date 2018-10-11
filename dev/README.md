@@ -47,6 +47,7 @@ $ make num=4
 If it is the first time you process this fault (or you have deleted the
 generated output data), then you need to run the command twice.
 
+## Output
 Assuming that the processing went fine, then you should have the following
 directories and files created.
 ```
@@ -54,6 +55,7 @@ figures/
 pydata/
 part_*.vtk
 part_*.msh
+part_*_bspline_surf_fit.json
 part_*_bspline_surf_fit.vtk
 ```
 The figure directory contains some figures that were generated during different
@@ -70,7 +72,17 @@ source file. The `part_*_bspline_surf_fit.vtk` is the final BSpline surface fit
 that has been evaluated using a certain number of grid points in each
 direction.
 
-## Archive data
+### JSON data
+The JSON data files `_part_*_bspline_surf_fit.json` contains all of the data
+needed to reconstruct the BSpline surface using some other software. The fields are
+
+| Field(s)      | Description                                                                                                                                                                      |
+|---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `U`           | Knot vectors for clamped BSplines in the u and v-directions (1D array) .                                                                                                         |
+| `X`, `Y`, `Z` | Control point coordinates. Each coordinate is a 2D array, e.g. `X[i,j]`, `i` is the index for the v-direction and `j` is the index for the u-direction in (u,v)-parameter space. |
+| `pu`, `pv`    | Polynomial degree of the BSpline in each direction (integer).                                                                                                                    |
+
+## Release
 All of the data that is placed in the `output` directory can be compressed into
 a zip archive. Use
 
