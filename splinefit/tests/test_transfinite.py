@@ -104,5 +104,4 @@ def test_bilinearinterp():
     assert sf.transfinite.checkboundaries(xl, yl, xr, yr, xb, yb, xt, yt)
     X, Y = sf.transfinite.bilinearinterp(xl, yl, xr, yr, xt, yt, xb, yb, U, V)
     plt.plot(X, Y,'bo')
-    plt.show()
 

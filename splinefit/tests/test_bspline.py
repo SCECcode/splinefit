@@ -62,7 +62,6 @@ def test_minimize():
     plt.plot(px, py, 'bo')
     plt.plot(u, spl(u), 'g-', lw=3, label='LSQ spline')
     plt.plot(u, z,'k')
-    plt.show()
 
 def test_bspline_curve():
     from scipy.interpolate import BSpline
@@ -98,9 +97,7 @@ def test_bspline_curve():
     plt.plot(sx, sy,'k-')
     plt.plot(zx, zy,'b--')
     plt.plot(px, py,'k*')
-    #plt.plot(Px, Py,'go')
-    plt.show()
-    assert 0
+    #plt.show()
 
 def test_bspline_surface():
     return
@@ -146,6 +143,5 @@ def test_bspline_surface():
     plt.plot(X, Y, 'ro-')
     plt.plot(X.T, Y.T, 'ro-')
     plt.legend()
-    plt.show()
     
 
