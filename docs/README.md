@@ -125,7 +125,7 @@ optimal rotation (red) that approximately minimizes the area of the bounding box
 **Figure 4:** Rotation of projected boundary so that it aligns with the
 coordinate axes.
 
-### Quadrilateral fitting
+## Quadrilateral fitting
 **WARNING:** This step is not working correctly. It must either be improved or
 removed.
 
@@ -156,7 +156,7 @@ a plane and the fitting a quad to it - its projection lacks clear edges.
 **Figure 5:** First attempt at finding a minimum area quadrilateral that
 encloses all boundary points.
 
-### Boundary segmentation
+## Boundary segmentation
 
 While the quadrilateral step is currently not working, boundary segmentation
 using the bounding box information works quite well.  Corner points are selected
@@ -173,7 +173,7 @@ result of applying the boundary segmentation step to some of the faults.
 **Figure 6:** Detection of corner points using L1 distance and boundary
 segmentation.
 
-### BSpline boundary curve fitting
+## BSpline boundary curve fitting
 
 A BSpline curve `C(s) = sum_i B_i C` is fitted to each of the boundary segments extracted in the
 previous step. To perform the fit, a mapping between each data point `(x,y)` and
@@ -227,7 +227,7 @@ Iteration: 1, number of interior knots: 1, residual: 0.423652
 Iteration: 2, number of interior knots: 3, residual: 0.365569
 Number of UV control points: [7, 23]
 ```
-### BSpline surface parameterization
+## BSpline surface parameterization
 Currently, The spline surface parameterization is simply done by mapping data
 points to the nearest `(u, v)` coordinates in the plane. It should be possible to
 improve this mapping by inverting the actual mapping function, 
@@ -235,14 +235,39 @@ This mapping function comes from applying transfinite interpolation in the
 plane. Essentially what is currently done is that the curved grid
 lines in the interior of the surface are obtained by applying linear
 transfinite interpolation in the plane, using the boundary curves obtained in the previous
-step. Hence, this interpolation technique gives us a mapping between points in
+step. 
+
+The transfinite interpolation technique gives us a mapping between points in
 space `(x(u,v),y(u,v),0)` on the surface. The z coordinate is here set to zero
 because the interpolation is carried out in the plane. The forward mapping is easy to
-compute, that is given `(u,v)` determine `(x,y,0)`. The inverse mapping can be found
-using for example Newton's method. That is, given a point `(x,y,0)` on the
+compute, that is given `(u,v)` determine `(x,y,0)`. The inverse mapping requires
+a nonlinear solver. The inverse problem is: given a point `(x,y,0)` on the
 surface find its parameterization `S(u,v)`.  
 
-### BSpline surface fitting
+
+
+
+
+## Inverse mapping
+The figure below shows the mapping of each `(x,y)` point in the plane
+to `(u,v)` space. Note that the points on the top and bottom boundary are not
+properly mapped. However, since it is known what points are on the boundaries,
+the mapping for the boundaries can be adjusted.
+
+![](figures/uv_mapping.png)
+
+**Figure 8** U-V mapping of Santa Susana fault data by inverting the transfinite
+interpolation map. 
+
+![](figures/uv_mapping_naive.png)
+
+**Figure 8** U-V mapping of Santa Susana fault data by normalizing x and y
+coordinates. 
+
+
+
+
+## BSpline surface fitting
 By specifying the control point coordinates `(Px, Py)` in the plane using the mapping
 function, all that remains is to specify the `Pz`. To explain the first poin in
 more detail, `(Px, Py)` are chosen
@@ -258,15 +283,14 @@ do in some cases generate a surface that resembles the original surface.
 Needless to say, more work is needed, and several improvements are underway.
 
 ![](figures/west_garlock_fit_version_1.png)
-**Figure 8** Initial BSpline surface fit obtained for the Garlock fault geometry
+**Figure 9** Initial BSpline surface fit obtained for the Garlock fault geometry
 shown in Figure 1. The slightly transparent surface rendered with a green
 wireframe is the BSpline surface evaluated using `37 x 12` grid points.
 Threshold: `0.2`.
 
 ![](figures/west_garlock_fit_version_2.png)
-**Figure 9** Improved BSpline surface fit (c.f. Fig. 9) that has been obtained
+**Figure 10** Improved BSpline surface fit (c.f. Fig. 9) that has been obtained
 by adjusting the boundary fitting threshold slightly. Threshold: `0.01`.
-
 
 
 

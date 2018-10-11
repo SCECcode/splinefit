@@ -11,13 +11,14 @@ min_elem = 20
 ### Options for BSpline fitting
 bnd_degree = 2
 bnd_residual = 0.4
-surf_degree = 2
+bnd_smooth = 0.01
 surf_residual = 0.1
+surf_invert_mapping = 0
 
 # List of faults to process
 # Each fault is processed sequentially by calling `make num=1`
 # where `num` is the index of the fault in the array.
-num=3
+num=5
 fault1=PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1
 fault2=GRFS-GRFZ-WEST-Garlock_fault-CFM5
 fault3=WTRA-NCVS-VNTB-Southern_San_Cayetano_fault-steep-JHAP-CFM5
@@ -79,14 +80,15 @@ $(meshdir)/$(pydata)/%_seg.p: $(meshdir)/$(pydata)/%_rot.p
 $(meshdir)/$(pydata)/%_bspline_bnd.p: $(meshdir)/$(pydata)/%_seg.p
 	@echo Fitting BSpline curve through boundary for $(notdir $<)
 	$(PY) python/bspline-boundary.py $< $(meshdir)/$(pydata)/$(notdir $@) \
-	$(bnd_degree) $(bnd_residual)\
+	$(bnd_degree) $(bnd_residual) $(bnd_smooth)\
  	$(meshdir)/$(figures)/$(basename $(notdir $@)).$(fig)
 
 $(meshdir)/$(pydata)/%_bspline_surf.p: $(meshdir)/$(pydata)/%_bspline_bnd.p
 	@echo Fitting BSpline surface for $(notdir $<)
 	$(PY) python/bspline-surface.py $< $(meshdir)/$(pydata)/$(notdir $@) \
-	$(surf_degree) $(surf_residual)\
- 	$(meshdir)/$(basename $(notdir $@))_fit.vtk
+	$(surf_invert_mapping)\
+ 	$(meshdir)/$(basename $(notdir $@))_fit.vtk \
+ 	$(meshdir)/$(figures)/$(basename $(notdir $@))_uv.$(fig)
 	      
 gmsh: init $(meshdir)/$(fault)
 

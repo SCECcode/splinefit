@@ -8,12 +8,17 @@ import matplotlib.pyplot as plt
 
 inputfile = sys.argv[1]
 outputfile = sys.argv[2]
-sm = float(sys.argv[3])
+invert_mapping = int(sys.argv[3])
 
 if len(sys.argv) < 4:
     vtkfile = None
 else:
     vtkfile = sys.argv[4]
+
+if len(sys.argv) < 5:
+    uvfig = None
+else:
+    uvfig = sys.argv[5]
 
 
 def rotate(data):
@@ -94,31 +99,34 @@ def build_grid(bnd, nu, nv):
     X, Y = sf.transfinite.bilinearinterp(*bnd, U, V)
     return X, Y
 
-def fit_surface(S, bnd, x, y, z):
+def mapping(S, bnd, x, y, invert=0):
+    print("Mapping (x, y) coordinates to (u, v) coordinates")
     u = sf.bspline.xmap(x)
     v = sf.bspline.xmap(y)
+    if invert:
+        l, r, b, t = bnd
+        for i in range(len(x)):
+            u[i], v[i] = sf.bspline.uvinv(x[i], y[i], u[i], v[i], l, r, b, t)
+            print("%d out of = %d points completed" % (i, len(x)))
+    if uvfig:
+        plt.plot(u, v, 'bo')
+        plt.xlabel('u')
+        plt.ylabel('v')
+        plt.savefig(uvfig)
+        plt.show()
+        print("Wrote", uvfig)
+    return u, v
 
-    l, r, b, t = bnd
 
-    #u = np.linspace(0, 1, 20)
-    #v = np.linspace(0, 1, 20)
-    #u, v = np.meshgrid(u, v)
-    #u = u.flatten()
-    #v = v.flatten()
-
-    print("Mapping (x, y) coordinates to (u, v) coordinates")
-    for i in range(len(u)):
-        u[i], v[i] = sf.bspline.uvinv(x[i], y[i], u[i], v[i], l, r, b, t)
-        print("%d out of = %d points completed" % (i, len(u)))
-    plt.plot(u, v, 'bo')
-    plt.show()
+def fit_surface(S, bnd, x, y, z):
+    u, v = mapping(S, bnd, x, y, invert_mapping)
     S.Pz, res = sf.bspline.lsq2surf(u, v, z, S.U, S.V, S.pu, S.pv)
     return S
 
 def plot_transfinite(S, bnds):
     left, right, bottom, top = bnds
-    ax = helper.plot_grid(S.X, S.Y, S.Z)
-    ax = helper.plot_grid(S.Px, S.Py, 0*S.Pz, ax, color='red')
+    ax = helper.plot_grid(S.X, S.Y, 0*S.Z)
+    ax = helper.plot_grid(S.Px, S.Py, 0*S.Pz, ax, color='C0')
     ax.plot(pcl[:,0], pcl[:,1],'b*')
     ax.plot(xl, yl,'k-')
     ax.plot(xr, yr,'k-')
