@@ -78,7 +78,7 @@ needed to reconstruct the BSpline surface using some other software. The fields 
 
 | Field(s)      | Description                                                                                                                                                                      |
 |---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `U`           | Knot vectors for clamped BSplines in the u and v-directions (1D array) .                                                                                                         |
+| `U`, `V`           | Knot vectors for clamped BSplines in the u and v-directions (1D array) .                                                                                                         |
 | `X`, `Y`, `Z` | Control point coordinates. Each coordinate is a 2D array, e.g. `X[i,j]`, `i` is the index for the v-direction and `j` is the index for the u-direction in (u,v)-parameter space. |
 | `pu`, `pv`    | Polynomial degree of the BSpline in each direction (integer).                                                                                                                    |
 
