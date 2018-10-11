@@ -12,6 +12,11 @@ if len(sys.argv) < 4:
 else:
     figfile = sys.argv[3]
 
+if len(sys.argv) < 5:
+    showplot = 0
+else:
+    showplot = int(sys.argv[4])
+
 def check_num_tris(tris, min_elem=16):
     # Make sure that there are a sufficient number of elements to treat
 
@@ -54,6 +59,7 @@ def make_plot(coords, tris, edges, figfile):
     fig, ax = helper.plot_mesh(xyz, tris)
     helper.plot_points(bnd_coords, ax=ax, style='k-')
     plt.savefig(figfile)
+    helper.show(showplot)
 
 coords, tris = sf.msh.read(inputfile)
 tris = msh.get_data(tris, num_members=3, index=1)

@@ -12,6 +12,10 @@ if len(sys.argv) < 4:
     figfile = None
 else:
     figfile = sys.argv[3]
+if len(sys.argv) < 5:
+    showplot = 0
+else:
+    showplot = int(sys.argv[4])
 
 
 data = pickle.load(open(inputfile, 'rb'))
@@ -32,6 +36,7 @@ helper.plot_points(bnd_xyz, ax, 'k')
 helper.plot_points(bnd_xy, ax, 'b-')
 helper.plot_basis(basis, ax)
 plt.savefig(figfile)
+helper.show(showplot)
 data = helper.Struct()
 data.mu = mu
 data.std = std

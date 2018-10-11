@@ -86,6 +86,12 @@ def plot_points2(points, style='-'):
     plt.plot(points[:,0], points[:,1],style)
 
 
+def show(show_plot):
+    import matplotlib.pyplot as plt
+    if show_plot:
+        plt.show()
+
+
 def plot_basis(basis, ax=None, style=''):
     """
     Plot basis vectors in 3D space

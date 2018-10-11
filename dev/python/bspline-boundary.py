@@ -17,6 +17,11 @@ if len(sys.argv) < 7:
 else:
     figfile = sys.argv[6]
 
+if len(sys.argv) < 8:
+    showplot = 0
+else:
+    showplot = int(sys.argv[7])
+
 def make_curves(data1, data2, p, sm, s, disp=True, axis=0):
     curve1 = helper.Struct()
     curve1.x = data1[:,0]
@@ -112,7 +117,7 @@ make_plot(left, figfile, color=0)
 make_plot(bottom, figfile, color=1)
 make_plot(right, figfile, color=2)
 make_plot(top, figfile, color=3, save=1)
-plt.show()
+helper.show(showplot)
 
 
 pickle.dump((left, right, bottom, top, data), open(outputfile, 'wb'))

@@ -21,6 +21,11 @@ if len(sys.argv) < 4:
 else:
     figfile = sys.argv[3]
 
+if len(sys.argv) < 5:
+    showplot = 0
+else:
+    showplot = int(sys.argv[4])
+
 def get_corners(points, bbox, norm=1):
     """
     Select boundary corners using the norm `norm`. Defaults to `1` (L1 norm).
@@ -77,5 +82,6 @@ data.corners = data.rxy[corner_ids]
 data.corner_ids = corner_ids
 
 make_plot(data)
+helper.show(showplot)
 
 pickle.dump(data, open(outputfile, 'wb'))

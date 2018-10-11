@@ -20,6 +20,10 @@ if len(sys.argv) < 4:
     figfile = None
 else:
     figfile = sys.argv[3]
+if len(sys.argv) < 5:
+    showplot = 0
+else:
+    showplot = int(sys.argv[4])
 
 def objective_function(xy, mu, theta):
     try:
@@ -57,4 +61,5 @@ bbox = sf.fitting.bbox2(rxy)
 helper.plot_points2(helper.close_boundary(bbox),'r')
 plt.legend(['Before rotation', 'After rotation'])
 plt.savefig(figfile)
+helper.show(showplot)
 pickle.dump(data, open('.'.join(outputfile.split('.')[:-1]) + '.p', 'wb'))

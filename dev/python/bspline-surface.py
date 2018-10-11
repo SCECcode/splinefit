@@ -25,6 +25,11 @@ if len(sys.argv) < 6:
 else:
     uvfig = sys.argv[6]
 
+if len(sys.argv) < 7:
+    showplot = 0
+else:
+    showplot = int(sys.argv[7])
+
 
 def rotate(data):
     """
@@ -201,6 +206,7 @@ px =  Px[0]
 py =  Py[0]
 
 plot_transfinite(S, bnds)
+helper.show(showplot)
 
 sf.vtk.write_surface(vtkfile, S.X, S.Y, S.Z)
 

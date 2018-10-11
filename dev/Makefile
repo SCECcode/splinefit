@@ -4,10 +4,16 @@ VERSION=beta_1.0
 YEAR=2018
 cfm=/usr/local/CFM5_release_2017/obj/CFM5_preferred/native
 
+### General options
+# show_plot : Show figures that are being generated. When enabled, user
+# interaction is required. Plot window must be closed to resume operation
+show_plot = 0
+
 ### Options for mesh conversion
 # min_elem : Minimum number of elements a triangular surface must contain to
 # get processed
 min_elem = 20
+
 
 ### Options for BSpline fitting
 # bnd_degree : Polynomial degree
@@ -77,28 +83,33 @@ clean-fit:
 $(meshdir)/$(pydata)/%_bnd.p: $(meshdir)/%.msh
 	@echo Extracting boundary data from triangular mesh: $(notdir $<)
 	$(PY) python/boundary.py $< $(meshdir)/$(pydata)/$(notdir $@) \
- 	$(meshdir)/$(figures)/$(basename $(notdir $@)).$(fig)
+ 	$(meshdir)/$(figures)/$(basename $(notdir $@)).$(fig) \
+	$(show_plot)
 
 $(meshdir)/$(pydata)/%_proj.p: $(meshdir)/$(pydata)/%_bnd.p
 	@echo Projecting boundary data onto bestfitting plane for $(notdir $<)
 	$(PY) python/projection.py $< $(meshdir)/$(pydata)/$(notdir $@) \
- 	$(meshdir)/$(figures)/$(basename $(notdir $@)).$(fig)
+ 	$(meshdir)/$(figures)/$(basename $(notdir $@)).$(fig) \
+	$(show_plot)
 
 $(meshdir)/$(pydata)/%_rot.p: $(meshdir)/$(pydata)/%_proj.p
 	@echo Rotating coordinate system for $(notdir $<)
 	$(PY) python/rotation.py $< $(meshdir)/$(pydata)/$(notdir $@) \
- 	$(meshdir)/$(figures)/$(basename $(notdir $@)).$(fig)
+ 	$(meshdir)/$(figures)/$(basename $(notdir $@)).$(fig) \
+	$(show_plot)
 
 $(meshdir)/$(pydata)/%_seg.p: $(meshdir)/$(pydata)/%_rot.p
 	@echo Detecting boundary segments for $(notdir $<)
 	$(PY) python/segment.py $< $(meshdir)/$(pydata)/$(notdir $@) \
- 	$(meshdir)/$(figures)/$(basename $(notdir $@)).$(fig)
+ 	$(meshdir)/$(figures)/$(basename $(notdir $@)).$(fig) \
+	$(show_plot)
 
 $(meshdir)/$(pydata)/%_bspline_bnd.p: $(meshdir)/$(pydata)/%_seg.p
 	@echo Fitting BSpline curve through boundary for $(notdir $<)
 	$(PY) python/bspline-boundary.py $< $(meshdir)/$(pydata)/$(notdir $@) \
 	$(bnd_degree) $(bnd_residual) $(bnd_smooth)\
- 	$(meshdir)/$(figures)/$(basename $(notdir $@)).$(fig)
+ 	$(meshdir)/$(figures)/$(basename $(notdir $@)).$(fig) \
+	$(show_plot)
 
 $(meshdir)/$(pydata)/%_bspline_surf.p: $(meshdir)/$(pydata)/%_bspline_bnd.p
 	@echo Fitting BSpline surface for $(notdir $<)
@@ -106,7 +117,8 @@ $(meshdir)/$(pydata)/%_bspline_surf.p: $(meshdir)/$(pydata)/%_bspline_bnd.p
 	$(surf_invert_mapping)\
  	$(meshdir)/$(basename $(notdir $@))_fit.vtk \
  	$(meshdir)/$(basename $(notdir $@))_fit.json \
- 	$(meshdir)/$(figures)/$(basename $(notdir $@))_uv.$(fig)
+ 	$(meshdir)/$(figures)/$(basename $(notdir $@))_uv.$(fig) \
+	$(show_plot)
 	      
 gmsh: init $(meshdir)/$(fault)
 
@@ -127,4 +139,4 @@ release:
 	rm -r $(NAME)_$(VERSION)_$(YEAR)
 
 clean:
-	rm -rf $(meshdir)
+	rm -rf $(meshdir)/*
