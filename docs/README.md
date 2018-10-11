@@ -302,5 +302,3 @@ fault geometry. The U-V mapping is constructed by inverting the transfinite
 interpolation map (see [inverse mapping](#inverse-mapping)). The green mesh is
 the fitted surface.
 
-
-

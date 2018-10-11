@@ -17,9 +17,6 @@ if len(sys.argv) < 7:
 else:
     figfile = sys.argv[6]
 
-def adjust_poly_deg(num_pts, p):
-    return min(num_pts - 1, p)
-
 def make_curves(data1, data2, p, sm, s, disp=True, axis=0):
     curve1 = helper.Struct()
     curve1.x = data1[:,0]
@@ -28,16 +25,6 @@ def make_curves(data1, data2, p, sm, s, disp=True, axis=0):
     curve2.x = data2[:,0]
     curve2.y = data2[:,1]
 
-    #Adjust polynomial degree based on number of points
-    p = adjust_poly_deg(len(curve1.x), p)
-    p = adjust_poly_deg(len(curve2.x), p)
-
-    #FIXME: Handle too few points to perform a fit
-    if p == 0:
-        curve1.px = curve1.x[0] 
-        curve1.py = curve1.y[0] 
-        curve2.px = curve2.x[0] 
-        curve2.py = curve2.y[0] 
 
 
     curve1.Px, curve1.Py, curve1.U, curve2.Px, curve2.Py, curve2.U, p, int_knot\
@@ -76,7 +63,7 @@ def fit(x1, y1, x2, y2, p, sm, s, disp=False, mmax=40, axis=0):
     m = (p + 1) - 2
     it = 0
     res = sm + 1
-    mmax = min(mmax, len(x1) - p , len(x2) - p)
+    mmax = max(min(mmax, len(x1) - p , len(x2) - p), 1)
     
 
     if mmax <= m:

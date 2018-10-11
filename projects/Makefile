@@ -1,24 +1,33 @@
 PY=python3
+NAME=CFM5_pilot_bspline
+VERSION=beta_1.0
+YEAR=2018
 cfm=/usr/local/CFM5_release_2017/obj/CFM5_preferred/native
-out=output
-figures=figures
-fig=png
-pydata=pydata
 
 ### Options for mesh conversion
+# min_elem : Minimum number of elements a triangular surface must contain to
+# get processed
 min_elem = 20
 
 ### Options for BSpline fitting
-bnd_degree = 2
-bnd_residual = 0.4
+# bnd_degree : Polynomial degree
+# residual : Desired residual to obtain. More control points are inserted until
+# 	this threshold is reached
+# bnd_smooth : Amount of smoothness to add in the fitting. There might be a bug
+# 	in the implementation of this. Use with caution.
+# surf_residual : Unused.
+# surf_invert_mapping : Determine UV-mapping by inverting the transfinite
+# 	interpolation mapping.
+bnd_degree = 3
+bnd_residual = 1.8
 bnd_smooth = 0.01
 surf_residual = 0.1
-surf_invert_mapping = 0
+surf_invert_mapping = 1
 
 # List of faults to process
 # Each fault is processed sequentially by calling `make num=1`
 # where `num` is the index of the fault in the array.
-num=5
+num=12
 fault1=PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1
 fault2=GRFS-GRFZ-WEST-Garlock_fault-CFM5
 fault3=WTRA-NCVS-VNTB-Southern_San_Cayetano_fault-steep-JHAP-CFM5
@@ -31,8 +40,16 @@ fault9=WTRA-SBTS-SMMT-Santa_Monica_thrust_fault-CFM1
 fault10=PNRA-NIRC-LABS-Newport-Inglewood_fault-dip_w_splays-split-CFM5
 fault11=PNRA-CSTL-SJQH-San_Joaquin_Hills_fault-truncated-CFM3
 fault12=PNRA-CEPS-LABS-Compton-Los_Alamitos_fault-CFM2
-faults=$(fault1) $(fault2) $(fault3) $(fault4) $(fault5) $(fault6) $(fault7)
+faults=$(fault1) $(fault2) $(fault3) $(fault4) $(fault5) $(fault6) $(fault7) \
+       $(fault8) $(fault9) $(fault10) $(fault11) $(fault12)
 fault=$(word $(num), $(faults)).msh
+
+# Name of output directories
+out=output
+figures=figures
+fig=png
+pydata=pydata
+releasedir=releases
 
 meshdir=$(out)/$(basename $(fault))
 meshes=$(basename $(wildcard $(meshdir)/*.msh))
@@ -100,6 +117,13 @@ rotation: $(foreach mesh,$(meshes),$(meshdir)/$(pydata)/$(notdir $(mesh))_rot.p)
 segmentation: $(foreach mesh,$(meshes),$(meshdir)/$(pydata)/$(notdir $(mesh))_seg.p)
 bspline-boundary: $(foreach mesh,$(meshes),$(meshdir)/$(pydata)/$(notdir $(mesh))_bspline_bnd.p)
 bspline-surface: $(foreach mesh,$(meshes),$(meshdir)/$(pydata)/$(notdir $(mesh))_bspline_surf.p)
+
+release:
+	mkdir -p $(releasedir)
+	mkdir -p $(NAME)_$(VERSION)_$(YEAR)
+	cp -r $(out)/* $(NAME)_$(VERSION)_$(YEAR)
+	zip  $(releasedir)/$(NAME)_$(VERSION)_$(YEAR).zip -r $(NAME)_$(VERSION)_$(YEAR)  
+	rm -r $(NAME)_$(VERSION)_$(YEAR)
 
 clean:
 	rm -rf $(meshdir)

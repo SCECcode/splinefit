@@ -389,15 +389,20 @@ def lsq(x, y, U, p, s=0, tol=1e-8):
     p0[-1] = y[-1] 
     return p0, res
 
-def lsq2surf(u, v, z, U, V, pu, pv):
+def lsq2surf(u, v, z, U, V, pu, pv, corner_ids=0):
     """
     Computes the least square fit to the mapped data z(u, v) using the knot
     vector U, V.
 
     Arguments:
         u, v : Mapping of (x, y) coordinates of data points to parameterization
+        z : Coordinate to apply fit to.
         U, V : Knot vector
         pu, pv : Degree of BSpline in each direction
+
+    Optional arguments:
+        corner_ids : Specify a list of four index to force the corners to be
+            interpolatated. Each id must map to an value in `u, v, z`.
 
     Returns:
         P : Control points (size: mu x mv),
@@ -415,11 +420,6 @@ def lsq2surf(u, v, z, U, V, pu, pv):
 
     A = np.zeros((npts, (nu + 1)*(nv + 1)))
     b = np.zeros((npts,))
-    # Corner indices (to be determined)
-    c00 = 0
-    c10 = 0
-    c01 = 0
-    c11 = 0
     for i in range(npts):
         ui = u[i]
         vi = v[i]
@@ -433,28 +433,18 @@ def lsq2surf(u, v, z, U, V, pu, pv):
                 A[i, (span_v + l - pv)*(mu - pu) + (span_u + k - pu)] = Nk*Nl
         b[i] = zi
 
-        #if span_u == nu and span_v == nv:
-
-        if np.isclose(ui,0) and np.isclose(vi,0):
-            c00 = i 
-        if  np.isclose(1,ui) and np.isclose(vi,0):
-            c01 = i 
-        if np.isclose(0,ui) and np.isclose(1,vi):
-            c10 = i 
-        if np.isclose(1,ui) and np.isclose(1,vi):
-            c11 = i 
-
     p0 = np.linalg.lstsq(A, b, rcond=None)[0]
-    res = np.linalg.norm(A.dot(p0) - b)
-    print("Residual", res)
-    P = p0.reshape((mv-pv, mu-pu))
-    print("Corner points")
-    P[0,0] = z[c00]
-    P[1,0] = z[c10]
-    P[0,1] = z[c01]
-    P[1,1] = z[c11]
-    print(P[0,0],P[1,0],P[0,1],P[1,1])
 
+
+    res = np.linalg.norm(A.dot(p0) - b)
+    print("Residual for surface fit", res)
+    P = p0.reshape((mv-pv, mu-pu))
+
+    if corner_ids:
+        P[0,0] = z[corner_ids[0]]
+        P[0,1] = z[corner_ids[1]]
+        P[1,1] = z[corner_ids[2]]
+        P[1,0] = z[corner_ids[3]]
 
     return P, res
 
