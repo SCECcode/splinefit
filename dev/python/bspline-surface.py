@@ -16,9 +16,14 @@ else:
     vtkfile = sys.argv[4]
 
 if len(sys.argv) < 5:
+    jsonfile = None
+else:
+    jsonfile = sys.argv[5]
+
+if len(sys.argv) < 6:
     uvfig = None
 else:
-    uvfig = sys.argv[5]
+    uvfig = sys.argv[6]
 
 
 def rotate(data):
@@ -204,5 +209,7 @@ ax = helper.plot_grid(S.X, S.Y, S.Z)
 helper.plot_points(data.coords, ax=ax, style='ro')
 sf.vtk.write_surface(vtkfile, X, Y, Z)
 print("Wrote:", vtkfile)
+S.json(jsonfile)
+print("Wrote:", jsonfile)
 
 pickle.dump((S, data), open(outputfile, 'wb'))

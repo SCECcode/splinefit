@@ -105,6 +105,7 @@ $(meshdir)/$(pydata)/%_bspline_surf.p: $(meshdir)/$(pydata)/%_bspline_bnd.p
 	$(PY) python/bspline-surface.py $< $(meshdir)/$(pydata)/$(notdir $@) \
 	$(surf_invert_mapping)\
  	$(meshdir)/$(basename $(notdir $@))_fit.vtk \
+ 	$(meshdir)/$(basename $(notdir $@))_fit.json \
  	$(meshdir)/$(figures)/$(basename $(notdir $@))_uv.$(fig)
 	      
 gmsh: init $(meshdir)/$(fault)

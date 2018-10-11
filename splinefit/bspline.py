@@ -597,3 +597,15 @@ class Surface(object):
         self.Y = evalsurface(self.pu, self.pv, self.U, self.V, self.Py, u, v)
         self.Z = evalsurface(self.pu, self.pv, self.U, self.V, self.Pz, u, v)
 
+    def json(self, filename):
+        import json
+        with open(filename, 'w') as out:
+            json.dump({'X' : self.X.tolist(), 
+                       'Y' : self.Y.tolist(), 
+                       'Z' : self.Z.tolist(),
+                       'U' : self.U.tolist(), 
+                       'V' : self.V.tolist(),
+                       'pu' : self.pu,
+                       'pv' : self.pv}, out, indent=4)
+
+
