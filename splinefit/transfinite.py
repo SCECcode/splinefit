@@ -181,7 +181,7 @@ def fixcorners(xl, yl, xr, yr, xb, yb, xt, yt):
 
     return xl, yl, xr, yr, xb, yb, xt, yt
 
-def bilinearinterp(xl, yl, xr, yr, xt, yt, xb, yb, U, V):
+def bilinearinterp(xl, yl, xr, yr, xb, yb, xt, yt, U, V):
     """
     Generates a 2D structured grid by performing linear transfinite
     interpolation. 

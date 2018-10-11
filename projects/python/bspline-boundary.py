@@ -10,12 +10,12 @@ inputfile = sys.argv[1]
 outputfile = sys.argv[2]
 p = int(sys.argv[3])
 sm = float(sys.argv[4])
-s = 0.01
+s = float(sys.argv[5])
 
-if len(sys.argv) < 6:
+if len(sys.argv) < 7:
     figfile = None
 else:
-    figfile = sys.argv[5]
+    figfile = sys.argv[6]
 
 def adjust_poly_deg(num_pts, p):
     return min(num_pts - 1, p)
@@ -76,7 +76,7 @@ def fit(x1, y1, x2, y2, p, sm, s, disp=False, mmax=40, axis=0):
     m = (p + 1) - 2
     it = 0
     res = sm + 1
-    mmax = min(mmax, len(x1), len(x2))
+    mmax = min(mmax, len(x1) - p , len(x2) - p)
     
 
     if mmax <= m:
@@ -84,9 +84,9 @@ def fit(x1, y1, x2, y2, p, sm, s, disp=False, mmax=40, axis=0):
                        Reducing polynomial approximation")
         p = mmax 
         m = mmax - 1
+        print("New polynomial degree:", p)
 
 
-    print(p, m, mmax)
     while (res > sm and m < mmax):
         it += 1
         Px1, Py1, U1, res1 = sf.bspline.lsq2l2(x1, y1, m, p, smooth=s)
@@ -128,4 +128,4 @@ make_plot(top, figfile, color=3, save=1)
 plt.show()
 
 
-#pickle.dump((left, right, bottom, top, data), open(outputfile, 'wb'))
+pickle.dump((left, right, bottom, top, data), open(outputfile, 'wb'))

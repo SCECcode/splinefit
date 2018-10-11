@@ -10,7 +10,7 @@ min_elem = 20
 
 ### Options for BSpline fitting
 bnd_degree = 2
-bnd_residual = 0.1
+bnd_residual = 0.4
 surf_degree = 2
 surf_residual = 0.1
 

@@ -17,6 +17,8 @@ def evalcurve(curve, num):
     cy = sf.bspline.evalcurve(curve.p, curve.U, curve.Py, u)
     return cx, cy
 
+
+
 def plot_mesh(points, triangles, ax=None):
     """
     Plot triangular mesh.
@@ -37,7 +39,7 @@ def plot_mesh(points, triangles, ax=None):
                     shade=False)
     return fig, ax
 
-def plot_grid(X, Y, Z=0, ax=None):
+def plot_grid(X, Y, Z=0, ax=None, color='b'):
     """
     Plot a structured grid.
     
@@ -48,7 +50,7 @@ def plot_grid(X, Y, Z=0, ax=None):
         fig = plt.figure()
         ax = fig.gca(projection='3d', proj_type = 'ortho')
         ax=fig.gca(projection=Axes3D.name)
-    ax.plot_wireframe(X,Y,Z)
+    ax.plot_wireframe(X,Y,Z, color=color)
     #ax.view_init(90, -90)
     return ax
 

@@ -164,6 +164,13 @@ def basisfuns(i,u,p,U):
     left = np.zeros((p+1,))
     right = np.zeros((p+1,))
     N[0] = 1.0
+
+
+    if np.isclose(u, U[0]):
+        return [1.0] + [0]*p
+    if np.isclose(u, U[-1]):
+        return [0]*p + [1.0]
+
     for j in range(1,p+1):
         left[j] = u - U[i+1-j]
         right[j] = U[i+j] - u
@@ -171,7 +178,7 @@ def basisfuns(i,u,p,U):
         for r in range(j):
             denom = right[r+1] + left[j-r]
             if np.isclose(denom,0):
-                N[r] = 1
+                N[r] = 0
                 break
             temp = N[r]/denom
             N[r] = saved+right[r+1]*temp
@@ -191,19 +198,21 @@ def curvepoint(p, U, P, u):
         C = C + N[i]*P[span-p+i]
     return C
 
-def surfacepoint(p, U, V, P, u, v):
+def surfacepoint(pu, pv, U, V, P, u, v):
     S = 0.0
-    nv = P.shape[0] - p
-    nu = P.shape[1] - p
-    span_u = int(np.floor(u)) + p
-    span_u = findspan(nu, p, u, U)
-    span_v = int(np.floor(v)) + p
-    span_v = findspan(nv, p, v, V)
-    Nu = basisfuns(span_u,u,p,U)
-    Nv = basisfuns(span_v,v,p,V)
-    for i in range(p+1):
-        for j in range(p+1):
-            S = S + Nu[i]*Nv[j]*P[span_v-p+j, span_u-p+i]
+
+    nv = P.shape[0] - 1
+    nu = P.shape[1] - 1
+    span_u = findspan(nu, pu, u, U)
+    span_v = findspan(nv, pv, v, V)
+    Nu = basisfuns(span_u,u,pu,U)
+    Nv = basisfuns(span_v,v,pv,V)
+
+    for i in range(pu+1):
+        for j in range(pv+1):
+            P[span_v-pv+j,0]
+            P[0, span_u-pu+i]
+            S = S + Nu[i]*Nv[j]*P[span_v-pv+j, span_u-pu+i]
     return S
 
 def evalcurve(p, U, P, u):
@@ -212,11 +221,11 @@ def evalcurve(p, U, P, u):
         y[i] = curvepoint(p, U, P, u[i])
     return y
 
-def evalsurface(p, U, V, P, u, v):
+def evalsurface(pu, pv, U, V, P, u, v):
     w = np.zeros((len(u), len(v)))
     for i in range(w.shape[0]):
         for j in range(w.shape[1]):
-            w[i,j] = surfacepoint(p, U, V, P, u[i], v[j])
+            w[i,j] = surfacepoint(pu, pv, U, V, P, u[i], v[j])
     return w
 
 def uniformknots(m, p, a=0, b=1):
@@ -288,11 +297,11 @@ def lsq(x, y, U, p, s=0, tol=1e-8):
 
     """
     assert len(x) == len(y)
-    nctrl = len(U) - 1
-    n = nctrl - p - 1
+    m = len(U) - 1
+    n = m - p - 1
     npts = len(x)
 
-    A = np.zeros((npts, nctrl - p))
+    A = np.zeros((npts, m - p))
     b = np.zeros((npts,))
     for i, xi in enumerate(x):
         span = findspan(n, p, xi, U)
@@ -306,14 +315,12 @@ def lsq(x, y, U, p, s=0, tol=1e-8):
     #p0 = np.linalg.lstsq(A, b, rcond=None)[0]
     p0 = svd_inv(A, b, s, tol) 
     res = np.linalg.norm(A.dot(p0) - b)
-    A[-1,:] = 0
-    A[-1,-1] = 1
     # Interpolate ends
     p0[0] = y[0] 
     p0[-1] = y[-1] 
     return p0, res
 
-def lsq2surf(u, v, z, U, V, p):
+def lsq2surf(u, v, z, U, V, pu, pv):
     """
     Computes the least square fit to the mapped data z(u, v) using the knot
     vector U, V.
@@ -321,7 +328,7 @@ def lsq2surf(u, v, z, U, V, p):
     Arguments:
         u, v : Mapping of (x, y) coordinates of data points to parameterization
         U, V : Knot vector
-        p : Degree of BSpline
+        pu, pv : Degree of BSpline in each direction
 
     Returns:
         P : Control points (size: mu x mv),
@@ -331,33 +338,56 @@ def lsq2surf(u, v, z, U, V, p):
     assert len(u) == len(v)
     assert len(u) == len(z)
 
-    #FIXME: fails if mu = 1
     mu = len(U) - 1
     mv = len(V) - 1
-    nu = mu - p - 1
-    nv = mv - p - 1
+    nu = mu - pu - 1
+    nv = mv - pv - 1
     npts = len(z)
-    P = np.zeros((mu,mv))
 
-    A = np.zeros((npts, mu*mv))
+    A = np.zeros((npts, (nu + 1)*(nv + 1)))
     b = np.zeros((npts,))
+    # Corner indices (to be determined)
+    c00 = 0
+    c10 = 0
+    c01 = 0
+    c11 = 0
     for i in range(npts):
         ui = u[i]
         vi = v[i]
         zi = z[i]
-        span_u = findspan(nu, p, ui, U)
-        span_v = findspan(nv, p, vi, V)
-        Nu = basisfuns(span_u, ui, p, U)
-        Nv = basisfuns(span_v, vi, p, V)
+        span_u = findspan(nu, pu, ui, U)
+        span_v = findspan(nv, pv, vi, V)
+        Nu = basisfuns(span_u, ui, pu, U)
+        Nv = basisfuns(span_v, vi, pv, V)
         for k, Nk in enumerate(Nu):
             for l, Nl in enumerate(Nv):
-                A[i, (span_v + l - p)*mu + (span_u + k - p)] = Nk*Nl
+                A[i, (span_v + l - pv)*(mu - pu) + (span_u + k - pu)] = Nk*Nl
         b[i] = zi
+
+        if span_u == nu and span_v == nv:
+            print(ui, vi)
+
+        if np.isclose(ui,0) and np.isclose(vi,0):
+            c00 = i 
+        if  np.isclose(1,ui) and np.isclose(vi,0):
+            c01 = i 
+        if np.isclose(0,ui) and np.isclose(1,vi):
+            c10 = i 
+        if np.isclose(1,ui) and np.isclose(1,vi):
+            c11 = i 
 
     p0 = np.linalg.lstsq(A, b, rcond=None)[0]
     res = np.linalg.norm(A.dot(p0) - b)
     print("Residual", res)
-    P = p0.reshape((mv, mu))
+    P = p0.reshape((mv-pv, mu-pu))
+    print("Corner points")
+    P[0,0] = z[c00]
+    P[1,0] = z[c10]
+    P[0,1] = z[c01]
+    P[1,1] = z[c11]
+    print(P[0,0],P[1,0],P[0,1],P[1,1])
+
+
     return P, res
 
 
@@ -484,3 +514,28 @@ def lsq2x(x, y, m, p, axis=0):
     U = uniformknots(m, p, a=0, b=1)
     Px, Py, res = lsq2(s, x, y, U, p)
     return Px, Py, U, res
+
+class Surface(object):
+
+    def __init__(self, U, V, pu, pv, Px, Py, Pz):
+        """
+        U, V : knot vectors in each direction
+        pu, pv : Degree in each direction
+        Px, Py, Pz : Control points
+        """
+        self.U = U
+        self.V = V
+        self.pu = pu
+        self.pv = pv
+        self.Px = Px
+        self.Py = Py
+        self.Pz = Pz
+
+    def eval(self, nu=10, nv=10):
+        u = np.linspace(0, 1, nu)
+        v = np.linspace(0, 1, nv)
+
+        self.X = evalsurface(self.pu, self.pv, self.U, self.V, self.Px, u, v)
+        self.Y = evalsurface(self.pu, self.pv, self.U, self.V, self.Py, u, v)
+        self.Z = evalsurface(self.pu, self.pv, self.U, self.V, self.Pz, u, v)
+
