@@ -1,57 +1,40 @@
 # BSpline surface fitting
-In this document, we explain how to fit a BSpline surface to an initial surface
-model that is defined by a point cloud and a triangulation. For this example, we
-will focus on the *West Garlock fault*, which belongs to the easy
-category. A view of the mesh for this fault geometry is shown in Figure 1.
+This document explains how to fit a BSpline surface to triangulated fault
+surfaces in the community fault model. The faults in the community fault model,
+and in particular the ones that have been selected for the pilot study, have a
+variety of different features. Some faults are simple and can be described by a
+single rectangular plane, other faults are draped like curvy carpets, and may
+also be defined by multiple intersecting segments or faults with holes. A lot
+of this complexity is captured in the Newport-Inglewood fault. The original
+geometry is shown in Figure 1a, and the current BSpline surface fit for this
+geometry is shown in Figure 1b. The current version of the software cannot
+handle surfaces with holes correctly, which explains why a large part of the
+model is missing.
 
-![](figures/west_garlock_initial.png)
-**Figure 1**: Initial mesh for the West Garlock fault.
+![](figures/newport_inglewood.png)
+**Figure 1a**: Initial mesh of the Newport-Inglewood fault.
 
-
-
+![](figures/newport_inglewood_beta_1.png)
+**Figure 1b**: BSpline surface fit of the Newport-Inglewood fault.
 
 ## Outline of fitting procedure
-The faults in the community fault model and the ones that have been selected for
-testing out the automatic meshing procedure have a variety of different
-features. Some faults are simple and can be described by a single rectangular
-plane, other faults are draped like curvy carpets, and may also be defined by
-multiple intersecting segments or faults with holes. Despite many of these
-complexities it seems like a first initial assumption is to view each fault as a
+
+Despite many of these
+complexities, a first initial assumption is to view each fault as a
 collection of surfaces that can be mapped to a rectangular path in 2D space.
 With this assumption in mind, we can formulate a simple strategy for performing
-the fitting. This procedure outline below, will be the first thing to try and
-evaluate. It is designed to be the simplest procedure that I can think of and 
-that I believe while have some chance at succeeding. 
-
-These are the key components to the procedure, 
+the fitting. This procedure is outlined below.
 
 1. [Boundary detection](#boundary-detection)
 2. [2D Plane projection](#2d-plane-projection)
 3. [2D Plane rotation](#2d-plane-rotation)
-4. [Quadrilateral fitting](#quadrilateral-fitting) (deprecated)
-5. [Boundary segmentation](#boundary-segmentation)
-6. [BSpline boundary curve fitting](#bspline-boundary-curve-fitting)
-7. [Surface parameterization](#bspline-surface-parameterization)
-8. [BSpline surface fitting](#bspline-surface-fitting)
-
-Below follows an overview of what each step does.
-
-In the first step, the goal is to detect the nodes and edges that lie on the
-boundary of the domain. The boundary should form a closed loop. Under the
-assumption that the boundary can be mapped to the edges of a rectangle, it is
-broken up into four segments, mapping to each side of the rectangular patch
-(left, right, top, bottom). It is also quite possible that there are multiple
-boundaries in the same mesh. These other boundaries could be internal ones if
-there are holes in the surface, or if there are multiple surfaces. For now, we
-will ignore these complications.
-
-After that the boundary has been detected and segmented, it is projected onto
-the best fitting 2D plane. This plane is simply found by performing principal
-component analysis (PCA) and defining the plane using the eigenvectors
-corresponding to the two maximum modulus eigenvalues.
+4. [Boundary segmentation](#boundary-segmentation)
+5. [BSpline boundary curve fitting](#bspline-boundary-curve-fitting)
+6. [Surface parameterization](#bspline-surface-parameterization)
+7. [BSpline surface fitting](#bspline-surface-fitting)
 
 ## Boundary detection
-Altough there probably are plenty of packages that can be used to detect the
+Although there probably are plenty of packages that can be used to detect the
 boundary of some triangulation, I decided to implement my own solution. It
 appears that many of the meshes contain multiple surfaces. To simplify matters,
 each surface is written to its own file when converting from `.ts` to `.msh`.
@@ -125,36 +108,6 @@ optimal rotation (red) that approximately minimizes the area of the bounding box
 **Figure 4:** Rotation of projected boundary so that it aligns with the
 coordinate axes.
 
-## Quadrilateral fitting
-**WARNING:** This step is not working correctly. It must either be improved or
-removed.
-
-The purpose behind this step is to obtain a better fit by reshaping the bounding box into 
-quadrilateral. This quadrilateral can then be used to identify corner points by
-picking the boundary points that lie closest to the vertices of the
-quadrilateral. Unfortunately, this step is currently quite slow and also not
-very robust. To obtain the quadrilateral, a nonlinear constrained optimization
-problem needs to be solved. The objective function is defined as the minimum of
-area of the quadrilateral or triangle that can be generated using any three
-vertices. The reason for defining the objective function in this way is to
-prevent the optimization procedure from trying to minimize the area of the
-quadrilateral by collapsing it into a triangle. The minimization of the area
-is constrained by requiring that all boundary points lie inside the
-quadrilateral. Figure 5 shows the result of applying this optimization
-procedure. As can be seen in the figure, the optimization fails for the third
-test case (Southern San Cayetano fault). An additional test case is included,
-featuring a fault from the medium dataset. This fault is not so easily to map to
-a plane and the fitting a quad to it - its projection lacks clear edges.
-
-
-
-![](figures/PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1_quad.png) 
-![](figures/GRFS-GRFZ-WEST-Garlock_fault-CFM5_quad.png)
-![](figures/WTRA-NCVS-VNTB-Southern_San_Cayetano_fault-steep-JHAP-CFM5_quad.png)
-![](figures/WTRA-ORFZ-SFNV-Northridge-Frew_fault-CFM2_quad.png)
-
-**Figure 5:** First attempt at finding a minimum area quadrilateral that
-encloses all boundary points.
 
 ## Boundary segmentation
 
