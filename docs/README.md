@@ -261,7 +261,7 @@ interpolation map.
 
 ![](figures/uv_mapping_naive.png)
 
-**Figure 8** U-V mapping of Santa Susana fault data by normalizing x and y
+**Figure 9** U-V mapping of Santa Susana fault data by normalizing x and y
 coordinates. 
 
 
@@ -283,14 +283,24 @@ do in some cases generate a surface that resembles the original surface.
 Needless to say, more work is needed, and several improvements are underway.
 
 ![](figures/west_garlock_fit_version_1.png)
-**Figure 9** Initial BSpline surface fit obtained for the Garlock fault geometry
+**Figure 10** Initial BSpline surface fit obtained for the Garlock fault geometry
 shown in Figure 1. The slightly transparent surface rendered with a green
 wireframe is the BSpline surface evaluated using `37 x 12` grid points.
 Threshold: `0.2`.
 
 ![](figures/west_garlock_fit_version_2.png)
-**Figure 10** Improved BSpline surface fit (c.f. Fig. 9) that has been obtained
+**Figure 11** Improved BSpline surface fit (c.f. Fig. 9) that has been obtained
 by adjusting the boundary fitting threshold slightly. Threshold: `0.01`.
+
+![](figures/santa_susana1_part0_fit_version_1.png)
+**Figure 12** Bspline surface fit obtained for one part of the Santa Susana
+fault geometry. The U-V mapping is naively constructed (see [inverse
+mapping](#inverse-mapping)). The green mesh is the fitted surface.
+![](figures/santa_susana1_part0_fit_version_2.png)
+**Figure 13** Bspline surface fit obtained for one part of the Santa Susana
+fault geometry. The U-V mapping is constructed by inverting the transfinite
+interpolation map (see [inverse mapping](#inverse-mapping)). The green mesh is
+the fitted surface.
 
 
 

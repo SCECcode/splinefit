@@ -51,7 +51,7 @@ def plot_grid(X, Y, Z=0, ax=None, color='b'):
         ax = fig.gca(projection='3d', proj_type = 'ortho')
         ax=fig.gca(projection=Axes3D.name)
     ax.plot_wireframe(X,Y,Z, color=color)
-    #ax.view_init(90, -90)
+    ax.view_init(90, -90)
     return ax
 
 def plot_points(points, ax=None, style='-'):
