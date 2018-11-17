@@ -588,6 +588,9 @@ class Surface(object):
         self.Px = Px
         self.Py = Py
         self.Pz = Pz
+        self.rwPx = Px
+        self.rwPy = Py
+        self.rwPz = Pz
 
     def eval(self, nu=10, nv=10):
         u = np.linspace(0, 1, nu)
@@ -600,9 +603,13 @@ class Surface(object):
     def json(self, filename):
         import json
         with open(filename, 'w') as out:
-            json.dump({'X' : self.X.tolist(), 
-                       'Y' : self.Y.tolist(), 
-                       'Z' : self.Z.tolist(),
+            json.dump({
+                       'Px' : self.Px.tolist(), 
+                       'Py' : self.Py.tolist(), 
+                       'Pz' : self.Pz.tolist(),
+                       'real_world_Px' : self.rwPx.tolist(), 
+                       'real_world_Py' : self.rwPy.tolist(), 
+                       'real_world_Pz' : self.rwPz.tolist(),
                        'U' : self.U.tolist(), 
                        'V' : self.V.tolist(),
                        'pu' : self.pu,

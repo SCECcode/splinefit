@@ -210,6 +210,7 @@ helper.show(showplot)
 
 sf.vtk.write_surface(vtkfile, S.X, S.Y, S.Z)
 
+S.rwPx, S.rwPy, S.rwPz, data.coords = restore(data, S.Px, S.Py, S.Pz, data.pcl_xyz)
 X, Y, Z, data.coords = restore(data, S.X, S.Y, S.Z, data.pcl_xyz)
 ax = helper.plot_grid(S.X, S.Y, S.Z)
 helper.plot_points(data.coords, ax=ax, style='ro')

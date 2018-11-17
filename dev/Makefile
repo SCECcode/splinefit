@@ -1,6 +1,6 @@
 PY=python3
 NAME=CFM5_pilot_bspline
-VERSION=beta_1.0
+VERSION=beta_1.1
 YEAR=2018
 cfm=/usr/local/CFM5_release_2017/obj/CFM5_preferred/native
 
@@ -33,7 +33,7 @@ surf_invert_mapping = 1
 # List of faults to process
 # Each fault is processed sequentially by calling `make num=1`
 # where `num` is the index of the fault in the array.
-num=12
+num=1
 fault1=PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1
 fault2=GRFS-GRFZ-WEST-Garlock_fault-CFM5
 fault3=WTRA-NCVS-VNTB-Southern_San_Cayetano_fault-steep-JHAP-CFM5

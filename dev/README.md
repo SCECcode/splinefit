@@ -78,9 +78,13 @@ needed to reconstruct the BSpline surface using some other software. The fields 
 
 | Field(s)      | Description                                                                                                                                                                      |
 |---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `U`, `V`           | Knot vectors for clamped BSplines in the u and v-directions (1D array) .                                                                                                         |
-| `X`, `Y`, `Z` | Control point coordinates. Each coordinate is a 2D array, e.g. `X[i,j]`, `i` is the index for the v-direction and `j` is the index for the u-direction in (u,v)-parameter space. |
+| `U`           | Knot vectors for clamped BSplines in the u and v-directions (1D array) .                                                                                                         |
+| `Px`, `Py`, `Pz` | Control points in reference coordinates. Each coordinate is a 2D array, e.g. `X[i,j]`, `i` is the index for the v-direction and `j` is the index for the u-direction in (u,v)-parameter space. |
+| `real_world_Px`, `real_world_Py`, `real_world_Pz` | Control points in real-world coordinates.  | |
 | `pu`, `pv`    | Polynomial degree of the BSpline in each direction (integer).                                                                                                                    |
+
+The number of control points `n` is equal to `n = m - p - 1`, where `m` is the
+number of knots, and `p` is the polynomial degree.
 
 ## Release
 All of the data that is placed in the `output` directory can be compressed into
