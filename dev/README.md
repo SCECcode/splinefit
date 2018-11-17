@@ -87,6 +87,7 @@ The number of control points `n` is equal to `n = m - p - 1`, where `m` is the
 number of knots, and `p` is the polynomial degree.
 
 ## Release
+
 All of the data that is placed in the `output` directory can be compressed into
 a zip archive. Use
 
@@ -102,6 +103,9 @@ used to produce these results are lost. It also save all intermediate data
 be addressed in the near future.
 
 ## Release notes
+### CFM5_pilot_bspline_beta_1.1_2018 
+Same as `CFM5_pilot_bspline_beta_1.1_2018`, but includes control points in
+real-world coordinates in the JSON output. 
 ### CFM5_pilot_bspline_beta_1.0_2018 
 
 ### PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1
