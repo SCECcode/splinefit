@@ -5,8 +5,8 @@ Any other data present in the Tsurf file format is currently ignored.
 """
 _version = 'GOCAD TSurf (\d+)'
 _header = 'HEADER \{([\w\W]+?)\}'
-_vrtx = 'VRTX (\d+) ([-\w\.]+) ([-\w\.]+) ([-\w\.]+)'
-_tri = 'TRGL (\d+) (\d+) (\d+)'
+_vrtx = 'VRTX (\d+)\s+([-\w\.]+)\s+([-\w\.]+)\s+([-\w\.]+)'
+_tri = 'TRGL (\d+)\s+(\d+)\s+(\d+)'
 _surf = 'TFACE'
 
 def read(filename, min_elems=0):

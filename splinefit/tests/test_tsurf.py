@@ -24,6 +24,14 @@ def test_vrtx():
     vrtx = tsurf.vrtx(txt)
     assert vrtx[0][0]  == 1
     assert vrtx[1][0]  == 2
+
+def test_vrtx_extra_space():
+    txt = 'VRTX 9    399571.46875 3733843.25 -2499'
+    vrtx = tsurf.vrtx(txt)
+    assert vrtx[0][0]  == 9
+    assert vrtx[0][1]  == 399571.46875
+    assert vrtx[0][2]  == 3733843.25
+    assert vrtx[0][3]  == -2499
     
 def test_tri():
     txt = 'TRGL 49 46 47\n' 
