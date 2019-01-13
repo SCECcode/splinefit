@@ -9,26 +9,27 @@ import matplotlib.pyplot as plt
 inputfile = sys.argv[1]
 outputfile = sys.argv[2]
 invert_mapping = int(sys.argv[3])
-
-if len(sys.argv) < 4:
-    vtkfile = None
-else:
-    vtkfile = sys.argv[4]
+surf_smooth = float(sys.argv[4])
 
 if len(sys.argv) < 5:
-    jsonfile = None
+    vtkfile = None
 else:
-    jsonfile = sys.argv[5]
+    vtkfile = sys.argv[5]
 
 if len(sys.argv) < 6:
-    uvfig = None
+    jsonfile = None
 else:
-    uvfig = sys.argv[6]
+    jsonfile = sys.argv[6]
 
 if len(sys.argv) < 7:
+    uvfig = None
+else:
+    uvfig = sys.argv[7]
+
+if len(sys.argv) < 8:
     showplot = 0
 else:
-    showplot = int(sys.argv[7])
+    showplot = int(sys.argv[8])
 
 
 def rotate(data):
@@ -143,11 +144,12 @@ def mapping(S, bnd, data, x, y, invert=0, st=10):
     return u, v
 
 
-def fit_surface(S, bnd, data, x, y, z, pcl):
+def fit_surface(S, bnd, data, x, y, z, pcl, surf_smooth):
     u, v = mapping(S, bnd, data, x, y, invert_mapping)
-    S.Pz, res = sf.bspline.lsq2surf(u, v, z, S.U, S.V, S.pu, S.pv, data.corner_ids)
-    clamp_boundaries(u, v, x, y, z, S)
-    return S
+    S.Pz, res = sf.bspline.lsq2surf(u, v, z, S.U, S.V, S.pu, S.pv,
+            data.corner_ids, s=surf_smooth)
+    #clamp_boundaries(u, v, x, y, z, S)
+    return S, u, v
 
 def boundary_points(bnd, x, y, z):
     pcl = np.vstack((x,y,0*z)).T
@@ -193,9 +195,9 @@ def clamp_boundaries(u, v, x, y, z, S):
 
 def plot_transfinite(S, bnds):
     left, right, bottom, top = bnds
-    ax = helper.plot_grid(S.X, S.Y, 0*S.Z)
-    ax = helper.plot_grid(S.Px, S.Py, 0*S.Pz, ax, color='C0')
-    ax.plot(pcl[:,0], pcl[:,1],'b*')
+    ax = helper.plot_grid(S.X, S.Y, S.Z)
+    ax = helper.plot_grid(S.Px, S.Py, S.Pz, ax, color='C0')
+    ax.plot(pcl[:,0], pcl[:,1], pcl[:,2],'b*')
     ax.plot(xl, yl,'k-')
     ax.plot(xr, yr,'k-')
     ax.plot(xt, yt,'k-')
@@ -240,8 +242,15 @@ x = pcl[:,0]
 y = pcl[:,1]
 z = pcl[:,2]
 S = sf.bspline.Surface(U, V, pu, pv, Px, Py, 0*Px)
-S = fit_surface(S, bnds, data, x, y, z, pcl)
+S, data.u, data.v = fit_surface(S, bnds, data, x, y, z, pcl, surf_smooth)
+data.z = z
 S.eval(20,20)
+
+print("U degree:", S.pu)
+print("V degree:", S.pv)
+print("num Px", Px.shape)
+print("num U", U.shape)
+
 
 u = np.linspace(0, 1.0, 40)
 v = np.linspace(0, 1.0, 40)

@@ -93,6 +93,8 @@ def test_argnearest():
     nearest = sf.fitting.argnearest(points, query)
     assert nearest == 1
 
-
-
-
+def test_refine():
+    x = np.array([0, 1, 2, 3, 4])
+    x_ans = np.array([0, 0.5, 1.0, 1.5, 2, 2.5, 3, 3.5, 4])
+    x = sf.fitting.refine(x)
+    assert(np.all(np.isclose(x, x_ans)))

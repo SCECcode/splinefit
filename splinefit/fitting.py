@@ -238,6 +238,13 @@ def sdquad2(p, p0, p1, p2, p3):
     d1 = sdtriangle2(p, p1, p2, p3)
     return min(d0, d1)
 
+def refine(x):
+    x1 = 0.5*(x[1::] + x[0:-1])
+    x_out = np.zeros((len(x)+len(x1),))
+    x_out[::2] = x
+    x_out[1:-1:2] = x1
+    return x_out
+
 
 def triangle_vol(p0, p1, p2):
     """

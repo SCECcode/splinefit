@@ -11,16 +11,17 @@ outputfile = sys.argv[2]
 p = int(sys.argv[3])
 sm = float(sys.argv[4])
 s = float(sys.argv[5])
-
-if len(sys.argv) < 7:
-    figfile = None
-else:
-    figfile = sys.argv[6]
+refine_ratio = float(sys.argv[6])
 
 if len(sys.argv) < 8:
+    figfile = None
+else:
+    figfile = sys.argv[7]
+
+if len(sys.argv) < 9:
     showplot = 0
 else:
-    showplot = int(sys.argv[7])
+    showplot = int(sys.argv[8])
 
 def make_curves(data1, data2, p, sm, s, disp=True, axis=0):
     curve1 = helper.Struct()
@@ -30,7 +31,9 @@ def make_curves(data1, data2, p, sm, s, disp=True, axis=0):
     curve2.x = data2[:,0]
     curve2.y = data2[:,1]
 
-
+    curve1.x, curve1.y, curve2.x, curve2.y = refine_curves(curve1.x, curve1.y,
+                                                           curve2.x, curve2.y,
+                                                           ratio=refine_ratio)
 
     curve1.Px, curve1.Py, curve1.U, curve2.Px, curve2.Py, curve2.U, p, int_knot\
             = fit(curve1.x, curve1.y, curve2.x, curve2.y, p, sm, s, 
@@ -47,6 +50,30 @@ def make_curves(data1, data2, p, sm, s, disp=True, axis=0):
 
 def get_num_ctrlpts(bnd):
     return bnd.Px.shape[0]
+
+
+def refine_curves(x1, y1, x2, y2, ratio=3.0):
+    # Check that number of points on each side is balanced, otherwise refine
+
+    is_balanced = False
+
+    while not is_balanced:
+        len1 = len(x1)
+        len2 = len(x2)
+
+        # Refine 2
+        if len1 > len2 and len1/len2 > ratio:
+            x2 = sf.fitting.refine(x2)
+            y2 = sf.fitting.refine(y2)
+            print("Refine 2")
+        # Refine 1
+        elif len1 < len2 and len2/len1 > ratio:
+            x1 = sf.fitting.refine(x1)
+            y1 = sf.fitting.refine(y1)
+            print("Refine 1")
+        else:
+            is_balanced = True
+    return x1, y1, x2, y2
 
 def fit(x1, y1, x2, y2, p, sm, s, disp=False, mmax=40, axis=0):
     """
@@ -77,6 +104,7 @@ def fit(x1, y1, x2, y2, p, sm, s, disp=False, mmax=40, axis=0):
         p = mmax 
         m = mmax - 1
         print("New polynomial degree:", p)
+
 
 
     while (res > sm and m < mmax):

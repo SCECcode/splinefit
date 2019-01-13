@@ -21,12 +21,15 @@ min_elem = 20
 # 	this threshold is reached
 # bnd_smooth : Amount of smoothness to add in the fitting. There might be a bug
 # 	in the implementation of this. Use with caution.
+# bnd_refinement_ratio : Refine sides with unbalanced number of nodes compared
+# 	to opposing side. Refinement inserts points at midpoints.
 # surf_residual : Unused.
 # surf_invert_mapping : Determine UV-mapping by inverting the transfinite
 # 	interpolation mapping.
 bnd_degree = 3
 bnd_residual = 1.8
 bnd_smooth = 0.01
+bnd_refinement_ratio = 3
 surf_residual = 0.1
 surf_invert_mapping = 1
 
@@ -51,7 +54,7 @@ faults=$(fault1) $(fault2) $(fault3) $(fault4) $(fault5) $(fault6) $(fault7) \
 fault=$(word $(num), $(faults)).msh
 
 # Name of output directories
-out=output
+out=output2
 figures=figures
 fig=png
 pydata=pydata
@@ -107,7 +110,7 @@ $(meshdir)/$(pydata)/%_seg.p: $(meshdir)/$(pydata)/%_rot.p
 $(meshdir)/$(pydata)/%_bspline_bnd.p: $(meshdir)/$(pydata)/%_seg.p
 	@echo Fitting BSpline curve through boundary for $(notdir $<)
 	$(PY) python/bspline-boundary.py $< $(meshdir)/$(pydata)/$(notdir $@) \
-	$(bnd_degree) $(bnd_residual) $(bnd_smooth)\
+	$(bnd_degree) $(bnd_residual) $(bnd_smooth) $(bnd_refinement_ratio)\
  	$(meshdir)/$(figures)/$(basename $(notdir $@)).$(fig) \
 	$(show_plot)
 

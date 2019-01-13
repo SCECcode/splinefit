@@ -389,7 +389,7 @@ def lsq(x, y, U, p, s=0, tol=1e-8):
     p0[-1] = y[-1] 
     return p0, res
 
-def lsq2surf(u, v, z, U, V, pu, pv, corner_ids=0):
+def lsq2surf(u, v, z, U, V, pu, pv, corner_ids=0, tol=1e-8, s=0.2):
     """
     Computes the least square fit to the mapped data z(u, v) using the knot
     vector U, V.
@@ -433,7 +433,7 @@ def lsq2surf(u, v, z, U, V, pu, pv, corner_ids=0):
                 A[i, (span_v + l - pv)*(mu - pu) + (span_u + k - pu)] = Nk*Nl
         b[i] = zi
 
-    p0 = np.linalg.lstsq(A, b, rcond=None)[0]
+    p0 = svd_inv(A, b, s, tol) 
 
 
     res = np.linalg.norm(A.dot(p0) - b)
@@ -551,6 +551,7 @@ def lsq2l2(x, y, m, p, knots='uniform', smooth=0):
     parameterization and averaged knot vector.
     """
     s = chords(x, y, a=0, b=1)
+    #s = np.linspace(0, 1, len(x))
     if knots == 'uniform':
         U = uniformknots(m, p, a=0, b=1)
     elif knots == 'kmeans':
