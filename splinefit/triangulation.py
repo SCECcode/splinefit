@@ -25,6 +25,7 @@ def tris_to_edges(tris):
         edges : The edge-to-element data structure as explained above.
 
     """
+    import warnings
 
     edges = {}
 
@@ -33,6 +34,9 @@ def tris_to_edges(tris):
     for tri_id, tri in enumerate(tris):
         tri_edges = tri_to_edges(tri)
         for edge_i in tri_edges:
+            if not is_edge(edge_i):
+                warnings.warn('Found invalid edge: %s'%str(edge_i))
+                continue
             key = edge_mapping(*edge_i)
             # Insert new edge
             if key not in edges:
@@ -134,6 +138,124 @@ def ordered_boundary_edges(edges_to_nodes, nodes_to_edges):
 
 
     return out[:num_traversed,:]
+
+def boundary_loops(edges_to_nodes, nodes_to_edges):
+    """
+    Order the edges on the boundary. The edges are listed so that the last node
+    of the current edge is the first node of the next edge. This function does
+    not take counter clockwise or clockwise traversal into account. The returned
+    list of edges may be ordered in either direction.  
+
+    The last node in the last edge will not get correctly updated if the
+    boundary does not form a closed loop.
+
+    This function will return an array that contains the columns:
+
+    node ID 1, node ID 2, traversal ID, loop ID
+
+    The first two columns define an edge, the second is the order in which this
+    edge is visited for a given loop. The final index defines which loop a set
+    of edges belong to.
+
+    An edge can only belong to one loop. Meshes that have edges that share
+    multiple loops are not supported.
+
+    """
+    import warnings
+    num_edges = len(edges_to_nodes)
+    out = np.zeros((num_edges,4)).astype(np.int64)
+    # Start ordering with some arbitrary edge
+    node1 = edges_to_nodes[0][0]
+    node2 = edges_to_nodes[0][1]
+    visited = {}
+    num_traversed = 0
+    # Find the next edge that connects to node2, but isn't node1
+    current_edge = 0
+    first = node1
+    mask_id = 1
+    traversal_id = 0
+
+    for i in range(num_edges):
+        if out[current_edge,3] == 0:
+            out[current_edge,0] = node1
+            out[current_edge,1] = node2
+            out[current_edge,2] = traversal_id
+            out[current_edge,3] = mask_id
+            old_node1 = node1
+            node1 = node2
+        else:
+            warnings.warn('The edge %d belongs to more than one loop.'
+                          %current_edge)
+
+        # Find next node2
+        current_edge = -1
+        for edge_id in nodes_to_edges[node1]:
+            edge_j = edges_to_nodes[edge_id]
+            if edge_j[0] != old_node1 and edge_j[0] != node2:
+                node2 = edge_j[0]
+                current_edge = edge_id
+                break
+            if edge_j[1] != old_node1 and edge_j[1] != node2:
+                node2 = edge_j[1]
+                current_edge = edge_id
+                break
+
+        # Found end of loop (back to beginning)
+        if node2 == first:
+            traversal_id += 1
+            out[current_edge,0] = node1
+            out[current_edge,1] = node2
+            out[current_edge,2] = traversal_id
+            out[current_edge,3] = mask_id
+
+            # Reset search
+            current_edge = -1
+            for j in range(num_edges):
+                if out[j,3] == 0:
+                    current_edge = j
+                    node1 = edges_to_nodes[j][0]
+                    node2 = edges_to_nodes[j][1]
+                    break
+
+            # Exit if no remaining loops can be found
+            if current_edge == -1:
+                break
+
+            traversal_id = 0
+            first = node1
+            mask_id += 1
+        else:
+            traversal_id += 1
+            
+        if node2 in visited:
+            break
+        else:
+            visited[node2] = 1
+
+    return out[:,:]
+
+def get_loop(edges, loop_id):
+    """
+    Return an array of edges that belong to a loop. Use `boundary_loops` to
+    find loops. Each row in the output contains the two node Ids, and the nodes
+    are ordered in the direction of traversal.
+    """
+
+    # Get number of elements in loop
+    num_nodes = sum(edges[:,3] == loop_id)
+
+    out = np.zeros((num_nodes,2)).astype(np.int64)
+
+    for i in range(edges.shape[0]):
+        edge = edges[i,:]
+        if edge[3] == loop_id:
+            traversal = edge[2] 
+            node1 = edge[0]
+            node2 = edge[1]
+            out[traversal,0] = node1
+            out[traversal,1] = node2
+
+    return out
 
 def tri_to_edges(tri):
     """
@@ -264,6 +386,20 @@ def close_boundary(points):
     """
     return np.vstack((points, points[0,:]))
 
+def is_closed(edges):
+    """
+    Check if the boundary is closed by observing if the first edge is the same
+    as the last edge
+    """
+    first = edges[0,:]
+    last  = edges[edges.shape[0]-1,:]
+
+    if first[1] == last[0] and first[0] == last[1]:
+        return True
+
+    return False
+
+
 def normals2(points):
     """
     Compute normals along a boundary segment. Determines the normals for either
@@ -307,3 +443,15 @@ def orientation2(points, normals):
 
     return(sum(mx*normals[:,0] + my*normals[:,1]))
 
+def circumference(points, edges):
+    """
+    Estimate the area of a loop given the coordinates and edges of the loop.
+
+    points : Is a global array of coordinates (x, y, z)
+
+    """
+    local_points = points[edges[:,0], :]
+    local_points = close_boundary(local_points)
+    normals = normals2(local_points)
+    lengths = np.linalg.norm(normals, axis=1)
+    return sum(lengths)

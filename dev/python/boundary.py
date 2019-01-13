@@ -64,6 +64,7 @@ def make_plot(coords, tris, edges, figfile):
 coords, tris = sf.msh.read(inputfile)
 tris = msh.get_data(tris, num_members=3, index=1)
 check_num_tris(tris)
+
 bnd_edges = get_boundary(tris)
 make_plot(coords, tris, bnd_edges, figfile)
 

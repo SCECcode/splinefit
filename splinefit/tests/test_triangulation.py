@@ -36,6 +36,28 @@ def test_ordered_boundary_edges():
             nodes_to_edges)
     assert np.all(np.equal(bnd_edges,bnd_edges_ans))
 
+def test_boundary_loops():
+    nodes = np.array([[2,6], [1,4], [6,4], [1,2], [3,7], [7,8],
+        [8,3]]).astype(np.int64)
+    bnd_edges_ans = np.array([[2,6,0,1], [4,1,2,1], [6,4,1,1], [1,2,3,1],
+        [3,7,0,2], [7,8,1,2], [8,3,2,2]])
+    nodes_to_edges = sf.triangulation.nodes_to_edges(nodes)
+    edges_to_nodes = nodes
+    bnd_edges = sf.triangulation.boundary_loops(edges_to_nodes,
+            nodes_to_edges)
+    assert np.all(np.equal(bnd_edges,bnd_edges_ans))
+
+def test_get_loop():
+    nodes = np.array([[2,6], [1,4], [6,4], [1,2], [3,7], [7,8],
+        [8,3]]).astype(np.int64)
+    nodes_to_edges = sf.triangulation.nodes_to_edges(nodes)
+    edges_to_nodes = nodes
+    bnd_edges = sf.triangulation.boundary_loops(edges_to_nodes,
+            nodes_to_edges)
+    loop = sf.triangulation.get_loop(bnd_edges, 1)
+    loop_ans = np.array([[2,6], [6,4], [4,1],[1,2]])
+    assert np.all(np.equal(loop,loop_ans))
+
 def test_edges_shared_tri_count():
     tri = [1,2,3]
     tris = np.array([[1,2,3],[2,3,4]]).astype(np.int64)
@@ -98,6 +120,10 @@ def test_is_edge():
     assert not sf.triangulation.is_edge((int(1),int(1)))
     assert not sf.triangulation.is_edge((int(1),int(1),int(2)))
 
+def test_is_closed():
+    edges = np.array([[0,1],[1,0]])
+    assert sf.triangulation.is_closed(edges)
+
 def test_normal2():
     coords = np.array([[0.0, 0.0],[1.0, 0.0], [1.0, 1.0], [0.0, 1.0]])
     normals = sf.triangulation.normals2(coords)
@@ -114,5 +140,15 @@ def test_orientation2():
     normals = sf.triangulation.normals2(coords)
     is_ccw = sf.triangulation.orientation2(coords, normals)
     assert is_ccw < 0 
+
+def test_circumference():
+    loop = np.array([[0,1],[1,2],[2,3],[3,4]])
+    coords = np.array([[0.0, 0.0, 0.0],[1.0, 0.0, 0.0], [1.0, 1.0, 0.0], [0.0,
+        1.0, 0.0]])
+    circ = sf.triangulation.circumference(coords, loop)
+    assert np.isclose(circ, 4.0)
+
+
+
 
 
