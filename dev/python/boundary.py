@@ -24,7 +24,7 @@ def check_num_tris(tris, min_elem=16):
         print("Not enough elements! Boundary extraction aborted.")
         exit(0)
 
-def get_boundary(tris):
+def get_boundary(coords, tris):
     # Extract triangles from gmsh data and shift to zero indexing
     
     # Extract all edges
@@ -36,12 +36,24 @@ def get_boundary(tris):
     count = sf.triangulation.edges_shared_tri_count(edges)
     bnd_edges = sf.triangulation.unordered_boundary_edges(edges_to_nodes, count,
             boundary_count=1)
-    print("Number of boundary edges:", bnd_edges.shape[0])
+    print("Total number of boundary edges:", bnd_edges.shape[0])
     
     # Order boundary edges so that boundary can be easily traversed
     nodes_to_edges = sf.triangulation.nodes_to_edges(bnd_edges)
-    bnd_edges = sf.triangulation.ordered_boundary_edges(bnd_edges,nodes_to_edges)
-    print("Number of boundary edges:", bnd_edges.shape[0])
+    bnd_edges = sf.triangulation.boundary_loops(bnd_edges,nodes_to_edges)
+    num_loops = max(bnd_edges[:,3])
+    circ = []
+    print("Number of boundary loops:", num_loops)
+    for loop_id in range(1, num_loops+1):
+        loop = sf.triangulation.get_loop(bnd_edges, loop_id)
+        c = sf.triangulation.circumference(coords, loop)
+        print("Loop ID: %d, Number of boundary edges: %d Circumference: %g " %(
+                loop_id,
+                sum(bnd_edges[:,3] == loop_id),
+                c))
+        circ.append(c)
+    c_idx = np.argmax(circ)
+    bnd_edges = sf.triangulation.get_loop(bnd_edges, c_idx + 1)
     return bnd_edges
 
 def make_plot(coords, tris, edges, figfile):
@@ -65,7 +77,7 @@ coords, tris = sf.msh.read(inputfile)
 tris = msh.get_data(tris, num_members=3, index=1)
 check_num_tris(tris)
 
-bnd_edges = get_boundary(tris)
+bnd_edges = get_boundary(coords, tris)
 make_plot(coords, tris, bnd_edges, figfile)
 
 data = helper.Struct()
