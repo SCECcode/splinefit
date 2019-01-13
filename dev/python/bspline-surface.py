@@ -139,13 +139,57 @@ def mapping(S, bnd, data, x, y, invert=0, st=10):
         plt.ylabel('v')
         plt.savefig(uvfig)
         print("Wrote", uvfig)
+
     return u, v
 
 
-def fit_surface(S, bnd, data, x, y, z):
+def fit_surface(S, bnd, data, x, y, z, pcl):
     u, v = mapping(S, bnd, data, x, y, invert_mapping)
     S.Pz, res = sf.bspline.lsq2surf(u, v, z, S.U, S.V, S.pu, S.pv, data.corner_ids)
+    clamp_boundaries(u, v, x, y, z, S)
     return S
+
+def boundary_points(bnd, x, y, z):
+    pcl = np.vstack((x,y,0*z)).T
+    xout = []
+    yout = []
+    zout = []
+    for i in range(bnd.shape[0]):
+        b = [bnd[i,0], bnd[i,1], 0]
+        idx = sf.fitting.argnearest(pcl,b)
+        xout.append(x[idx])
+        yout.append(y[idx])
+        zout.append(z[idx])
+
+    return np.array(xout), np.array(yout), np.array(zout)
+
+
+def clamp_boundaries(u, v, x, y, z, S):
+    xb, yb, zb = boundary_points(data.bottom, x, y, z)
+    xt, yt, zt = boundary_points(data.top, x, y, z)
+    xl, yl, zl = boundary_points(data.left, x, y, z)
+    xr, yr, zr = boundary_points(data.right, x, y, z)
+
+    print("Number of points Bottom:", xb.shape[0])
+    print("Number of points Top:", xt.shape[0])
+    print("Number of points Left:", xl.shape[0])
+    print("Number of points Right:", xr.shape[0])
+
+    print("U,V", S.U.shape, S.V.shape)
+    S.Pz[0,:], res = sf.bspline.lsq(xb, zb, S.U, S.pu)
+    S.Pz[-1,:], res = sf.bspline.lsq(xt, zt, S.U, S.pu)
+    S.Pz[:,0], res = sf.bspline.lsq(yl, zl, S.V, S.pv)
+    S.Pz[:,-1], res = sf.bspline.lsq(yr, zr, S.V, S.pv)
+    
+    #Corners
+    # bottom-left
+    S.Pz[0,0] = zb[0]
+    # bottom-right
+    S.Pz[0,-1] = zb[-1]
+    # top-left
+    S.Pz[-1,0] = zt[-1]
+    # top-right
+    S.Pz[-1,-1] = zt[0]
 
 def plot_transfinite(S, bnds):
     left, right, bottom, top = bnds
@@ -196,7 +240,7 @@ x = pcl[:,0]
 y = pcl[:,1]
 z = pcl[:,2]
 S = sf.bspline.Surface(U, V, pu, pv, Px, Py, 0*Px)
-S = fit_surface(S, bnds, data, x, y, z)
+S = fit_surface(S, bnds, data, x, y, z, pcl)
 S.eval(20,20)
 
 u = np.linspace(0, 1.0, 40)
