@@ -17,6 +17,12 @@ def evalcurve(curve, num):
     cy = sf.bspline.evalcurve(curve.p, curve.U, curve.Py, u)
     return cx, cy
 
+def evalcurve3(curve, num):
+    u = np.linspace(curve.U[0], curve.U[-1], num)
+    cx = sf.bspline.evalcurve(curve.p, curve.U, curve.Px, u)
+    cy = sf.bspline.evalcurve(curve.p, curve.U, curve.Py, u)
+    cz = sf.bspline.evalcurve(curve.p, curve.U, curve.Pz, u)
+    return cx, cy, cz
 
 
 def plot_mesh(points, triangles, ax=None):

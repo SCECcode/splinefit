@@ -221,6 +221,13 @@ def evalcurve(p, U, P, u):
         y[i] = curvepoint(p, U, P, u[i])
     return y
 
+def dist2curve(p, U, Px, Py, Pz, u, x, y, z):
+    cx = evalcurve(p, U, Px, u)
+    cy = evalcurve(p, U, Py, u)
+    cz = evalcurve(p, U, Pz, u)
+    dists = np.sqrt((cx - x)**2 + (cy - y)**2 + (cz - z)**2)
+    return dists
+
 def evalsurface(pu, pv, U, V, P, u, v):
     w = np.zeros((len(u), len(v)))
     for i in range(w.shape[0]):

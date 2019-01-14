@@ -39,6 +39,8 @@ data = pickle.load(open(inputfile, 'rb'))
 # Rotate data into new coordinate system
 T = data.proj_basis
 xy = T.T.dot(data.bnd_xyz.T).T
+rxyz = data.basis.T.dot(data.bnd_xyz.T).T
+
 
 
 center = sf.fitting.mean(xy) 
@@ -52,6 +54,7 @@ data.center = center
 rxy = sf.fitting.rotate2(xy, center, data.theta)
 data.rxy = rxy
 data.proj_xy = xy
+data.rz = rxyz[:,2]
 
 plt.plot(xy[:,0], xy[:,1], 'bo')
 plt.plot(rxy[:,0], rxy[:,1], 'ro')

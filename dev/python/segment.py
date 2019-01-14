@@ -76,8 +76,9 @@ data = pickle.load(open(inputfile, 'rb'))
 data.rxy = fix_orientation(data.rxy)
 bbox = sf.fitting.bbox2(data.rxy)
 corner_ids = get_corners(data.rxy, bbox)
+points = np.vstack((data.rxy[:,0], data.rxy[:,1], data.rz)).T
 data.bottom, data.right, data.top, data.left, data.bottom_ids, data.right_ids,\
-data.top_ids, data.left_ids = edges(data.rxy, corner_ids)
+data.top_ids, data.left_ids = edges(points, corner_ids)
 data.corners = data.rxy[corner_ids]
 data.corner_ids = corner_ids
 

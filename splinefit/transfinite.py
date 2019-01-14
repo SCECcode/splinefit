@@ -97,8 +97,10 @@ def fixboundaries(xl, yl, xr, yr, xb, yb, xt, yt, silent=False):
             arguments (`xl, yl, xr, ...`).
 
     """
-    test_orientation = lambda bnd : np.all(np.argsort(bnd) == \
-                                    list(range(len(bnd))))
+    # This check is too strict
+    #test_orientation = lambda bnd : np.all(np.argsort(bnd) == \
+    #                                list(range(len(bnd))))
+    test_orientation = lambda bnd : bnd[-1] > bnd[0]
     fix_orientation = lambda bnd : bnd[::-1]
 
     def warn(message):

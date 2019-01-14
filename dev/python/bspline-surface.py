@@ -68,7 +68,6 @@ def restore(data, X, Y, Z, pcl_xyz):
     Z = np.reshape(xyz[:,2], (nx, ny))
     coords = sf.fitting.renormalize(pcl_xyz, data.mu, data.std)
     
-    #xyz[:,0:2] = rxy
     return X, Y, Z, coords
 
 def unpack(bnd_xy):
@@ -107,7 +106,7 @@ def build_grid(bnd, nu, nv):
     assert sf.transfinite.checkcorners(*bnd)
     #assert sf.transfinite.checkboundaries(*bnd)
     X, Y = sf.transfinite.bilinearinterp(*bnd, U, V)
-    return X, Y
+    return X, Y, bnd
 
 def mapping(S, bnd, data, x, y, invert=0, st=10):
     print("Mapping (x, y) coordinates to (u, v) coordinates")
@@ -144,54 +143,74 @@ def mapping(S, bnd, data, x, y, invert=0, st=10):
     return u, v
 
 
-def fit_surface(S, bnd, data, x, y, z, pcl, surf_smooth):
-    u, v = mapping(S, bnd, data, x, y, invert_mapping)
+def fit_surface(S, bnds, data, x, y, z, pcl, surf_smooth):
+    u, v = mapping(S, bnds, data, x, y, invert_mapping)
     S.Pz, res = sf.bspline.lsq2surf(u, v, z, S.U, S.V, S.pu, S.pv,
             data.corner_ids, s=surf_smooth)
-    #clamp_boundaries(u, v, x, y, z, S)
+    clamp_boundaries(u, v, x, y, z, S)
     return S, u, v
 
-def boundary_points(bnd, x, y, z):
+def boundary_points(bnd, x, y, z, u, v):
     pcl = np.vstack((x,y,0*z)).T
     xout = []
     yout = []
     zout = []
+    uout = []
+    vout = []
     for i in range(bnd.shape[0]):
         b = [bnd[i,0], bnd[i,1], 0]
         idx = sf.fitting.argnearest(pcl,b)
         xout.append(x[idx])
         yout.append(y[idx])
         zout.append(z[idx])
+        uout.append(u[idx])
+        vout.append(v[idx])
 
-    return np.array(xout), np.array(yout), np.array(zout)
+    return np.array(xout), np.array(yout), np.array(zout), np.array(uout), \
+           np.array(vout)
+
+
+def flip(x1, x2, x3, x4, x5):
+    if x1[0] > x1[-1]:
+        return x1[::-1], x2[::-1], x3[::-1], x4[::-1], x5[::-1]
+    else:
+        return x1, x2, x3, x4, x5
 
 
 def clamp_boundaries(u, v, x, y, z, S):
-    xb, yb, zb = boundary_points(data.bottom, x, y, z)
-    xt, yt, zt = boundary_points(data.top, x, y, z)
-    xl, yl, zl = boundary_points(data.left, x, y, z)
-    xr, yr, zr = boundary_points(data.right, x, y, z)
+    xb, yb, zb, ub, vb = boundary_points(data.bottom, x, y, z, u, v)
+    xt, yt, zt, ut, vt = boundary_points(data.top, x, y, z, u, v)
+    xl, yl, zl, ul, vl = boundary_points(data.left, x, y, z, u, v)
+    xr, yr, zr, ur, vr = boundary_points(data.right, x, y, z, u, v)
 
+    xb, yb, zb, ub, vb = flip(xb, yb, zb, ub, vb)
+    xt, yt, zt, ut, vt = flip(xt, yt, zt, ut, vt)
+    yl, xl, zl, ul, vl = flip(yl, xl, zl, ul, vl)
+    yr, xr, zr, ur, vr = flip(yr, xr, zr, ur, vr)
+
+    print("Clamping boundaries")
     print("Number of points Bottom:", xb.shape[0])
     print("Number of points Top:", xt.shape[0])
     print("Number of points Left:", xl.shape[0])
     print("Number of points Right:", xr.shape[0])
-
     print("U,V", S.U.shape, S.V.shape)
-    S.Pz[0,:], res = sf.bspline.lsq(xb, zb, S.U, S.pu)
-    S.Pz[-1,:], res = sf.bspline.lsq(xt, zt, S.U, S.pu)
-    S.Pz[:,0], res = sf.bspline.lsq(yl, zl, S.V, S.pv)
-    S.Pz[:,-1], res = sf.bspline.lsq(yr, zr, S.V, S.pv)
-    
-    #Corners
-    # bottom-left
-    S.Pz[0,0] = zb[0]
-    # bottom-right
-    S.Pz[0,-1] = zb[-1]
-    # top-left
-    S.Pz[-1,0] = zt[-1]
-    # top-right
-    S.Pz[-1,-1] = zt[0]
+
+    s = sf.bspline.chords(xt, yt, a=0, b=1)
+    Pz, res = sf.bspline.lsq(s, zt, S.U, S.pu)
+    S.Pz[-1,:] = Pz
+
+    s = sf.bspline.chords(xb, yb, a=0, b=1)
+    Pz, res = sf.bspline.lsq(s, zb, S.U, S.pu)
+    S.Pz[0,:] = Pz
+
+    s = sf.bspline.chords(xl, yl, a=0, b=1)
+    Pz, res = sf.bspline.lsq(s, zl, S.V, S.pv)
+    S.Pz[:,0] = Pz
+
+    s = sf.bspline.chords(xr, yr, a=0, b=1)
+    Pz, res = sf.bspline.lsq(s, zr, S.V, S.pv)
+    S.Pz[:,-1] = Pz
+
 
 def plot_transfinite(S, bnds):
     left, right, bottom, top = bnds
@@ -221,7 +240,7 @@ left, right, bottom, top = bnds
 nu = len(xb)
 nv = len(xl)
 pcl = rotate(data)
-X, Y = build_grid(bnd, nu, nv)
+X, Y, bnd = build_grid(bnd, nu, nv)
 
 
 int_knot_v = left.int_knot
