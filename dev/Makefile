@@ -1,8 +1,4 @@
 PY=python3
-NAME=CFM5_pilot_bspline
-VERSION=beta_1.1
-YEAR=2018
-cfm=/usr/local/CFM5_release_2017/obj/CFM5_preferred/native
 
 ### General options
 # show_plot : Show figures that are being generated. When enabled, user
@@ -30,31 +26,14 @@ bnd_degree = 3
 bnd_residual = 1.8
 bnd_smooth = 0.01
 bnd_refinement_ratio = 3
-surf_residual = 0.1
+surf_smooth = 0.2
 surf_invert_mapping = 1
 
 # List of faults to process
 # Each fault is processed sequentially by calling `make num=1`
 # where `num` is the index of the fault in the array.
-num=1
-fault1=PNRA-CRSF-USAV-Fontana_Seismicity_lineament-CFM1
-fault2=GRFS-GRFZ-WEST-Garlock_fault-CFM5
-fault3=WTRA-NCVS-VNTB-Southern_San_Cayetano_fault-steep-JHAP-CFM5
-fault4=WTRA-ORFZ-SFNV-Northridge-Frew_fault-CFM2
-fault5=WTRA-SSFZ-MULT-Santa_Susana_fault-CFM1
-fault6=SAFS-SAFZ-MULT-Garnet_Hill_fault_strand-CFM4
-fault7=SAFS-SAFZ-COAV-Southern_San_Andreas_fault-CFM4
-fault8=WTRA-SFFS-SMMT-Santa_Monica_fault-steep-CFM5
-fault9=WTRA-SBTS-SMMT-Santa_Monica_thrust_fault-CFM1
-fault10=PNRA-NIRC-LABS-Newport-Inglewood_fault-dip_w_splays-split-CFM5
-fault11=PNRA-CSTL-SJQH-San_Joaquin_Hills_fault-truncated-CFM3
-fault12=PNRA-CEPS-LABS-Compton-Los_Alamitos_fault-CFM2
-faults=$(fault1) $(fault2) $(fault3) $(fault4) $(fault5) $(fault6) $(fault7) \
-       $(fault8) $(fault9) $(fault10) $(fault11) $(fault12)
-fault=$(word $(num), $(faults)).msh
 
 # Name of output directories
-out=output2
 figures=figures
 fig=png
 pydata=pydata
@@ -117,7 +96,7 @@ $(meshdir)/$(pydata)/%_bspline_bnd.p: $(meshdir)/$(pydata)/%_seg.p
 $(meshdir)/$(pydata)/%_bspline_surf.p: $(meshdir)/$(pydata)/%_bspline_bnd.p
 	@echo Fitting BSpline surface for $(notdir $<)
 	$(PY) python/bspline-surface.py $< $(meshdir)/$(pydata)/$(notdir $@) \
-	$(surf_invert_mapping)\
+	$(surf_invert_mapping) $(surf_smooth) \
  	$(meshdir)/$(basename $(notdir $@))_fit.vtk \
  	$(meshdir)/$(basename $(notdir $@))_fit.json \
  	$(meshdir)/$(figures)/$(basename $(notdir $@))_uv.$(fig) \
@@ -143,3 +122,4 @@ release:
 
 clean:
 	rm -rf $(meshdir)/*
+

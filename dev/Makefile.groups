@@ -1,0 +1,49 @@
+PY=python3
+NAME=CFM5_groups
+VERSION=beta_1.2
+YEAR=2019
+cfm=./meshes/
+out=output_groups
+
+### General options
+# show_plot : Show figures that are being generated. When enabled, user
+# interaction is required. Plot window must be closed to resume operation
+show_plot = 1
+
+### Options for mesh conversion
+# min_elem : Minimum number of elements a triangular surface must contain to
+# get processed
+min_elem = 20
+
+
+### Options for BSpline fitting
+# bnd_degree : Polynomial degree
+# residual : Desired residual to obtain. More control points are inserted until
+# 	this threshold is reached
+# bnd_smooth : Amount of smoothness to add in the fitting. FIXME: this feature
+# does not yet work.
+# bnd_refinement_ratio : Refine sides with unbalanced number of nodes compared
+# 	to opposing side. Refinement inserts points at midpoints.
+# surf_smooth : Amount of smoothness to add to surface fitting.
+# surf_invert_mapping : Determine UV-mapping by inverting the transfinite
+# 	interpolation mapping.
+bnd_degree = 3
+bnd_residual = 1.0
+bnd_smooth = 0
+bnd_refinement_ratio = 3
+surf_smooth = 0.2
+surf_invert_mapping = 0
+
+# List of faults to process
+# Each fault is processed sequentially by calling `make num=1`
+# where `num` is the index of the fault in the array.
+num=1
+fault1=Garnet_Hill_Group1_3
+fault2=Garnet_Hill_Group2_3
+fault3=Northridge_2
+fault4=Northridge_3
+fault5=Northridge_4
+faults=$(fault1) $(fault2) $(fault3) $(fault4) $(fault5)
+fault=$(word $(num), $(faults)).msh
+
+include Makefile
