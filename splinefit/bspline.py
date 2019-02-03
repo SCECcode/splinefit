@@ -494,6 +494,25 @@ def chords(x, y, a=0, b=1):
     d = (b-a)*(d-min(d))/(max(d)-min(d)) + a
     return d
 
+def centripetal(x, y, a=0, b=1):
+    """
+    Map (x_j, y_j) to the interval a <= s_j <=b using the centripetal 
+    parameterization.
+
+    See page 365 in Nurbs Book
+
+    """
+    dx = x[1:] - x[0:-1]
+    dy = y[1:] - y[0:-1]
+    dists = np.sqrt(dx**2 + dy**2)
+    dl = sum(np.sqrt(dists))
+    d = np.zeros((len(x),))
+    for i in range(len(dists)):
+        d[i+1] = d[i] + np.sqrt(dists[i])/dl
+
+    d = (b-a)*(d-min(d))/(max(d)-min(d)) + a
+    return d
+
 
 def xmap(x, a=0, b=1):
     """

@@ -24,6 +24,41 @@ def test_curve():
     plt.plot(x,y)
     #plt.show()
 
+def test_centripetal():
+    npts = 20
+    a = -2
+    b = 2
+    p = 3
+    m = 5 
+    px = np.linspace(a, b, npts)
+    py = np.sin(px)*np.exp(-px**2)# + 0.1 * np.random.randn(npts)
+    px = np.cos(0.1*px)
+    s = sf.bspline.centripetal(px, py, a=a, b=b)
+    U = sf.bspline.kmeansknots(s, m, p, a=a, b=b)
+    v = sf.bspline.chords(px, py, a=a, b=b)
+    V = sf.bspline.kmeansknots(v, m, p, a=a, b=b)
+    Px, Py, res = sf.bspline.lsq2(s, px, py, U, p)
+    Qx, Qy, res = sf.bspline.lsq2(v, px, py, V, p)
+
+    u = np.linspace(a,b,100)
+    zx = []
+    zy = []
+    qx = []
+    qy = []
+    for ui in u:
+        zx.append(sf.bspline.curvepoint(p, U, Px, ui))
+        zy.append(sf.bspline.curvepoint(p, U, Py, ui))
+        qx.append(sf.bspline.curvepoint(p, V, Qx, ui))
+        qy.append(sf.bspline.curvepoint(p, V, Qy, ui))
+
+    plt.clf()
+    plt.plot(zx, zy,'b--', label='centripetal')
+    plt.plot(qx, qy,'r--', label='chord')
+    plt.plot(px, py,'k*')
+    plt.legend()
+    #plt.show()
+
+
 def test_normalize():
     P = np.array([1.0, 1.0, 0.4, 0.0, 0.0, 0.0, 0.4, 1.0, 1.0])
     n = 5
