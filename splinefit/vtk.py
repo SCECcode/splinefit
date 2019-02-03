@@ -77,3 +77,22 @@ def write_surface(filename, X, Y, Z):
         for i in range(X.shape[0]):
             f.write('%g %g %g\n' % (X[i,j], Y[i,j], Z[i,j]))
     f.close()
+
+def append_scalar(filename, scalar, label='scalar'):
+    """
+    Append a scalar field to a surface.
+
+    Input arguments:
+        filename : Name of file to write to.
+        scalar : Value of scalar field at each grid point. 
+    """
+
+    f = open(filename, 'a')
+    numpts = len(scalar[:])
+    f.write("POINT_DATA %ld \n" % numpts)
+    f.write("FIELD scalar 1\n")
+    f.write("%s 1 %ld float\n" % (label, numpts))
+    # x, y, z coordinates
+    for si in scalar[:]:
+            f.write('%g \n' % si)
+    f.close()

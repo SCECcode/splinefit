@@ -53,8 +53,6 @@ def restore(data, X, Y, Z, pcl_xyz):
     Also, remove normalization
 
     """
-    T = data.proj_basis
-
     nx = X.shape[0]
     ny = X.shape[1]
     xy = np.vstack((X.flatten(), Y.flatten())).T
@@ -263,7 +261,7 @@ z = pcl[:,2]
 S = sf.bspline.Surface(U, V, pu, pv, Px, Py, 0*Px)
 S, data.u, data.v = fit_surface(S, bnds, data, x, y, z, pcl, surf_smooth)
 data.z = z
-S.eval(20,20)
+S.eval(80,80)
 
 print("U degree:", S.pu)
 print("V degree:", S.pv)
@@ -274,19 +272,34 @@ print("num U", U.shape)
 u = np.linspace(0, 1.0, 40)
 v = np.linspace(0, 1.0, 40)
 r = 0
-px =  Px[0]
-py =  Py[0]
+px = Px[0]
+py = Py[0]
 
 plot_transfinite(S, bnds)
 helper.show(showplot)
 
-sf.vtk.write_surface(vtkfile, S.X, S.Y, S.Z)
 
 S.rwPx, S.rwPy, S.rwPz, data.coords = restore(data, S.Px, S.Py, S.Pz, data.pcl_xyz)
-X, Y, Z, data.coords = restore(data, S.X, S.Y, S.Z, data.pcl_xyz)
+S.X, S.Y, S.Z, data.coords = restore(data, S.X, S.Y, S.Z, data.pcl_xyz)
+x, y, z = S.surfacepoints(data.u, data.v, data.coords)
+
+plt.clf()
 ax = helper.plot_grid(S.X, S.Y, S.Z)
 helper.plot_points(data.coords, ax=ax, style='ro')
-sf.vtk.write_surface(vtkfile, X, Y, Z)
+coords = np.vstack((x, y, z)).T
+
+rx = x-data.coords[:, 0]
+ry = y-data.coords[:, 1]
+rz = z-data.coords[:, 2]
+
+dist = np.sqrt(rx**2 + ry**2 + rz**2)
+helper.plot_points(coords, ax=ax, style='bo')
+sf.vtk.write_surface(vtkfile, S.X, S.Y, S.Z)
+mshfile = '.'.join(vtkfile.split('.')[0:-1]) + '_error.vtk'
+sf.vtk.write_triangular_mesh(mshfile, data.coords, data.tris)
+err = S.compute_misfit(data.u, data.v, data.coords)
+sf.vtk.append_scalar(mshfile, err, label='error')
+print("Wrote:", mshfile)
 print("Wrote:", vtkfile)
 S.json(jsonfile)
 print("Wrote:", jsonfile)

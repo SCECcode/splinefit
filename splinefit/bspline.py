@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def cubic(t):
     """
     Evaluate C^2 continuous cubic BSpline basis for each function B0, B1, B2, B3.
@@ -21,7 +22,7 @@ def cubic(t):
 
 
     """
-    B= np.array([[-1, 3, -3, 1],
+    B = np.array([[-1, 3, -3, 1],
                  [3, -6, 3, 0],
                  [-3, 0, 3, 0],
                  [1, 4, 1, 0]])/6
@@ -29,6 +30,7 @@ def cubic(t):
 
     out = u.dot(B)
     return out
+
 
 def normalize(pts, n):
     """
@@ -48,6 +50,7 @@ def normalize(pts, n):
     out = n*(pts - pmin)/(pmax - pmin)
     nc = (pmin, pmax)
     return out, nc 
+
 
 def denormalize(npts, nc, n):
     """
@@ -82,6 +85,7 @@ def upper(pts):
     """
     return int(np.floor(pts) + 2)
 
+
 def eval(P, npts=10):
 
     t = np.linspace(0, 1, npts)
@@ -97,11 +101,13 @@ def eval(P, npts=10):
             k += 1
     return x, y
 
+
 def eval_basis(xc, n):
     idx = np.floor(xc)
     t = (xc - idx)/n
     w = cubic(t)
     return w
+
 
 def set_ctrlpt(xc, yc, n):
     """
@@ -159,6 +165,7 @@ def findspan(n, p, u, U):
         mid = int((low + high)/2)
     return mid
 
+
 def basisfuns(i,u,p,U):
     N = np.zeros((p+1,))
     left = np.zeros((p+1,))
@@ -187,6 +194,7 @@ def basisfuns(i,u,p,U):
 
     return N
 
+
 def curvepoint(p, U, P, u):
     C = 0.0
     n = len(P) - p
@@ -197,6 +205,7 @@ def curvepoint(p, U, P, u):
     for i in range(p+1):
         C = C + N[i]*P[span-p+i]
     return C
+
 
 def surfacepoint(pu, pv, U, V, P, u, v):
     S = 0.0
@@ -215,11 +224,13 @@ def surfacepoint(pu, pv, U, V, P, u, v):
             S = S + Nu[i]*Nv[j]*P[span_v-pv+j, span_u-pu+i]
     return S
 
+
 def evalcurve(p, U, P, u):
     y = 0*u
     for i in range(len(u)):
         y[i] = curvepoint(p, U, P, u[i])
     return y
+
 
 def dist2curve(p, U, Px, Py, Pz, u, x, y, z):
     cx = evalcurve(p, U, Px, u)
@@ -228,12 +239,14 @@ def dist2curve(p, U, Px, Py, Pz, u, x, y, z):
     dists = np.sqrt((cx - x)**2 + (cy - y)**2 + (cz - z)**2)
     return dists
 
+
 def evalsurface(pu, pv, U, V, P, u, v):
     w = np.zeros((len(u), len(v)))
     for i in range(w.shape[0]):
         for j in range(w.shape[1]):
             w[i,j] = surfacepoint(pu, pv, U, V, P, u[i], v[j])
     return w
+
 
 def uvinv(xp, yp, u0, v0, l, r, b, t):
     """
@@ -304,6 +317,7 @@ def uvinv(xp, yp, u0, v0, l, r, b, t):
     x[1] = clamp(x[1])
     return x
 
+
 def uniformknots(m, p, a=0, b=1):
     """
     Construct a uniform knot vector
@@ -320,6 +334,7 @@ def uniformknots(m, p, a=0, b=1):
               t[1:-1],
               (b,)*(p+1)]
     return U
+
 
 def kmeansknots(s, m, p, a=0, b=1.0):
     """
@@ -356,6 +371,7 @@ def svd_inv(A, b, s, tol=1e-8):
     v = A.T.dot(b)
     Mi = (vh.T*shi).dot(uh.T)
     return Mi.dot(A.T.dot(b) )
+
 
 def lsq(x, y, U, p, s=0, tol=1e-8):
     """
@@ -395,6 +411,7 @@ def lsq(x, y, U, p, s=0, tol=1e-8):
     p0[0] = y[0] 
     p0[-1] = y[-1] 
     return p0, res
+
 
 def lsq2surf(u, v, z, U, V, pu, pv, corner_ids=0, tol=1e-8, s=0.2):
     """
@@ -477,6 +494,7 @@ def chords(x, y, a=0, b=1):
     d = (b-a)*(d-min(d))/(max(d)-min(d)) + a
     return d
 
+
 def xmap(x, a=0, b=1):
     """
     Map real number x to the interval a <= s_j <=b by normalizing values.
@@ -490,6 +508,7 @@ def xmap(x, a=0, b=1):
     d = (b-a)*d + a
     
     return d
+
 
 def argsort2(u, v):
     """
@@ -526,7 +545,8 @@ def lsq2(s, x, y, U, p, smooth=0):
     Px, rx = lsq(s, x, U, p, s=smooth)
     Py, ry = lsq(s, y, U, p, s=smooth)
     return Px, Py, (rx, ry)
- 
+
+
 def smoothing(x, y, sm=0.1, mmax=100, disp=False, p=3):
     """
     Perform least squares fitting by successively increasing the number of knots
@@ -566,6 +586,7 @@ def lsq2l2(x, y, m, p, knots='uniform', smooth=0):
     Px, Py, res = lsq2(s, x, y, U, p, smooth=smooth)
     return Px, Py, U, res
 
+
 def lsq2x(x, y, m, p, axis=0):
     """
     Perform least squares fitting using `m` number of knots and normalization of
@@ -580,6 +601,7 @@ def lsq2x(x, y, m, p, axis=0):
     U = uniformknots(m, p, a=0, b=1)
     Px, Py, res = lsq2(s, x, y, U, p)
     return Px, Py, U, res
+
 
 class Surface(object):
 
@@ -623,4 +645,105 @@ class Surface(object):
                        'pu' : self.pu,
                        'pv' : self.pv}, out, indent=4)
 
+    def compute_distances(self, points, ord=2):
+        """
+        Assign misfit. The misfit is defined as the distance of each point of
+        the spline surface to the nearest query points `points`.
 
+        Args:
+            points: Points to compute distances to.
+            ord: Metric type. Defaults to `L2` (ord=2). Use `order=1` for L1
+                distance.
+        """
+        if not hasattr(self, 'X'):
+            raise ValueError("Call eval() before calling this function.")
+        distances = self.X*0
+        for i in range(self.misfit.shape[0]):
+            for j in range(self.misfit.shape[1]):
+                p = (self.X[i, j], self.Y[i, j], self.Z[i, j])
+                dist = np.linalg.norm(points -
+                                      np.tile(p, (points.shape[0], 1)),
+                                      axis=1, ord=ord)
+                distances[i, j] = np.min(dist)
+        return distances
+
+    def compute_misfit(self, u, v, points, ord=2):
+        """
+        Assign misfit. The misfit is defined as the distance of each point of
+        the spline surface to the nearest query points `points`.
+
+        Args:
+            u, v : Mapping to surface.
+            points: Coordinates in space.
+            ord: Metric type. Defaults to `L2` (ord=2). 
+                Use `order=1` for L1 distance.
+
+        """
+        error = 0*u
+        i = 0
+        for ui, vi in zip(u, v):
+            x = surfacepoint(self.pu, self.pv, self.U, self.V, self.rwPx, 
+                             ui, vi)
+            y = surfacepoint(self.pu, self.pv, self.U, self.V, self.rwPy, 
+                             ui, vi)
+            z = surfacepoint(self.pu, self.pv, self.U, self.V, self.rwPz,
+                             ui, vi)
+            pi = points[i, :]
+            distvec = (x - pi[0], y - pi[1], z - pi[2])
+            error[i] = np.linalg.norm(distvec, ord=ord)
+            i += 1
+        return error
+        
+    def distance(self, u, v, point, ord=2, coordinates="local", surf_point=0):
+        """
+        Compute the distance between a query point and the surface. The
+        parameterization of the query point must be known.
+
+        Args:
+            u, v : Mapping to surface.
+            points: Coordinates in space.
+            ord: Metric type. Defaults to `L2` (ord=2). 
+                Use `order=1` for L1 distance.
+        """
+        if coordinates == "local":
+                x = surfacepoint(self.pu, self.pv, self.U, self.V, self.Px, 
+                                 u, v)
+                y = surfacepoint(self.pu, self.pv, self.U, self.V, self.Py, 
+                                 u, v)
+                z = surfacepoint(self.pu, self.pv, self.U, self.V, self.Pz,
+                                 u, v)
+        elif coordinates == "global":
+                x = surfacepoint(self.pu, self.pv, self.U, self.V, self.rwPx, 
+                                 u, v)
+                y = surfacepoint(self.pu, self.pv, self.U, self.V, self.rwPy, 
+                                 u, v)
+                z = surfacepoint(self.pu, self.pv, self.U, self.V, self.rwPz,
+                                 u, v)
+        else:
+                raise ValueError("Unknown coordinate type: %s" % coordinates)
+
+        if surf_point:
+                return (x, y, z)
+
+        distvec = (x - point[0], y - point[1], z - point[2])
+        #distvec = (x - point[0], y - point[1], 0)
+        return distvec[0]**2 + distvec[1]**2 + distvec[2]**2
+        #return np.linalg.norm(distvec, ord=ord)
+
+    def surfacepoints(self, u, v, points, ord=2):
+        px = 0*u
+        py = 0*u
+        pz = 0*u
+        i = 0
+        for ui, vi in zip(u, v):
+            x = surfacepoint(self.pu, self.pv, self.U, self.V, self.rwPx, 
+                             ui, vi)
+            y = surfacepoint(self.pu, self.pv, self.U, self.V, self.rwPy, 
+                             ui, vi)
+            z = surfacepoint(self.pu, self.pv, self.U, self.V, self.rwPz,
+                             ui, vi)
+            px[i] = x
+            py[i] = y
+            pz[i] = z
+            i += 1
+        return (px, py, pz)

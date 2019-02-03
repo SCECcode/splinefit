@@ -101,6 +101,11 @@ $(meshdir)/$(pydata)/%_bspline_surf.p: $(meshdir)/$(pydata)/%_bspline_bnd.p
  	$(meshdir)/$(basename $(notdir $@))_fit.json \
  	$(meshdir)/$(figures)/$(basename $(notdir $@))_uv.$(fig) \
 	$(show_plot)
+
+$(meshdir)/$(pydata)/%_error.p: $(meshdir)/$(pydata)/%_bspline_surf.p
+	@echo Computing error for surface for $(notdir $<)
+	$(PY) python/error.py $< $(meshdir)/$(pydata)/$(notdir $@) \
+ 	$(meshdir)/$(basename $(notdir $@)).vtk 
 	      
 gmsh: init $(meshdir)/$(fault)
 
@@ -112,6 +117,7 @@ rotation: $(foreach mesh,$(meshes),$(meshdir)/$(pydata)/$(notdir $(mesh))_rot.p)
 segmentation: $(foreach mesh,$(meshes),$(meshdir)/$(pydata)/$(notdir $(mesh))_seg.p)
 bspline-boundary: $(foreach mesh,$(meshes),$(meshdir)/$(pydata)/$(notdir $(mesh))_bspline_bnd.p)
 bspline-surface: $(foreach mesh,$(meshes),$(meshdir)/$(pydata)/$(notdir $(mesh))_bspline_surf.p)
+error: $(foreach mesh,$(meshes),$(meshdir)/$(pydata)/$(notdir $(mesh))_error.p)
 
 release:
 	mkdir -p $(releasedir)

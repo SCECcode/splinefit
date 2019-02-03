@@ -37,7 +37,6 @@ helper.plot_points(bnd_xy, ax, 'b-')
 helper.plot_basis(basis, ax)
 plt.savefig(figfile)
 helper.show(showplot)
-data = helper.Struct()
 data.mu = mu
 data.std = std
 data.basis = basis
