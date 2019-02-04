@@ -1,0 +1,35 @@
+### General options
+# show_plot : Show figures that are being generated. When enabled, user
+# interaction is required. Plot window must be closed to resume operation
+# use_mapping : Use a coordinate transform to distort the mesh into the desired
+# shape. If disabled, then each boundary curve is fitted separately and the
+# interior is fitted on Cartesian grid.
+show_plot = 0
+use_mapping = 0
+
+### Options for mesh conversion
+# min_elem : Minimum number of elements a triangular surface must contain to
+# get processed
+min_elem = 20
+
+
+### Options for BSpline fitting
+# bnd_degree : Polynomial degree
+# residual : Desired residual to obtain. More control points are inserted until
+# 	this threshold is reached
+# bnd_smooth : Amount of smoothness to add in the fitting. There might be a bug
+# 	in the implementation of this. Use with caution.
+# bnd_regularization : Amount of regularization to apply. The regularization
+# term penalizes oscillations in the second derivative of the control points.
+# bnd_refinement_ratio : Refine sides with unbalanced number of nodes compared
+# 	to opposing side. Refinement inserts points at midpoints.
+# surf_residual : Unused.
+# surf_invert_mapping : Determine UV-mapping by inverting the transfinite
+# 	interpolation mapping.
+bnd_degree = 3
+bnd_residual = 1.8
+bnd_smooth = 0.01
+bnd_regularization = 0.1
+bnd_refinement_ratio = 3
+surf_smooth = 0.2
+surf_invert_mapping = 1

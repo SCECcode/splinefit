@@ -1,34 +1,5 @@
 PY=python3
 
-### General options
-# show_plot : Show figures that are being generated. When enabled, user
-# interaction is required. Plot window must be closed to resume operation
-show_plot = 0
-
-### Options for mesh conversion
-# min_elem : Minimum number of elements a triangular surface must contain to
-# get processed
-min_elem = 20
-
-
-### Options for BSpline fitting
-# bnd_degree : Polynomial degree
-# residual : Desired residual to obtain. More control points are inserted until
-# 	this threshold is reached
-# bnd_smooth : Amount of smoothness to add in the fitting. There might be a bug
-# 	in the implementation of this. Use with caution.
-# bnd_refinement_ratio : Refine sides with unbalanced number of nodes compared
-# 	to opposing side. Refinement inserts points at midpoints.
-# surf_residual : Unused.
-# surf_invert_mapping : Determine UV-mapping by inverting the transfinite
-# 	interpolation mapping.
-bnd_degree = 3
-bnd_residual = 1.8
-bnd_smooth = 0.01
-bnd_refinement_ratio = 3
-surf_smooth = 0.2
-surf_invert_mapping = 1
-
 # List of faults to process
 # Each fault is processed sequentially by calling `make num=1`
 # where `num` is the index of the fault in the array.
@@ -89,7 +60,9 @@ $(meshdir)/$(pydata)/%_seg.p: $(meshdir)/$(pydata)/%_rot.p
 $(meshdir)/$(pydata)/%_bspline_bnd.p: $(meshdir)/$(pydata)/%_seg.p
 	@echo Fitting BSpline curve through boundary for $(notdir $<)
 	$(PY) python/bspline-boundary.py $< $(meshdir)/$(pydata)/$(notdir $@) \
-	$(bnd_degree) $(bnd_residual) $(bnd_smooth) $(bnd_refinement_ratio)\
+	$(bnd_degree) $(bnd_residual) $(bnd_smooth) $(bnd_refinement_ratio) \
+	$(bnd_regularization) \
+	$(use_mapping) \
  	$(meshdir)/$(figures)/$(basename $(notdir $@)).$(fig) \
 	$(show_plot)
 
@@ -97,6 +70,7 @@ $(meshdir)/$(pydata)/%_bspline_surf.p: $(meshdir)/$(pydata)/%_bspline_bnd.p
 	@echo Fitting BSpline surface for $(notdir $<)
 	$(PY) python/bspline-surface.py $< $(meshdir)/$(pydata)/$(notdir $@) \
 	$(surf_invert_mapping) $(surf_smooth) \
+	$(bnd_regularization) \
  	$(meshdir)/$(basename $(notdir $@))_fit.vtk \
  	$(meshdir)/$(basename $(notdir $@))_fit.json \
  	$(meshdir)/$(figures)/$(basename $(notdir $@))_uv.$(fig) \
