@@ -56,7 +56,6 @@ def test_centripetal():
     plt.plot(qx, qy,'r--', label='chord')
     plt.plot(px, py,'k*')
     plt.legend()
-    #plt.show()
 
 
 def test_normalize():

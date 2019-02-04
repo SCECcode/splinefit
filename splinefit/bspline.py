@@ -335,6 +335,13 @@ def uniformknots(m, p, a=0, b=1):
               (b,)*(p+1)]
     return U
 
+def customknots(t, p, a=0, b=1):
+    U = np.r_[(a,)*(p+1),
+              t,
+              (b,)*(p+1)]
+    return U
+
+
 
 def kmeansknots(s, m, p, a=0, b=1.0):
     """
@@ -349,16 +356,29 @@ def kmeansknots(s, m, p, a=0, b=1.0):
               (b,)*(p+1)]
     return U
 
+def averageknots(s, m, p, a=0.0, b=1.0):
+    """
+    Construct a knot vector by finding knot positions using averaging for selecting
+    knots.
+    """
+    t = np.zeros((m+2,))
+    for i in range(m+2):
+        t[i] = sum(s[i:i+p-1])*1.0/p
+    U = np.r_[(a,)*(p+1),
+              t,
+              (b,)*(p+1)]
+    return U
 
-def svd_inv(A, b, s, tol=1e-8):
+
+def svd_inv(A, b, s, tol=1e-8, D=0):
     """
     Solve Ax = b using least squares SVD and regularization. 
 
     That is solve the regularized Normal equations: 
-    (A.T*A + s*I)*x = A.T*b
+    (A.T*A + s*I + D)*x = A.T*b
 
     """
-    M = A.T.dot(A) + s*np.eye(A.shape[1])
+    M = A.T.dot(A) + s*np.eye(A.shape[1]) + D
     uh, sh, vh = np.linalg.svd(M, full_matrices=False)
     m = sh.shape[0]
     shi = 0*np.zeros((m,))
@@ -373,7 +393,7 @@ def svd_inv(A, b, s, tol=1e-8):
     return Mi.dot(A.T.dot(b) )
 
 
-def lsq(x, y, U, p, s=0, tol=1e-8):
+def lsq(x, y, U, p, s=0, tol=1e-6, a=0, w=0):
     """
     Computes the least square fit to the data (x,y) using the knot vector U.
 
@@ -382,6 +402,8 @@ def lsq(x, y, U, p, s=0, tol=1e-8):
         U : Knot vector
         p : Degree of BSpline
         s : Smoothing parameter
+        a : Jump penalty regularization
+        w : Weights
 
     Returns:
         P : Control points,
@@ -395,22 +417,53 @@ def lsq(x, y, U, p, s=0, tol=1e-8):
 
     A = np.zeros((npts, m - p))
     b = np.zeros((npts,))
+    if np.all(w) == 0:
+        w = np.zeros((m-p,))
     for i, xi in enumerate(x):
         span = findspan(n, p, xi, U)
         N = basisfuns(span, xi, p, U)
         for j, Nj in enumerate(N):
             A[i, span + j - p] = Nj
-        b[i] = y[i]
+        b[i] = y[i] 
 
+    # Jump regularization
+    D = derivative_matrix(m - p)
+    R = a*D.T.dot(np.diag(w)).dot(D)
 
-
-    #p0 = np.linalg.lstsq(A, b, rcond=None)[0]
-    p0 = svd_inv(A, b, s, tol) 
+    p0 = svd_inv(A, b, s, tol, D=R) 
     res = np.linalg.norm(A.dot(p0) - b)
     # Interpolate ends
     p0[0] = y[0] 
     p0[-1] = y[-1] 
     return p0, res
+
+
+def derivative_matrix(n):
+    """
+    Second derivative approximated by finite differences. 
+
+    """
+    if n == 2:
+        D = np.zeros((2, 2))
+        D[0,0] = -1
+        D[0,1] = 1
+        D[1,0] = -1
+        D[1,1] = 1
+        return D
+
+
+    D = np.zeros((n, n))
+    D[0,0] = 1
+    D[0,1] = -2
+    D[0,2] = 1
+    for i in range(1, n-1):
+        D[i, i + 1] = 1
+        D[i, i - 0] = -2
+        D[i, i - 1] = 1
+    D[-1,0] = 1
+    D[-1,1] = -2
+    D[-1,2] = 1
+    return D
 
 
 def lsq2surf(u, v, z, U, V, pu, pv, corner_ids=0, tol=1e-8, s=0.2):
@@ -509,8 +562,8 @@ def centripetal(x, y, a=0, b=1):
     d = np.zeros((len(x),))
     for i in range(len(dists)):
         d[i+1] = d[i] + np.sqrt(dists[i])/dl
-
-    d = (b-a)*(d-min(d))/(max(d)-min(d)) + a
+    #d = (b-a)*(d-min(d))/(max(d)-min(d)) + a
+    d = (b-a)*d + a
     return d
 
 
