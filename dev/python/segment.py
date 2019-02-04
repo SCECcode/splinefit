@@ -62,7 +62,7 @@ def edges(points, corner_ids):
     return bottom, right, top, left, bottom_ids, right_ids, top_ids, left_ids
 
 def make_plot(data):
-    helper.plot_points2(data.rxy,'bo')
+    helper.plot_points2(data.bnd_rxy,'bo')
     helper.plot_points2(data.corners,'k*')
     helper.plot_points2(data.bottom, 'C0-')
     helper.plot_points2(data.right, 'C1-')
@@ -73,13 +73,16 @@ def make_plot(data):
         plt.savefig(figfile)
 
 data = pickle.load(open(inputfile, 'rb'))
-data.rxy = fix_orientation(data.rxy)
-bbox = sf.fitting.bbox2(data.rxy)
-corner_ids = get_corners(data.rxy, bbox)
-points = np.vstack((data.rxy[:,0], data.rxy[:,1], data.rz)).T
+pts = np.vstack((data.bnd_rxy[:,0], data.bnd_rxy[:,1], data.bnd_rz)).T
+pts = fix_orientation(pts)
+data.bnd_rxy = pts[:,0:2]
+data.bnd_rz = pts[:,2]
+bbox = sf.fitting.bbox2(data.bnd_rxy)
+corner_ids = get_corners(data.bnd_rxy, bbox)
+points = np.vstack((data.bnd_rxy[:,0], data.bnd_rxy[:,1], data.bnd_rz)).T
 data.bottom, data.right, data.top, data.left, data.bottom_ids, data.right_ids,\
 data.top_ids, data.left_ids = edges(points, corner_ids)
-data.corners = data.rxy[corner_ids]
+data.corners = data.bnd_rxy[corner_ids]
 data.corner_ids = corner_ids
 
 make_plot(data)

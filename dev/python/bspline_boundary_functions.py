@@ -303,7 +303,6 @@ def make_plot(curve, figfile, save=0, npts=100, color=1, p3d=1):
     cx, cy, cz = helper.evalcurve3(curve, npts)
 
     if p3d:
-        print(curve.z)
         curve_points = np.vstack((cx, cy, cz)).T
         points = np.vstack((curve.x, curve.y, curve.z)).T
         helper.plot_points(curve_points, ax=ax, style='-')
@@ -316,3 +315,4 @@ def make_plot(curve, figfile, save=0, npts=100, color=1, p3d=1):
 
     if save:
         plt.savefig(figfile)
+    return ax

@@ -38,27 +38,26 @@ data = pickle.load(open(inputfile, 'rb'))
 
 # Rotate data into new coordinate system
 T = data.proj_basis
-xy = T.T.dot(data.bnd_xyz.T).T
-rxyz = data.basis.T.dot(data.bnd_xyz.T).T
+bnd_xy = T.T.dot(data.bnd_xyz.T).T
 
 
 
-center = sf.fitting.mean(xy) 
-center = np.tile(center, (xy.shape[0],1)) 
+center = sf.fitting.mean(bnd_xy) 
+center = np.tile(center, (bnd_xy.shape[0],1)) 
 
-obj = lambda theta : objective_function(xy, center, theta)
+obj = lambda theta : objective_function(bnd_xy, center, theta)
 
 var = scipy.optimize.minimize(obj, (0.0,), method='Nelder-Mead')['x']
 data.theta = var[0]
 data.center = center
-rxy = sf.fitting.rotate2(xy, center, data.theta)
-data.rxy = rxy
-data.proj_xy = xy
-data.rz = rxyz[:,2]
+rxy = sf.fitting.rotate2(bnd_xy, center, data.theta)
+data.bnd_rxy = rxy
+data.proj_xy = bnd_xy
+data.bnd_rz = data.bnd_proj_xyz[:,2]
 
-plt.plot(xy[:,0], xy[:,1], 'bo')
+plt.plot(bnd_xy[:,0], bnd_xy[:,1], 'bo')
 plt.plot(rxy[:,0], rxy[:,1], 'ro')
-bbox = sf.fitting.bbox2(xy)
+bbox = sf.fitting.bbox2(bnd_xy)
 helper.plot_points2(helper.close_boundary(bbox),'b')
 bbox = sf.fitting.bbox2(rxy)
 helper.plot_points2(helper.close_boundary(bbox),'r')

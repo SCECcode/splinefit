@@ -10,26 +10,27 @@ inputfile = sys.argv[1]
 outputfile = sys.argv[2]
 invert_mapping = int(sys.argv[3])
 surf_smooth = float(sys.argv[4])
-
-if len(sys.argv) < 5:
-    vtkfile = None
-else:
-    vtkfile = sys.argv[5]
+regularization = float(sys.argv[5])
 
 if len(sys.argv) < 6:
-    jsonfile = None
+    vtkfile = None
 else:
-    jsonfile = sys.argv[6]
+    vtkfile = sys.argv[6]
 
 if len(sys.argv) < 7:
-    uvfig = None
+    jsonfile = None
 else:
-    uvfig = sys.argv[7]
+    jsonfile = sys.argv[7]
 
 if len(sys.argv) < 8:
+    uvfig = None
+else:
+    uvfig = sys.argv[8]
+
+if len(sys.argv) < 9:
     showplot = 0
 else:
-    showplot = int(sys.argv[8])
+    showplot = int(sys.argv[9])
 
 
 def rotate(data):
@@ -145,7 +146,7 @@ def fit_surface(S, bnds, data, x, y, z, pcl, surf_smooth):
     u, v = mapping(S, bnds, data, x, y, invert_mapping)
     S.Pz, res = sf.bspline.lsq2surf(u, v, z, S.U, S.V, S.pu, S.pv,
             data.corner_ids, s=surf_smooth)
-    clamp_boundaries(u, v, x, y, z, S)
+    clamp_boundaries(bnds, u, v, x, y, z, S)
     return S, u, v
 
 def boundary_points(bnd, x, y, z, u, v):
@@ -174,8 +175,14 @@ def flip(x1, x2, x3, x4, x5):
     else:
         return x1, x2, x3, x4, x5
 
+def flip_p(bnd):
+    bnd.Px = bnd.Px[::-1]
+    bnd.Py = bnd.Py[::-1]
+    bnd.Pz = bnd.Pz[::-1]
+    return bnd
 
-def clamp_boundaries(u, v, x, y, z, S):
+
+def clamp_boundaries(bnds, u, v, x, y, z, S):
     xb, yb, zb, ub, vb = boundary_points(data.bottom, x, y, z, u, v)
     xt, yt, zt, ut, vt = boundary_points(data.top, x, y, z, u, v)
     xl, yl, zl, ul, vl = boundary_points(data.left, x, y, z, u, v)
@@ -191,23 +198,33 @@ def clamp_boundaries(u, v, x, y, z, S):
     print("Number of points Top:", xt.shape[0])
     print("Number of points Left:", xl.shape[0])
     print("Number of points Right:", xr.shape[0])
+    print("Regularization:", regularization)
     print("U,V", S.U.shape, S.V.shape)
 
-    s = sf.bspline.chords(xt, yt, a=0, b=1)
-    Pz, res = sf.bspline.lsq(s, zt, S.U, S.pu)
-    S.Pz[-1,:] = Pz
+    left, right, bottom, top = bnds
+    if top.Px[0] > top.Px[-1]:
+        top = flip_p(top)
+    S.Px[-1,:] = top.Px
+    S.Py[-1,:] = top.Py
+    S.Pz[-1,:] = top.Pz
 
-    s = sf.bspline.chords(xb, yb, a=0, b=1)
-    Pz, res = sf.bspline.lsq(s, zb, S.U, S.pu)
-    S.Pz[0,:] = Pz
+    if bottom.Px[0] > bottom.Px[-1]:
+        bottom = flip_p(bottom)
+    S.Px[0,:] = bottom.Px
+    S.Py[0,:] = bottom.Py
+    S.Pz[0,:] = bottom.Pz
 
-    s = sf.bspline.chords(xl, yl, a=0, b=1)
-    Pz, res = sf.bspline.lsq(s, zl, S.V, S.pv)
-    S.Pz[:,0] = Pz
+    if left.Py[0] > left.Py[-1]:
+        left = flip_p(left)
+    S.Px[:,0] = left.Px
+    S.Py[:,0] = left.Py
+    S.Pz[:,0] = left.Pz
 
-    s = sf.bspline.chords(xr, yr, a=0, b=1)
-    Pz, res = sf.bspline.lsq(s, zr, S.V, S.pv)
-    S.Pz[:,-1] = Pz
+    if right.Py[0] > right.Py[-1]:
+        right = flip_p(right)
+    S.Px[:,-1] = right.Px
+    S.Py[:,-1] = right.Py
+    S.Pz[:,-1] = right.Pz
 
 
 def plot_transfinite(S, bnds):
@@ -275,7 +292,26 @@ r = 0
 px = Px[0]
 py = Py[0]
 
-plot_transfinite(S, bnds)
+#plot_transfinite(S, bnds)
+#helper.show(showplot)
+
+#plt.clf()
+#ax = helper.plot_grid(S.X, S.Y, S.Z)
+#helper.plot_points(data.coords, ax=ax, style='ro')
+#
+coords = np.vstack((x, y, z)).T
+ax = helper.plot_points(coords, style='bo')
+
+pts = np.vstack((left.x, left.y, left.z)).T
+helper.plot_points(pts, ax=ax, style='C1o-')
+pts = np.vstack((right.x, right.y, right.z)).T
+helper.plot_points(pts, ax=ax, style='C2o-')
+pts = np.vstack((top.x, top.y, top.z)).T
+helper.plot_points(pts, ax=ax, style='C3o-')
+pts = np.vstack((bottom.x, bottom.y, bottom.z)).T
+helper.plot_points(pts, ax=ax, style='C4o-')
+coords = np.vstack((data.bnd_rxy[:,0], data.bnd_rxy[:,1], data.bnd_rz)).T
+helper.plot_points(coords, style='ko', ax=ax)
 helper.show(showplot)
 
 
@@ -283,10 +319,6 @@ S.rwPx, S.rwPy, S.rwPz, data.coords = restore(data, S.Px, S.Py, S.Pz, data.pcl_x
 S.X, S.Y, S.Z, data.coords = restore(data, S.X, S.Y, S.Z, data.pcl_xyz)
 x, y, z = S.surfacepoints(data.u, data.v, data.coords)
 
-plt.clf()
-ax = helper.plot_grid(S.X, S.Y, S.Z)
-helper.plot_points(data.coords, ax=ax, style='ro')
-coords = np.vstack((x, y, z)).T
 
 rx = x-data.coords[:, 0]
 ry = y-data.coords[:, 1]
@@ -294,9 +326,11 @@ rz = z-data.coords[:, 2]
 
 dist = np.sqrt(rx**2 + ry**2 + rz**2)
 helper.plot_points(coords, ax=ax, style='bo')
+
 sf.vtk.write_surface(vtkfile, S.X, S.Y, S.Z)
 mshfile = '.'.join(vtkfile.split('.')[0:-1]) + '_error.vtk'
 sf.vtk.write_triangular_mesh(mshfile, data.coords, data.tris)
+print("Computing misfit")
 err = S.compute_misfit(data.u, data.v, data.coords)
 sf.vtk.append_scalar(mshfile, err, label='error')
 print("Wrote:", mshfile)

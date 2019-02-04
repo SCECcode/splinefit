@@ -60,10 +60,12 @@ else:
 
 
 
-bfun.make_plot(left, figfile, color=0)
+coords = np.vstack((data.bnd_rxy[:,0], data.bnd_rxy[:,1], data.bnd_rz)).T
+ax = bfun.make_plot(left, figfile, color=0)
 bfun.make_plot(bottom, figfile, color=1)
 bfun.make_plot(right, figfile, color=2)
 bfun.make_plot(top, figfile, color=3, save=1)
+helper.plot_points(coords, style='bo', ax=ax)
 helper.show(showplot)
 
 

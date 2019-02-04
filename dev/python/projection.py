@@ -46,5 +46,7 @@ data.bnd_xyz = bnd_xyz
 data.bnd_xy = bnd_xy
 data.pcl_xyz = pcl_xyz
 data.pcl_xy = pcl_xy
+data.bnd_proj_xyz = data.basis.T.dot(data.bnd_xyz.T).T
+data.pcl_proj_xyz = data.basis.T.dot(data.pcl_xyz.T).T
 pickle.dump(data, open(outputfile, 'wb'))
 
