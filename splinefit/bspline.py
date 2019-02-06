@@ -335,6 +335,21 @@ def uniformknots(m, p, a=0, b=1):
               (b,)*(p+1)]
     return U
 
+def numknots(n, p,  interior=0):
+    """
+    Determine the number of knots given control points
+
+    Arguments:
+      n : Number of control points
+      p : Polynomial degree
+    """
+    m = n + p + 1  
+    if interior == 0:
+        return m
+    else:
+        return m - 2*(p + 1)
+
+
 def customknots(t, p, a=0, b=1):
     U = np.r_[(a,)*(p+1),
               t,
@@ -479,7 +494,7 @@ def lsq2surf(u, v, z, U, V, pu, pv, corner_ids=0, tol=1e-8, s=0.2):
 
     Optional arguments:
         corner_ids : Specify a list of four index to force the corners to be
-            interpolatated. Each id must map to an value in `u, v, z`.
+            interpolated. Each id must map to an value in `u, v, z`.
 
     Returns:
         P : Control points (size: mu x mv),
@@ -675,28 +690,101 @@ def lsq2x(x, y, m, p, axis=0):
     return Px, Py, U, res
 
 
-class Surface(object):
+class Curve(object):
 
-    def __init__(self, U, V, pu, pv, Px, Py, Pz):
+    def __init__(self, U, p, Px, Py, Pz, label='untitled'):
         """
-        U, V : knot vectors in each direction
-        pu, pv : Degree in each direction
-        Px, Py, Pz : Control points
+        Initialize BSpline curve
+
+        Args:
+          U : knot vector
+          p : degree
+          Px : Control points in x-direction
+          Py : Control points in y-direction
+          Pz : Control points in z-direction
+
+        number of control points: n
+        number of knots : m
+
+        Number of knots: m = n + p + 1
+
         """
+        assert len(U) == p + len(Px) + 1
         self.U = U
-        self.V = V
-        self.pu = pu
-        self.pv = pv
+        self.p = int(p)
         self.Px = Px
         self.Py = Py
         self.Pz = Pz
         self.rwPx = Px
         self.rwPy = Py
         self.rwPz = Pz
+        self.label = label
+
+    def eval(self, npts=10, rw=0):
+        u = np.linspace(self.U[0], self.U[-1], npts)
+        x = 0*u
+        y = 0*u
+        z = 0*u
+        for i in range(npts):
+            if rw:
+                x[i] = curvepoint(self.p, self.U, self.rwPx, u[i])
+                y[i] = curvepoint(self.p, self.U, self.rwPy, u[i])
+                z[i] = curvepoint(self.p, self.U, self.rwPz, u[i])
+            else:
+                x[i] = curvepoint(self.p, self.U, self.Px, u[i])
+                y[i] = curvepoint(self.p, self.U, self.Py, u[i])
+                z[i] = curvepoint(self.p, self.U, self.Pz, u[i])
+
+        return (x, y, z)
+
+    def json(self, filename):
+        import json
+        with open(filename, 'w') as out:
+            json.dump({
+                       'Px' : self.Px.tolist(), 
+                       'Py' : self.Py.tolist(), 
+                       'Pz' : self.Pz.tolist(),
+                       'real_world_Px' : self.rwPx.tolist(), 
+                       'real_world_Py' : self.rwPy.tolist(), 
+                       'real_world_Pz' : self.rwPz.tolist(),
+                       'U' : self.U.tolist(), 
+                       'p' : self.p},
+                       out, indent=4)
+
+    def __str__(self):
+        out = []
+        out += ["BSpline Curve: %s" % self.label]
+        out += ["Control points:    %d" % len(self.Px)]
+        out += ["Degree:            %d" % self.p]
+        return '\n'.join(out)
+
+
+class Surface(object):
+
+    def __init__(self, U, V, pu, pv, Px, Py, Pz, label='untitled'):
+        """
+        U, V : knot vectors in each direction
+        pu, pv : Degree in each direction
+        Px, Py, Pz : Control points
+        """
+
+        assert len(U) == pu + Px.shape[0] + 1
+        assert len(V) == pv + Px.shape[1] + 1
+        self.U = U
+        self.V = V
+        self.pu = int(pu)
+        self.pv = int(pv)
+        self.Px = Px
+        self.Py = Py
+        self.Pz = Pz
+        self.rwPx = Px
+        self.rwPy = Py
+        self.rwPz = Pz
+        self.label = label
 
     def eval(self, nu=10, nv=10):
-        u = np.linspace(0, 1, nu)
-        v = np.linspace(0, 1, nv)
+        u = np.linspace(self.U[0], self.U[-1], nu)
+        v = np.linspace(self.V[0], self.V[-1], nv)
 
         self.X = evalsurface(self.pu, self.pv, self.U, self.V, self.Px, u, v)
         self.Y = evalsurface(self.pu, self.pv, self.U, self.V, self.Py, u, v)
@@ -716,6 +804,14 @@ class Surface(object):
                        'V' : self.V.tolist(),
                        'pu' : self.pu,
                        'pv' : self.pv}, out, indent=4)
+
+    def __str__(self):
+        out = []
+        out += ["BSpline Surface: %s " % self.label]
+        out += [" * Control points:  %d x %d " % (self.Px.shape[0],
+                self.Px.shape[1])]
+        out += [" * Degree:          (%d, %d) " % (self.pu, self.pv)]
+        return '\n'.join(out)
 
     def compute_distances(self, points, ord=2):
         """

@@ -178,6 +178,42 @@ def rotate2(points, mu, theta):
     rxy = mu + R.dot(points.T- mu.T).T
     return rxy
 
+def restore(X, Y, Z, basis, mu, std, center, theta):
+    """
+    Rotate surface back to the original coordinate system.
+    Also, remove normalization.
+
+    Args:
+        X, Y, Z : x, y, and z-coordinates (can be grid)
+        basis : Basis vectors for projection
+        mu : Mean
+        std : Standard deviation
+        center : Center coordinate for 2D in plane rotation
+        theta : Signed rotation angle
+
+    Returns:
+        X, Y, Z : Restored coordinates.
+
+    """
+
+    xy = np.vstack((X.flatten(), Y.flatten())).T
+    center = np.tile(center[0,:], (xy.shape[0],1)) 
+    rxy = rotate2(xy, center, -theta)
+    xyz = np.vstack((rxy.T, Z.flatten())).T
+    xyz = basis.dot(xyz.T).T
+    xyz = renormalize(xyz, mu, std)
+    if len(X.shape) == 2:
+        nx = X.shape[0]
+        ny = X.shape[1]
+        X = np.reshape(xyz[:,0], (nx, ny))
+        Y = np.reshape(xyz[:,1], (nx, ny))
+        Z = np.reshape(xyz[:,2], (nx, ny))
+    else:
+        X = xyz[:,0]
+        Y = xyz[:,1]
+        Z = xyz[:,2]
+    return X, Y, Z
+
 def sdtriangle2(p, p0, p1, p2):
     """
     Signed distance function for a triangle in 2D

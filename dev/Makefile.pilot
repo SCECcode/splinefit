@@ -11,6 +11,7 @@ use_mapping=1
 surf_invert_mapping = 0
 bnd_residual=0.05
 bnd_regularization = 0.5
+bnd_degree = 3
 
 # List of faults to process
 # Each fault is processed sequentially by calling `make num=1`

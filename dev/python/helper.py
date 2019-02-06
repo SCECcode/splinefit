@@ -11,7 +11,7 @@ def close_boundary(points):
     """
     return np.vstack((points, points[0,:]))
 
-def evalcurve(curve, num):
+def evalcurve(curve, num=100):
     u = np.linspace(curve.U[0], curve.U[-1], num)
     cx = sf.bspline.evalcurve(curve.p, curve.U, curve.Px, u)
     cy = sf.bspline.evalcurve(curve.p, curve.U, curve.Py, u)
@@ -24,6 +24,9 @@ def evalcurve3(curve, num):
     cz = sf.bspline.evalcurve(curve.p, curve.U, curve.Pz, u)
     return cx, cy, cz
 
+def plot_curve(x, y, z, ax, style='C1o-'):
+    pts = np.vstack((x, y, z)).T
+    plot_points(pts, ax=ax, style=style)
 
 def plot_mesh(points, triangles, ax=None):
     """

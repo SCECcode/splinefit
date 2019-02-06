@@ -78,6 +78,7 @@ pts = fix_orientation(pts)
 data.bnd_rxy = pts[:,0:2]
 data.bnd_rz = pts[:,2]
 bbox = sf.fitting.bbox2(data.bnd_rxy)
+data.bbox = bbox
 corner_ids = get_corners(data.bnd_rxy, bbox)
 points = np.vstack((data.bnd_rxy[:,0], data.bnd_rxy[:,1], data.bnd_rz)).T
 data.bottom, data.right, data.top, data.left, data.bottom_ids, data.right_ids,\
