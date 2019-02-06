@@ -532,11 +532,12 @@ def lsq2surf(u, v, z, U, V, pu, pv, corner_ids=0, tol=1e-8, s=0.2):
     print("Residual for surface fit", res)
     P = p0.reshape((mv-pv, mu-pu))
 
-    if corner_ids:
-        P[0,0] = z[corner_ids[0]]
-        P[0,1] = z[corner_ids[1]]
-        P[1,1] = z[corner_ids[2]]
-        P[1,0] = z[corner_ids[3]]
+    # Why is this here?
+    #if corner_ids:
+    #    P[0,0] = z[corner_ids[0]]
+    #    P[0,1] = z[corner_ids[1]]
+    #    P[1,1] = z[corner_ids[2]]
+    #    P[1,0] = z[corner_ids[3]]
 
     return P, res
 
@@ -768,8 +769,8 @@ class Surface(object):
         Px, Py, Pz : Control points
         """
 
-        assert len(U) == pu + Px.shape[0] + 1
-        assert len(V) == pv + Px.shape[1] + 1
+        assert len(U) == pu + Px.shape[1] + 1
+        assert len(V) == pv + Px.shape[0] + 1
         self.U = U
         self.V = V
         self.pu = int(pu)
@@ -782,13 +783,24 @@ class Surface(object):
         self.rwPz = Pz
         self.label = label
 
-    def eval(self, nu=10, nv=10):
+    def eval(self, nu=10, nv=10, rw=0):
         u = np.linspace(self.U[0], self.U[-1], nu)
         v = np.linspace(self.V[0], self.V[-1], nv)
 
-        self.X = evalsurface(self.pu, self.pv, self.U, self.V, self.Px, u, v)
-        self.Y = evalsurface(self.pu, self.pv, self.U, self.V, self.Py, u, v)
-        self.Z = evalsurface(self.pu, self.pv, self.U, self.V, self.Pz, u, v)
+        if rw:
+            self.X = evalsurface(self.pu, self.pv, self.U, self.V, 
+                                 self.rwPx, u, v)
+            self.Y = evalsurface(self.pu, self.pv, self.U, self.V, 
+                                 self.rwPy, u, v)
+            self.Z = evalsurface(self.pu, self.pv, self.U, self.V, 
+                                 self.rwPz, u, v)
+        else:
+            self.X = evalsurface(self.pu, self.pv, self.U, self.V, 
+                                 self.Px, u, v)
+            self.Y = evalsurface(self.pu, self.pv, self.U, self.V, 
+                                 self.Py, u, v)
+            self.Z = evalsurface(self.pu, self.pv, self.U, self.V, 
+                                 self.Pz, u, v)
 
     def json(self, filename):
         import json

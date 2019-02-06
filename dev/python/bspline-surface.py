@@ -4,6 +4,7 @@ import splinefit as sf
 import numpy as np
 import helper
 import pickle
+import mesh
 import matplotlib.pyplot as plt
 import bspline_surface_functions as bsf
 
@@ -51,41 +52,57 @@ if use_mapping:
 else:
     nu = len(xb)
     nv = len(xl)
-    nu = 5
-    nv = 5
+    nu = 60
+    nv = 60
     pu = 3
     pv = 3
 
 if use_mapping:
     X, Y, bnd = bsf.build_grid(bnd, nu, nv)
+    #U = bottom.U
+    #V = left.U
+    int_knot_u = sf.bspline.numknots(nu, pu, interior=1)
+    int_knot_v = sf.bspline.numknots(nv, pv, interior=1)
+    U = sf.bspline.uniformknots(int_knot_u, pu, a=0, b=1)
+    V = sf.bspline.uniformknots(int_knot_v, pv, a=0, b=1)
+    print("m, p, n", len(U), pu, X.shape[0])
 else:
     u, v, X, Y = bsf.background_grid(data, nu, nv, pu, pv, padding=padding)
+    int_knot_u = sf.bspline.numknots(nu, pu, interior=1)
+    int_knot_v = sf.bspline.numknots(nv, pv, interior=1)
+    U = sf.bspline.uniformknots(int_knot_u, pu, a=-padding, b=1 + padding)
+    V = sf.bspline.uniformknots(int_knot_v, pv, a=-padding, b=1 + padding)
 
-int_knot_u = sf.bspline.numknots(nu, pu, interior=1)
-int_knot_v = sf.bspline.numknots(nv, pv, interior=1)
-U = sf.bspline.uniformknots(int_knot_u, pu, a=-padding, b=1 + padding)
-V = sf.bspline.uniformknots(int_knot_v, pv, a=-padding, b=1 + padding)
 S = sf.bspline.Surface(U, V, pu, pv, X, Y, 0*X, label='grid')
 print(S)
 
+# Project points onto triangulation
+qpoints = np.vstack((X.flatten(), Y.flatten(), 0*S.Pz.flatten())).T
+tri, qpoints = mesh.project(pcl, qpoints)
+S.Pz = np.reshape(qpoints[:,2], (X.shape[0], Y.shape[1]))
+
 if use_mapping:
-    S, data.u, data.v = fit_surface(S, bnds, data, pcl, surf_smooth)
+    S, data.u, data.v = bsf.fit_surface(S, bnds, data, qpoints, surf_smooth, 
+                                        invert_mapping, uvfig, fit=False)
 else:
-    S = bsf.fit_background_surface(S, data, pcl, surf_smooth=surf_smooth,
-            uvfig=uvfig)
+    pass
+    # Least squares fitting
+    #S = bsf.fit_background_surface(S, data, qpoints, surf_smooth=surf_smooth,
+    #        uvfig=uvfig)
 
-
-S.eval(20, 20)
 
 S.rwPx, S.rwPy, S.rwPz = sf.fitting.restore(S.Px, S.Py, S.Pz,
         data.basis, data.mu, data.std, data.center, data.theta)
-S.X, S.Y, S.Z = sf.fitting.restore(S.X, S.Y, S.Z, data.basis, data.mu,
-                                   data.std, data.center, data.theta)
+#S.X, S.Y, S.Z = sf.fitting.restore(S.X, S.Y, S.Z, data.basis, data.mu,
+#                                   data.std, data.center, data.theta)
 rwx, rwy, rwz = sf.fitting.restore(pcl[:,0], pcl[:,1], pcl[:,2], data.basis,
                                    data.mu, data.std, data.center, data.theta)
 coords = np.vstack((rwx, rwy, rwz)).T
 
-ax = bsf.plot_grid(S, coords)
+S.eval(20, 20, rw=0)
+ax = bsf.plot_grid(S, pcl)
+plt.triplot(pcl[:,0], pcl[:,1], tri, 'k-', alpha=0.6)
+helper.plot_points(qpoints, ax, 'r*')
 
 left, right, bottom, top = bnds
 labels = ['left', 'right', 'bottom', 'top']
@@ -95,24 +112,21 @@ for i, bnd in enumerate(bnds):
                                          label=labels[i])
     c.rwPx, c.rwPy, c.rwPz = sf.fitting.restore(bnd.Px, bnd.Py, bnd.Pz,
                 data.basis, data.mu, data.std, data.center, data.theta)
-    x, y, z = c.eval(npts=40, rw=1)
+    x, y, z = c.eval(npts=40, rw=0)
     curves[labels[i]] = c
     helper.plot_curve(x, y, z, ax, 'C%d-' % i)
     filename = '.'.join(jsonfile.split('.')[:-1]) + '_%s.json' % c.label
     c.json(filename)
     print("Wrote:", filename)
 
-#bsf.plot_boundaries(bnds, data.bnd_rxy, data.bnd_rz, ax)
-
 
 helper.show(showplot)
-plt.show()
 
+S.eval(80, 80, rw=1)
 sf.vtk.write_surface(vtkfile, S.X, S.Y, S.Z)
 print("Wrote:", vtkfile)
 S.json(jsonfile)
 print("Wrote:", jsonfile)
 
-exit(1)
 data.boundary_curves = curves
 pickle.dump((S, data), open(outputfile, 'wb'))

@@ -31,7 +31,7 @@ def build_cv_boundary(bnds):
     bnd = unpack(bnd_xy)
     return bnd
 
-def mapping(S, bnd, data, x, y, invert=0, st=10):
+def mapping(S, bnd, data, x, y, invert=0, st=10, uvfig=None):
     print("Mapping (x, y) coordinates to (u, v) coordinates")
     u = sf.bspline.xmap(x)
     v = sf.bspline.xmap(y)
@@ -64,14 +64,16 @@ def mapping(S, bnd, data, x, y, invert=0, st=10):
 
     return u, v
 
-def fit_surface(S, bnds, data, pcl, surf_smooth):
+def fit_surface(S, bnds, data, pcl, surf_smooth=False, invert_mapping=False,
+                uvfig=None, fit=True):
     x = pcl[:,0]
     y = pcl[:,1]
     z = pcl[:,2]
-    u, v = mapping(S, bnds, data, x, y, invert_mapping)
-    S.Pz, res = sf.bspline.lsq2surf(u, v, z, S.U, S.V, S.pu, S.pv,
-            data.corner_ids, s=surf_smooth)
-    clamp_boundaries(bnds, u, v, x, y, z, S)
+    u, v = mapping(S, bnds, data, x, y, invert_mapping, uvfig)
+    if fit:
+        S.Pz, res = sf.bspline.lsq2surf(u, v, z, S.U, S.V, S.pu, S.pv,
+                data.corner_ids, s=surf_smooth)
+    clamp_boundaries(data, bnds, u, v, x, y, z, S, surf_smooth)
     return S, u, v
 
 def fit_background_surface(S, data, pcl, surf_smooth=0, uvfig=None,
@@ -159,7 +161,7 @@ def boundary_points(bnd, x, y, z, u, v):
     return np.array(xout), np.array(yout), np.array(zout), np.array(uout), \
            np.array(vout)
 
-def clamp_boundaries(bnds, u, v, x, y, z, S):
+def clamp_boundaries(data, bnds, u, v, x, y, z, S, regularization):
     xb, yb, zb, ub, vb = boundary_points(data.bottom, x, y, z, u, v)
     xt, yt, zt, ut, vt = boundary_points(data.top, x, y, z, u, v)
     xl, yl, zl, ul, vl = boundary_points(data.left, x, y, z, u, v)
