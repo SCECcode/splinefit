@@ -99,10 +99,16 @@ rwx, rwy, rwz = sf.fitting.restore(pcl[:,0], pcl[:,1], pcl[:,2], data.basis,
                                    data.mu, data.std, data.center, data.theta)
 coords = np.vstack((rwx, rwy, rwz)).T
 
+
+# Smooth out surface
+#for i in range(1):
+#    S.Pz = bsf.diffuse(S.Pz, 0.1, nsteps=10)
+
 S.eval(20, 20, rw=0)
 ax = bsf.plot_grid(S, pcl)
 plt.triplot(pcl[:,0], pcl[:,1], tri, 'k-', alpha=0.6)
 helper.plot_points(qpoints, ax, 'r*')
+helper.show(showplot)
 
 left, right, bottom, top = bnds
 labels = ['left', 'right', 'bottom', 'top']

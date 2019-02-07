@@ -250,3 +250,27 @@ def plot_grid(S, pcl, ax=None):
     coords = np.vstack((x, y, z)).T
     helper.plot_points(coords, style='go', ax=ax)
     return ax
+
+def diffuse(u, cfl, nsteps=100):
+    v = np.ma.masked_equal(u, 0.0)
+    v.mask = ~v.mask
+    v.mask = 0*u + 1
+    v.mask[:,0] = 0
+    v.mask[:,-1] = 0
+    v.mask[-1,:] = 0
+    v.mask[0,:] = 0
+    v = u
+
+    for i in range(nsteps):
+        imask = v
+        #imask = v.copy()
+        #imask.mask = imask.mask
+        v = v - cfl*                                                           \
+                (
+                - np.roll(imask, 1, 0) 
+                - np.roll(imask, -1, 0) 
+                + 4*v 
+                - np.roll(imask, 1, 1) 
+                - np.roll(imask, -1, 1)
+                )
+    return np.array(v)

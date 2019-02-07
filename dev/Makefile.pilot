@@ -1,13 +1,13 @@
 PY=python3
 NAME=CFM5_pilot_bspline
-VERSION=beta_1.2
+VERSION=beta_1.3
 YEAR=2018
 cfm=/usr/local/CFM5_release_2017/obj/CFM5_preferred/native
 out=output3
 
 # Import default settings and override
 include Makefile.options
-use_mapping=1
+use_mapping=0
 surf_invert_mapping = 0
 bnd_residual=0.05
 bnd_regularization = 0.5
