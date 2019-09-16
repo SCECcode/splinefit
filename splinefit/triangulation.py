@@ -455,3 +455,28 @@ def circumference(points, edges):
     normals = normals2(local_points)
     lengths = np.linalg.norm(normals, axis=1)
     return sum(lengths)
+
+def angles(points, tol=1e-12):
+    """
+    Determine the angle of each point along the boundary
+
+    Args:
+        points: A numpy array of size m x 3, where m is the number of points
+        tol(optional): A small tolerance to avoid division by zero for duplicate
+            points.
+
+    Returns:
+        phi: An array of size (m,), one value per point.
+
+    """
+    up = np.vstack((points[1:,:],points[0,:]))
+    uc = points
+    um = np.vstack((points[-1,:], points[0:-1,:]))
+    ep = up - uc
+    em = uc - um
+
+    dp = np.linalg.norm(ep, axis=1)
+    dm = np.linalg.norm(em, axis=1)
+    dot = ep[:,0] * em[:,0] + ep[:,1] * em[:,1] + ep[:,2] * em[:,2]
+    phi = np.arccos(dot / (dp * dm + tol))
+    return phi

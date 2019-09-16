@@ -1,6 +1,13 @@
 import numpy as np
 import splinefit as sf
 
+def get_args(args, delimiter="="):
+    d_args = {}
+    for arg in args[1::]:
+        key, value = arg.split(delimiter)
+        d_args[key] = value
+    return d_args
+
 def close_boundary(points):
     """
     Close the boundary by adding the first point to the end of the array.
