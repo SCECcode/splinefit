@@ -98,4 +98,14 @@ def get_data(elem, num_members=2, index=0):
 
     return data
 
+def write_geo(filename, num_surfaces):
+ out = []
+ out += ['SetFactory("OpenCASCADE");']
+ out += ['a() = ShapeFromFile("%s");' % (filename + ".igs")]
+ surfaces = ' '.join(['{ Surface{%d}; Delete; }' % (i + 1) for i in
+                      range(num_surfaces)])
+ out += ["BooleanUnion" + surfaces]
+ with open(filename + ".geo", 'w') as fh:
+     fh.write('\n'.join(out))
+
 

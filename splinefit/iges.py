@@ -66,6 +66,7 @@ class IGESBSplineCurve(IGESItemData):
         self.LineFontPattern.setSolid()
         self.LineWeightNum = 1
         self.FormNumber = 0
+        self.sense = 0
 
         self.EntityType.setRBSplineCurve() # 126
  
@@ -87,5 +88,95 @@ class IGESBSplineCurve(IGESItemData):
         nodes = [item for sublist in nodes for item in sublist]
 
         ls = [K, M, prop1, prop2, prop3, prop4] + U + W + nodes + [0, 1]
+        self.nodes_start = 6 + len(U) + len(W)
         self.AddParameters(ls)
 
+class IGESBoundary(IGESItemData):
+    def __init__(self, surface, boundary_curves):
+        IGESItemData.__init__(self)
+        self.EntityType.setBoundary() # 141
+
+        boundary_type = 1 
+        preference = 2
+        self.N1 = len(boundary_curves)
+        ls = [boundary_type, preference, 
+              surface.DirectoryDataPointer.data,
+              self.N1]
+        for curve in boundary_curves:
+            ls += [curve.DirectoryDataPointer.data, curve.sense, 1,
+                    curve.ParameterDataPointer.data]
+        self.AddParameters(ls)
+
+
+class IGESBoundedSurface(IGESItemData):
+    def __init__(self, bounded_surface, boundaries):
+        IGESItemData.__init__(self)
+        self.EntityType.setBoundedSurface()
+
+        self.N1 = len(boundaries)
+
+        try:
+            outer_boundary_surface = outer_boundary_surface.DirectoryDataPointer.data
+        except:
+            pass
+
+        self.AddParameters([1, 
+                            bounded_surface.DirectoryDataPointer.data,
+                            self.N1]
+                           )
+
+        for boundary in boundaries:
+            self.AddParameters([boundary.DirectoryDataPointer.data])
+
+def load_curves(path, files, real_world=False, system=None):
+    import json
+    curves = []
+    for filei in files:
+        with open(path + filei) as json_file:
+             data = json.load(json_file)
+             if real_world:
+                 Px = data['real_world_Px']
+                 Py = data['real_world_Py']
+                 Pz = data['real_world_Pz']
+             else:
+                 Px = data['Px']
+                 Py = data['Py']
+                 Pz = data['Pz']
+             U = data['U']
+             pu = data['p']
+             curve = IGESBSplineCurve(Px, Py, Pz, U, pu)
+             curves.append(curve)
+             if system:
+                system.Commit(curve)
+    return curves
+
+def load_surface(path, filename, real_world=False, system=None):
+    import json
+    with open(path + filename) as json_file:
+        data = json.load(json_file)
+        if real_world:
+            Px = data['real_world_Px']
+            Py = data['real_world_Py']
+            Pz = data['real_world_Pz']
+        else:
+            Px = data['Px']
+            Py = data['Py']
+            Pz = data['Pz']
+        U = data['U']
+        V = data['V']
+        pu = data['pu']
+        pv = data['pv']
+        surface = IGESBSplineSurface(Px, Py, Pz, U, V, pu, pv)
+        if system:
+            system.Commit(surface)
+
+    return surface
+
+def build_bounded_surface(surface, curves, system=None):
+    boundary = IGESBoundary(surface, curves)
+    if system:
+        system.Commit(boundary)
+    bounded_surface = IGESBoundedSurface(surface, [boundary])
+    if system:
+        system.Commit(bounded_surface)
+    return boundary, bounded_surface
