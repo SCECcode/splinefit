@@ -146,8 +146,8 @@ class Struct(dict):
         test = Struct(a=1, b=2, c=3)
 
     """
-    def __init__(self,**kw):
-        dict.__init__(self,kw)
+    def __init__(self,kw={}):
+        dict.__init__(self, kw)
         self.__dict__ = self
 
 def export_msh(coords, bnd_edges, outputfile):

@@ -1,18 +1,22 @@
 """usage:
-split_boundary.py <--inputfile=string> <--outputfile=string> <--max_angle=float> 
+split_boundary.py inputfile=string outputfile=string --max_angle=float 
 
-split_boundary.py (--help)
+split_boundary.py --help
+
+    Split the boundary into multiple segments.
 
     Required arguments:
 
-     inputfile:     Load pickle binary data file containing boundary data
+    inputfile:      Load pickle binary data file containing boundary data
     outputfile:     Write pickle binary data file
-     max_angle:     Threshold criterion used to mark boundary points as
                     corner points
 
     Optional arguments:
 
-        help: Display additional helpful information  
+     help:          Display additional helpful information  
+     max_angle:     Threshold criterion used to mark boundary points as
+
+    
 
 """
 import sys
@@ -48,6 +52,25 @@ point.
 
 """
 
+def main():
+    options = get_options(sys.argv)
+    data = pickle.load(open(options.inputfile, 'rb'))
+    pts = np.vstack((data.bnd_rxy[:,0], data.bnd_rxy[:,1], data.bnd_rz)).T
+    pts = fix_orientation(pts)
+    data.bnd_rxy = pts[:,0:2]
+    data.bnd_rz = pts[:,2]
+    phi = sf.triangulation.angles(pts)
+    corner_ids = np.argwhere(phi > options.max_angle).flatten()
+    boundaries = edges(pts, corner_ids)
+    data.corners = data.bnd_rxy[corner_ids]
+    data.corner_ids = corner_ids
+    data.boundaries = boundaries
+    
+    plot_boundaries(data.corners, pts, boundaries, options.figfile)
+    helper.show(options.showplot)
+    
+    pickle.dump(data, open(options.outputfile, 'wb'))
+
 def get_options(argv):
     """
     Get command line arguments.
@@ -55,25 +78,29 @@ def get_options(argv):
 
     options = helper.Struct()
     if '--help' in argv:
-        print(helptxt)
-        exit()
-    try:
-        args = helper.get_args(argv)
-        options.inputfile = args['--input']
-        options.outputfile = args['--output']
-        options.max_angle = float(args['--max_angle']) * np.pi / 180
-        
-        if '--showplot' in args:
-            options.showplot = int(args['showplot'])
-        else:
-            options.showplot = 0
-        if '--figfile' in args:
-            options.figfile = args['figfile']
-        else:
-            options.figfile = 0
-    except:
         print(__doc__)
         exit()
+
+    args = helper.get_args(argv)
+    options.inputfile = args['input']
+    options.outputfile = args['output']
+
+
+    if '--max_angle' in args:
+        options.max_angle = float(args['--max_angle']) * np.pi / 180
+    else:
+        options.max_angle = 30 * np.pi / 180
+    
+    if '--showplot' in args:
+        options.showplot = int(args['--showplot'])
+    else:
+        options.showplot = 0
+
+    if '--figfile' in args:
+        options.figfile = args['--figfile']
+    else:
+        options.figfile = 0
+
     return options
 
 def get_segment(points, id1, id2):
@@ -99,7 +126,13 @@ def edges(points, corner_ids):
     boundaries = []
     for i, ci in enumerate(corners[:-1]):
         data, ids = get_segment(points, corners[i], corners[i+1])
-        boundaries.append({'data' : data, 'ids' : ids})
+        boundary = helper.Struct(
+                      {'points': data,
+                           'x' : data[:,0], 
+                           'y' : data[:,1], 
+                           'z' : data[:,2],
+                           'ids' : ids})
+        boundaries.append(boundary)
     return boundaries
 
 def plot_boundaries(corners, points, boundaries, figfile):
@@ -111,19 +144,6 @@ def plot_boundaries(corners, points, boundaries, figfile):
     if figfile:
         plt.savefig(figfile)
 
-options = get_options(sys.argv)
-data = pickle.load(open(options.inputfile, 'rb'))
-pts = np.vstack((data.bnd_rxy[:,0], data.bnd_rxy[:,1], data.bnd_rz)).T
-pts = fix_orientation(pts)
-data.bnd_rxy = pts[:,0:2]
-data.bnd_rz = pts[:,2]
-phi = sf.triangulation.angles(pts)
-corner_ids = np.argwhere(phi > options.max_angle).flatten()
-boundaries = edges(pts, corner_ids)
-data.corners = data.bnd_rxy[corner_ids]
-data.corner_ids = corner_ids
+if __name__ == "__main__":
+    main()
 
-plot_boundaries(data.corners, pts, boundaries, options.figfile)
-helper.show(options.showplot)
-
-pickle.dump(data, open(options.outputfile, 'wb'))

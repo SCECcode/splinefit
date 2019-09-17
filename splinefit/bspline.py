@@ -85,6 +85,21 @@ def upper(pts):
     """
     return int(np.floor(pts) + 2)
 
+def min_degree(num_pts, p):
+    """
+    Determines the minimum degree that can be used to fit a set of points.
+
+    Args:
+        num_pts : Number of points
+        p : Desired polynomial degree
+
+    If degree p can be used to fit the points, this function returns p.
+    Otherwise, it returns the minimum degree that can used to fit the set of
+    points.
+
+    """
+    return min(p, max(num_pts - p, 1))
+
 
 def eval(P, npts=10):
 
@@ -542,9 +557,9 @@ def lsq2surf(u, v, z, U, V, pu, pv, corner_ids=0, tol=1e-8, s=0.2):
     return P, res
 
 
-def chords(x, y, a=0, b=1):
+def chords(x, y, z=None, a=0, b=1):
     """
-    Map (x_j, y_j) to the interval a <= s_j <=b using the chord length
+    Map (x_j, y_j, z_j) to the interval a <= s_j <=b using the chord length
     parameterization.
 
     s_0 = a 
@@ -555,7 +570,12 @@ def chords(x, y, a=0, b=1):
     """
     dx = x[1:] - x[0:-1]
     dy = y[1:] - y[0:-1]
-    dists = np.sqrt(dx**2 + dy**2)
+    if z is None:
+        dz = 0
+    else:
+        dz = z[1:] - z[0:-1]
+
+    dists = np.sqrt(dx**2 + dy**2 + dz**2)
     d = np.zeros((len(x),))
     for i in range(len(dists)):
         d[i+1] = d[i] + dists[i]
