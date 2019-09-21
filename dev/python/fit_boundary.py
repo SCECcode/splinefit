@@ -33,7 +33,6 @@ import numpy as np
 import helper
 import pickle
 import matplotlib.pyplot as plt
-import bspline_boundary_functions as bfun
 
 def main():
     options = get_options(sys.argv)
@@ -64,9 +63,8 @@ def main():
                   showfig=options.showfig)
 
     
-    data.bspline_curves = bspline_curves
+    data['bspline_curves'] = bspline_curves
     pickle.dump(data, open(options.outputfile, 'wb'))
-
 
 def vprint(msg, verbose):
     if not verbose:

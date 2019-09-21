@@ -129,8 +129,11 @@ def bbox2(points):
             `x_0, x_1`
 
     Returns:
-        Coordinates that define the bounding box, starting with the bottom left,
-        then bottom right, top right, and top left coordinate.
+        Coordinates that define the bounding box, 
+            0: the bottom left,
+            1: bottom right, 
+            2: top right,
+            3: top left coordinate.
 
     """
 
@@ -143,7 +146,7 @@ def bbox2(points):
     return np.array([[min_v[0], min_v[1]],
                      [max_v[0], min_v[1]], 
                      [max_v[0], max_v[1]],
-                     [min_v[0], max_v[1]]])
+                     [min_v[0], max_v[1]]]).astype(np.float)
 
 def bbox2_vol(bbox):
     """
@@ -157,6 +160,38 @@ def bbox2_vol(bbox):
 
     """
     return (bbox[1,0] - bbox[0,0])*(bbox[2,1] - bbox[1,1])
+
+def bbox2_expand(bbox, padding):
+    """
+    Expand the bounding box by applying a padding to each side. The padding is
+    defined as a scaling factor of the original size of the bounding box.
+    """
+    Lx = bbox[1, 0] - bbox[0, 0]
+    Ly = bbox[2, 1] - bbox[1, 1]
+    Lx, Ly = bbox2_dimensions(bbox)
+
+    out = np.array([[0.0] * 2] * 4)
+
+    # Bottom Left
+    out[0, 0] = bbox[0, 0] - padding * Lx
+    out[0, 1] = bbox[0, 1] - padding * Ly
+    # Bottom right
+    out[1, 0] = bbox[1, 0] + padding * Lx
+    out[1, 1] = bbox[1, 1] - padding * Ly
+    # Top right
+    out[2, 0] = bbox[2, 0] + padding * Lx
+    out[2, 1] = bbox[2, 1] + padding * Ly
+    # Top left
+    out[3, 0] = bbox[3, 0] - padding * Lx
+    out[3, 1] = bbox[3, 1] + padding * Ly
+    return out
+
+def bbox2_dimensions(bbox):
+    Lx = bbox[1, 0] - bbox[0, 0]
+    Ly = bbox[2, 1] - bbox[0, 1]
+    return Lx, Ly
+
+
 
 def rotate2(points, mu, theta):
     """
@@ -324,3 +359,30 @@ def argnearest(points, p, ord=2):
     dist = np.linalg.norm(points - np.tile(p, (points.shape[0], 1)), axis=1, 
             ord=ord)
     return np.argmin(dist)
+
+def uv_grid(nu, nv):
+    """
+    Construct the UV-grid parameterized from 0 to 1.
+    """
+    u = np.linspace(0, 1, nu)
+    v = np.linspace(0, 1, nv)
+    U, V = np.meshgrid(u, v)
+    return U, V
+
+
+def bbox2_grid(bbox, nu, nv):
+    """
+    Construct a grid from a bounding box.
+
+        Args:
+            bbox: Bounding box (see bbox2)
+            nu: Number of control points in the u-direction
+            nv: Number of control points in the v-direction
+    """
+
+    # Grid
+    Gx = np.linspace(bbox[0, 0], bbox[1, 0], nu)
+    Gy = np.linspace(bbox[0, 1], bbox[2, 1], nv)
+
+    X, Y = np.meshgrid(Gx, Gy)
+    return X, Y

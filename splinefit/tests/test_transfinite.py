@@ -60,13 +60,6 @@ def test_checkboundaries():
                                             xr, yr, xb, yb, xt, yt)
     assert status == 0
 
-def test_fixboundaries():
-    xl, yl, xr, yr, xb, yb, xt, yt = boundaries()
-    yl[1] = -0.2
-    with pytest.warns(UserWarning) : status = sf.transfinite.fixboundaries(xl, yl,
-                                            xr, yr, xb, yb, xt, yt)[0]
-    assert status == 0
-
 def test_fixcorners():
     xl, yl, xr, yr, xb, yb, xt, yt = boundaries()
     xl2, yl2, xr2, yr2, xb2, yb2, xt2, yt2 = sf.transfinite.fixcorners(xl, yl,

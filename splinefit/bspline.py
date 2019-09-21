@@ -496,7 +496,7 @@ def derivative_matrix(n):
     return D
 
 
-def lsq2surf(u, v, z, U, V, pu, pv, corner_ids=0, tol=1e-8, s=0.2):
+def lsq2surf(u, v, z, U, V, pu, pv, corner_ids=0, tol=1e-12, s=0.2, a=0.1):
     """
     Computes the least square fit to the mapped data z(u, v) using the knot
     vector U, V.
@@ -540,22 +540,30 @@ def lsq2surf(u, v, z, U, V, pu, pv, corner_ids=0, tol=1e-8, s=0.2):
                 A[i, (span_v + l - pv)*(mu - pu) + (span_u + k - pu)] = Nk*Nl
         b[i] = zi
 
-    p0 = svd_inv(A, b, s, tol) 
+    su = (nu + 1)
+    sv = (nv + 1)
+    D = np.zeros((su * sv, su *sv))
+    for i in range(1, su-1):
+        for j in range(sv):
+            D[i + j * su, i - 1 + j * su] += 1.0 
+            D[i + j * su, i + j * su] += - 2.0
+            D[i + j * su, i + 1 + j * su] += 1.0
 
+    for i in range(su):
+        for j in range(1, sv-1):
+            D[i + j * su, i + j * su] += - 2.0
+            D[i + j * su, i + (j - 1) * su] += 1.0
+            D[i + j * su, i + (j + 1) * su] += 1.0
+
+    h = 1.0 / (nu - 1)
+    R = a*D.T.dot(D) / h**2
+
+    p0 = svd_inv(A, b, s, tol, D=R) 
 
     res = np.linalg.norm(A.dot(p0) - b)
-    print("Residual for surface fit", res)
     P = p0.reshape((mv-pv, mu-pu))
 
-    # Why is this here?
-    #if corner_ids:
-    #    P[0,0] = z[corner_ids[0]]
-    #    P[0,1] = z[corner_ids[1]]
-    #    P[1,1] = z[corner_ids[2]]
-    #    P[1,0] = z[corner_ids[3]]
-
     return P, res
-
 
 def chords(x, y, z=None, a=0, b=1):
     """

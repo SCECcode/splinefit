@@ -480,3 +480,92 @@ def angles(points, tol=1e-12):
     dot = ep[:,0] * em[:,0] + ep[:,1] * em[:,1] + ep[:,2] * em[:,2]
     phi = np.arccos(dot / (dp * dm + tol))
     return phi
+
+def area(p0, p1, p2):
+    """
+    Compute the area of a triangle. The triangle may be defined in either 2D or
+    3D space.
+
+    Arguments:
+        p0, p1, p2 : Vertices of the triangle.
+
+    """
+
+    e1 = p1 - p0
+    e2 = p2 - p0
+    z = np.cross(e1, e2)
+    return 0.5*np.linalg.norm(z)
+
+def areas(tris, points):
+
+    idx0 = tris[:, 0]
+    idx1 = tris[:, 1]
+    idx2 = tris[:, 2]
+
+    p0 = points[idx0, 0:3]       
+    p1 = points[idx1, 0:3]       
+    p2 = points[idx2, 0:3]       
+
+    e1 = p1 - p0
+    e2 = p2 - p0
+    z = np.cross(e1, e2)
+    return 0.5 * np.linalg.norm(z, axis=1)
+
+def project(points, query_points, skip_nan=True):
+    """
+    Project query points in the (x,y)-plane onto a triangulation in (x, y, z).
+    This triangulation is determined by the Delaunay triangulation in the (x, y)
+    plane.
+
+    Returns:
+        tri : Triangulation
+        proj : Projection of query points onto the triangulation. Any points
+            that fall outside the triangulation are set to Nan unless `skip_nan`
+            is True.
+        skip_nan : Remove nan-values from output.
+
+    """
+    from scipy.spatial import Delaunay
+    import warnings
+
+    deltri = Delaunay(points[:,0:2])
+    tris = deltri.find_simplex(query_points[:,0:2])
+
+    proj = np.zeros((query_points.shape[0], 3))
+    tol = 1e-12
+    for i, tri in enumerate(tris):
+        # Skip query points outside domain
+        if tri == -1:
+            proj[i,:] = query_points[i,:]
+            continue
+
+        tripoints = points[deltri.simplices[tri,:],:]
+        n = normal(tripoints)
+        # Determine z-coordinate for query point (x,y), where z lies on the
+        # triangle `tri`
+        qp = query_points[i,:]
+        tp = tripoints[0,:]
+        proj[i,0:2] = qp[0:2]
+        if abs(n[2]) < tol:
+            warnings.warn('Triangle is near orthogonal to projection plane')
+
+        proj[i,2] = -(n[0]*(qp[0] - tp[0]) + n[1]*(qp[1] - tp[1]))/n[2] + tp[2]
+
+    if skip_nan:
+        proj = proj[~np.isnan(proj[:,0]),:]
+
+    return deltri.simplices.copy(), proj
+
+def normal(points):
+    """
+
+    Compute the outward facing normal with respect to a triangle
+
+    """
+    
+    u = points[2,:] - points[1,:]
+    v = points[0,:] - points[1,:]
+    return np.cross(u, v)
+
+
+

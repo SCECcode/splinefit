@@ -148,6 +148,12 @@ def test_circumference():
     circ = sf.triangulation.circumference(coords, loop)
     assert np.isclose(circ, 4.0)
 
+def test_area():
+    coords = np.array([[0.0, 0.0, 0.0],[1.0, 0.0, 0.0], [1.0, 1.0, 0.0], [0.0,
+        1.0, 0.0]])
+    tri = np.array([[1,2,3]])
+    areas = sf.triangulation.areas(tri, coords)
+    assert np.isclose(areas, 0.5)
 
 
 
