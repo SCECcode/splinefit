@@ -47,7 +47,11 @@ def get_boundary(coords, tris):
     for loop_id in range(1, num_loops+1):
         loop = sf.triangulation.get_loop(bnd_edges, loop_id)
         c = sf.triangulation.circumference(coords, loop)
-        print("Loop ID: %d, Number of boundary edges: %d Circumference: %g " %(
+        local_points = coords[bnd_edges[:,0], :]
+        local_points = sf.triangulation.close_boundary(local_points)
+        normals = sf.triangulation.normals2(local_points) 
+        print("Loop ID: %d, Number of boundary edges: %d Circumference: %g "\
+               %(
                 loop_id,
                 sum(bnd_edges[:,3] == loop_id),
                 c))

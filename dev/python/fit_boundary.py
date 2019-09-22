@@ -51,8 +51,15 @@ def main():
                (num + 1, min_degree, num_knots), options.verbose)
         curve, res = fit_curve(bnd.x, bnd.y, bnd.z, min_degree, num_knots,
                                a=options.regularization)
+
+        curve.Pz = curve.Pz
+        bsc = sf.bspline.Curve(curve.U, curve.p, curve.Px, curve.Py, curve.Pz)
+
+        bsc.rwPx, bsc.rwPy, bsc.rwPz = sf.fitting.restore(curve.Px, curve.Py,
+                curve.Pz, data.basis, data.mu, data.std, data.center, 
+                data.theta)
         vprint("    Residual: %g " % res, options.verbose)
-        bspline_curves.append(curve)
+        bspline_curves.append(bsc)
 
         if options.savefig:
             savefig= "%s%d.png" % (options.savefig, num)
@@ -65,6 +72,7 @@ def main():
     
     data['bspline_curves'] = bspline_curves
     pickle.dump(data, open(options.outputfile, 'wb'))
+    vprint("Wrote data file: %s" % options.outputfile, options.verbose)
 
 def vprint(msg, verbose):
     if not verbose:
@@ -170,6 +178,7 @@ def fit_curve(x, y, z, p, m, a=0.5, tol=1e-6):
     curve.py = curve.Py[:-p]
     curve.int_knot = m
 
+
     res = rx + ry + rz
     return curve, res
 
@@ -180,7 +189,6 @@ def make_plot(curve, savefig="", showfig=0, npts=100, color=1):
     cx, cy, cz = helper.evalcurve3(curve, npts)
 
     plt.clf()
-    plt.plot(curve.x,curve.y,'k-o')
     plt.plot(cx,cy,'C%d-'%color)
     plt.plot(curve.Px, curve.Py, 'C%do-'%color, alpha=0.3)
 

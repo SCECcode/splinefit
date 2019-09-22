@@ -6,3 +6,4 @@ from . import multilevel
 from . import transfinite
 from . import options
 from . import plot
+from . import iges

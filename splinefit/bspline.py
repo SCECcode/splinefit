@@ -780,6 +780,17 @@ class Curve(object):
                        'p' : self.p},
                        out, indent=4)
 
+
+    def iges(self, rw=1):
+        from splinefit.iges import IGESBSplineCurve
+        if rw:
+             return IGESBSplineCurve(self.rwPx, self.rwPy, self.rwPz,
+                     self.U.tolist(),
+                     self.p)
+        else:
+            return IGESBSplineCurve(self.Px, self.Py, self.Pz, self.U.tolist(),
+                    self.p)
+
     def __str__(self):
         out = []
         out += ["BSpline Curve: %s" % self.label]
@@ -934,9 +945,7 @@ class Surface(object):
                 return (x, y, z)
 
         distvec = (x - point[0], y - point[1], z - point[2])
-        #distvec = (x - point[0], y - point[1], 0)
         return distvec[0]**2 + distvec[1]**2 + distvec[2]**2
-        #return np.linalg.norm(distvec, ord=ord)
 
     def surfacepoints(self, u, v, points, ord=2):
         px = 0*u
@@ -955,3 +964,17 @@ class Surface(object):
             pz[i] = z
             i += 1
         return (px, py, pz)
+
+    def iges(self, rw=1):
+        """
+        Send Bspline surface to IGES data representation
+
+        """
+        from splinefit.iges import IGESBSplineSurface
+        if rw:
+            return IGESBSplineSurface(self.rwPx, self.rwPy, self.rwPz, 
+                                 self.U.tolist(), self.V.tolist(), self.pu, self.pv)
+        else:
+            return IGESBSplineSurface(self.Px, self.Py, self.Pz, 
+                                      self.U.tolist(), self.V.tolist(), self.pu, self.pv)
+  

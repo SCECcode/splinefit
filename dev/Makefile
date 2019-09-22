@@ -40,7 +40,7 @@ $(meshdir)/$(pydata)/%_bnd.p: $(meshdir)/%.msh
 	$(show_plot)
 
 $(meshdir)/$(pydata)/%_proj.p: $(meshdir)/$(pydata)/%_bnd.p
-	@echo Projecting boundary data onto bestfitting plane for $(notdir $<)
+	@echo Projecting boundary data onto best fitting plane for $(notdir $<)
 	$(PY) python/projection.py $< $(meshdir)/$(pydata)/$(notdir $@) \
  	$(meshdir)/$(figures)/$(basename $(notdir $@)).$(fig) \
 	$(show_plot)

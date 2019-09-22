@@ -1,11 +1,9 @@
 import sys
-from splinefit import msh
 import splinefit as sf
 import numpy as np
 import helper
 import pickle
 import matplotlib.pyplot as plt
-from scipy import ndimage
 
 
 def main():
@@ -27,7 +25,9 @@ def main():
     bounding_box = sf.fitting.bbox2_expand(sf.fitting.bbox2(xyz),
                                            options.padding)
 
-    bnd_geom = normals(data.tris, data.bnd_edges, xyz)
+    bnd_edges = orientation(data.tris, data.bnd_edges, xyz)
+    bnd_geom = normals(data.tris, bnd_edges, xyz, showfig=showfig,
+                       savefig=savefig)
     bbox_points = intersect(bnd_geom['normals'], bnd_geom['points'],
                             bounding_box, showfig=showfig, savefig=savefig)
     corner_points = set_z_nearest_corners(bbox_points, bounding_box)
@@ -76,7 +76,7 @@ def main():
         data.basis, data.mu, data.std, data.center, data.theta)
 
     if savefig or showfig:
-        S.eval(nu=30, nv=30)
+        S.eval(nu=options.eval_nu, nv=options.eval_nv)
         ax = sf.plot.grid(S.Px, S.Py, S.Pz)
         ax = sf.plot.points3(xyz, 'ko', ax=ax)
         ax.view_init(70, 70)
@@ -88,10 +88,15 @@ def main():
             plt.show()
         plt.close()
 
-    if options.json:
-        jsonfile = options.json + ".json"
-        S.json(jsonfile)
-        vprint("Wrote: %s" % jsonfile, verbose)
+    if options.vtk:
+        vtkfile = options.vtk
+        S.eval(nu=options.eval_nu, nv=options.eval_nv, rw=1)
+        sf.vtk.write_surface(vtkfile, S.X, S.Y, S.Z)
+        vprint("Wrote vtk file: %s" % vtkfile, verbose)
+
+    data.bspline_surface = S
+    pickle.dump(data, open(options.output, 'wb'))
+    vprint("Wrote data file: %s" % options.output, verbose)
 
 
 def vprint(msg, verbose):
@@ -163,6 +168,21 @@ def get_options(argv):
     else:
         options.json = ''
 
+    if '--vtk' in args:
+        options.vtk = args['--vtk']
+    else:
+        options.vtk = ''
+
+    if '--eval_nu' in args:
+        options.eval_nu = int(args['--eval_nu'])
+    else:
+        options.eval_nu = 10
+
+    if '--eval_nv' in args:
+        options.eval_nv = int(args['--eval_nv'])
+    else:
+        options.eval_nv = 10
+
     if '--verbose' in args:
         options.verbose = int(args['--verbose'])
     else:
@@ -224,6 +244,45 @@ def fit_surface(S, points, surf_smooth=0, regularization=0.0):
                                     s=surf_smooth, a=regularization)
     return res
 
+def orientation(tris, bnd_edges, points):
+    """
+    Enforce counter-clockwise boundary orientation
+
+    """
+
+    edges = sf.triangulation.tris_to_edges(tris)
+
+    bnd = bnd_edges[0,:]
+
+    eds = edges[sf.triangulation.edge_mapping(bnd[0], bnd[1])]
+    tri = eds['triangles'][0]
+
+    nodes = tris[tri,:]
+
+    for j, ni in enumerate(nodes):
+        if ni == bnd[0]:
+            n1 = j
+        elif ni == bnd[1]:
+            n2 = j
+        else:
+            n3 = j
+
+    n1 = nodes[n1]
+    n2 = nodes[n2]
+    n3 = nodes[n3]
+
+    v1 = points[n2,:] - points[n1,:]
+    v2 = points[n3,:] - points[n1,:]
+    v1[2] = 0.0
+    v2[2] = 0.0
+    surface_normal = np.cross(v1, v2)
+
+    if surface_normal[2] < 0:
+        bnd_edges = bnd_edges[::-1,::-1]
+
+
+    return bnd_edges
+
 def normals(tris, bnd_edges, points, showfig=False, savefig=False):
     """
     Find the normals with respect to the boundary triangles. 
@@ -245,7 +304,6 @@ def normals(tris, bnd_edges, points, showfig=False, savefig=False):
 
     # Extract all edges
     edges = sf.triangulation.tris_to_edges(tris)
-    edges_to_nodes = sf.triangulation.edges_to_nodes(edges)
 
     num_elem = bnd_edges.shape[0]
     normals = np.zeros((num_elem, 3))
@@ -259,9 +317,15 @@ def normals(tris, bnd_edges, points, showfig=False, savefig=False):
         bnd_tris[k] = tri
         nodes = tris[tri,:]
         pts = points[nodes,:]
-        surface_normal = sf.triangulation.normal(pts)
         tangent = points[bnd[1],:] - points[bnd[0],:]
-        normal = np.cross(surface_normal, tangent)
+        n1 = bnd[0]
+        n2 = bnd[1]
+        for nj in nodes:
+            if nj != n1 and nj != n2:
+                n3 = nj
+        other = points[n3,:] - points[bnd[0],:]
+        surface_normal = np.cross(tangent, other)
+        normal = np.cross(tangent, surface_normal)
         normals[k,:] = normal
         surface_normals[k, :] = surface_normal
         bnd_points[k, :] = points[bnd[0], :]
@@ -269,12 +333,16 @@ def normals(tris, bnd_edges, points, showfig=False, savefig=False):
     if showfig or savefig:
         from mpl_toolkits.mplot3d import Axes3D
         fig = plt.figure()
-        ax = fig.gca(projection='3d')
+        #ax = fig.gca(projection='3d')
 
-        plt.plot(bnd_points[:,0], bnd_points[:,1], bnd_points[:,2],'k-')
-        plt.quiver(bnd_points[:,0], bnd_points[:,1], bnd_points[:,2],
-                   normals[:,0], normals[:,1], normals[:,2], length=0.1,
-                   normalize=True)
+        #plt.plot(bnd_points[:,0], bnd_points[:,1], bnd_points[:,2],'k-')
+        #plt.quiver(bnd_points[:,0], bnd_points[:,1], bnd_points[:,2],
+        #           normals[:,0], normals[:,1], normals[:,2], length=0.1,
+        #           normalize=True)
+
+        plt.plot(bnd_points[:,0], bnd_points[:,1],'k-')
+        plt.quiver(bnd_points[:,0], bnd_points[:,1],
+                   normals[:,0], normals[:,1])
         if savefig:
             plt.savefig(savefig + "normals.png", dpi=300)
             

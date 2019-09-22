@@ -400,6 +400,22 @@ def is_closed(edges):
     return False
 
 
+
+def fix_orientation(triangles, points):
+    """
+    Enforce counter-clockwise ordering of all nodes of triangles in a mesh in
+    the plane.
+    """
+    for tri in triangles:
+        nodes = triangles[tri,:]
+        e1 = points[nodes[1],0:2] - points[nodes[0],0:2]
+        e2 = points[nodes[2],0:2] - points[nodes[1],0:2]
+        z = np.cross(e1, e2)
+        if z < 0:
+            triangles[tri,:] = triangles[tri, ::-1]
+    return triangles
+
+
 def normals2(points):
     """
     Compute normals along a boundary segment. Determines the normals for either
