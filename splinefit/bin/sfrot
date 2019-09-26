@@ -1,0 +1,101 @@
+#!/usr/bin/env python
+
+import sys
+from splinefit import msh
+import splinefit as sf
+import numpy as np
+import pickle
+import scipy.optimize
+"""
+This script transforms the projected boundary using the basis defined in the
+plane. The projected boundary is then rotated in the plane to minimize its
+bounding box.
+
+"""
+
+def main():
+
+
+    options = get_options(sys.argv)
+    sf.options.check_options(sys.argv, options)
+    
+    data = pickle.load(open(options.input, 'rb'))
+    
+    # Rotate data into new coordinate system
+    T = data.proj_basis
+    bnd_xy = T.T.dot(data.bnd_xyz.T).T
+    
+    
+    
+    center = sf.fitting.mean(bnd_xy) 
+    center = np.tile(center, (bnd_xy.shape[0],1)) 
+    
+    obj = lambda theta : objective_function(bnd_xy, center, theta)
+    
+    var = scipy.optimize.minimize(obj, (0.0,), method='Nelder-Mead')['x']
+    data.theta = var[0]
+    data.center = center
+    rxy = sf.fitting.rotate2(bnd_xy, center, data.theta)
+    data.bnd_rxy = rxy
+    data.proj_xy = bnd_xy
+    data.bnd_rz = data.bnd_proj_xyz[:,2]
+
+    pickle.dump(data, open(options.output, 'wb'))
+
+    make_plot(bnd_xy, rxy, savefig=options.savefig, showfig=options.showfig)
+
+def get_options(argv):
+    """
+    Get command line arguments.
+    """
+
+    options = sf.utils.Struct()
+    if '--help' in argv:
+        print(helptxt)
+        exit()
+
+    args = sf.options.get_options(argv)
+    options.input = args['input']
+    options.output = args['output']
+
+    if '--showfig' in args:
+        options.showfig = int(args['--showfig'])
+    else:
+        options.showfig = 0
+
+    if '--savefig' in args:
+        options.savefig = args['--savefig']
+    else:
+        options.savefig = ''
+
+    return options
+
+    
+def objective_function(xy, mu, theta):
+    try:
+        theta = theta[0]
+    except:
+        pass
+    rxy = sf.fitting.rotate2(xy, mu, theta)
+    bbox = sf.fitting.bbox2(rxy)
+    return sf.fitting.bbox2_vol(bbox)
+
+def make_plot(bnd_xy, rxy, savefig='', showfig=False):
+    if not savefig or not showfig:
+        return
+    import matplotlib.pyplot as plt
+    plt.plot(bnd_xy[:,0], bnd_xy[:,1], 'bo')
+    plt.plot(rxy[:,0], rxy[:,1], 'ro')
+    bbox = sf.fitting.bbox2(bnd_xy)
+    sf.plot.points2(sf.triangulation.close_boundary(bbox),'b')
+    bbox = sf.fitting.bbox2(rxy)
+    sf.plot.points2(sf.triangulation.close_boundary(bbox),'r')
+    plt.legend(['Before rotation', 'After rotation'])
+
+    if savefig:
+        plt.savefig(savefig)
+    if showfig:
+        plt.show()
+
+if __name__ == '__main__':
+    main()

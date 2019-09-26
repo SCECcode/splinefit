@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+import sys
+import splinefit as sf
+import numpy as np
+
+def main():
+
+    options = get_options(sys.argv)
+    sf.options.check_options(sys.argv, options)
+
+    p, t = sf.tsurf.read(options.input, min_elems=options.min_elements)
+    xmin = []
+    xmax = []
+    ymin = []
+    ymax = []
+    zmin = []
+    zmax = []
+    for pi in p:
+        xmin.append(np.min(pi[:,1]))
+        xmax.append(np.max(pi[:,1]))
+        ymin.append(np.min(pi[:,2]))
+        ymax.append(np.max(pi[:,2]))
+        zmin.append(np.min(pi[:,3]))
+        zmax.append(np.max(pi[:,3]))
+
+    print("x:", min(xmin), max(xmax))
+    print("y:", min(ymin), max(ymax))
+    print("z:", min(zmin), max(zmax))
+
+
+def get_options(argv):
+    """
+    Get command line arguments.
+    """
+
+    options = sf.utils.Struct()
+    if '--help' in argv:
+        print("No help available.")
+        exit()
+
+    options.input = sys.argv[1]
+    args = sf.options.get_options(argv[2::])
+
+    if '--min_elements' in args:
+        options.min_elements = int(args['--min_elements'])
+    else:
+        options.min_elements = 10
+
+    return options
+
+if __name__ == '__main__':
+    main()

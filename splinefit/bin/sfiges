@@ -1,0 +1,76 @@
+#!/usr/bin/env python
+import sys
+import splinefit as sf
+import numpy as np
+import pickle
+
+
+def main():
+
+    options = get_options(sys.argv)
+    sf.options.check_options(sys.argv, options)
+    verbose = options.verbose
+
+
+    data = pickle.load(open(options.input, 'rb'))
+    if verbose:
+        print("Loaded file: ", options.input)
+
+
+    export_iges(options.output, data.bspline_surface, data['bspline_curves'], 
+                verbose=verbose)
+
+
+def get_options(argv):
+    """
+    Get command line arguments.
+    """
+
+    options = sf.utils.Struct()
+    if '--help' in argv:
+        print(helptxt)
+        exit()
+
+    args = sf.options.get_options(argv)
+    options.input = args['input']
+    options.output = args['output']
+
+
+    if '--verbose' in args:
+        options.verbose = int(args['--verbose'])
+    else:
+        options.verbose = False
+
+    return options
+
+
+def export_iges(filename, surface, boundaries, verbose=False):
+    """
+    Export data to the IGES file format
+
+    Args:
+        surface: BSpline Surface representation
+        boundaries: List of BSpline boundary representations
+    """
+    from pyiges.IGESCore import IGEStorage
+    print(filename)
+    system = IGEStorage()
+    sf.iges.standard_iges_setup(system, filename)
+
+    iges_surface = surface.iges()
+    system.Commit(iges_surface)
+    iges_curves = [curve.iges() for curve in boundaries]
+    for curve in iges_curves:
+        system.Commit(curve)
+
+    boundary, bounded_surface = sf.iges.build_bounded_surface(iges_surface,
+                                                           iges_curves,
+                                                           system=system) 
+
+    system.save(filename)
+
+
+
+if __name__ == "__main__":
+    main()
+

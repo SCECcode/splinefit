@@ -1,0 +1,28 @@
+#!/bin/bash
+
+
+echo "SetFactory(\"OpenCASCADE\");"
+i=1
+filename="${1}"
+while read p; do 
+    echo "a${i}() = ShapeFromFile(\"${p}\");"; 
+    let i=${i}+1;
+done < $filename
+ 
+let num_files=i
+if [ ${num_files} -gt 1 ]
+then                 
+printf "BooleanUnion { Surface{1}; Delete; }{"
+i=1
+while [ $i -lt ${num_files} ]
+do
+        if [ $i != 1 ]
+        then
+        printf " Surface{${i}}; "
+        fi
+        let i=($i + 1)
+done
+printf "Delete; } \n"
+fi
+
+
