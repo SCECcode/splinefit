@@ -55,11 +55,18 @@ def fix_orientation(points):
     return points
 
 def edges(points, corner_ids):
-    bottom, bottom_ids = get_segment(points, corner_ids[0], corner_ids[1])
-    right, right_ids = get_segment(points, corner_ids[1], corner_ids[2])
-    top, top_ids = get_segment(points, corner_ids[2], corner_ids[3])
-    left, left_ids = get_segment(points, corner_ids[3], corner_ids[0])
-    return bottom, right, top, left, bottom_ids, right_ids, top_ids, left_ids
+    corners = list(corner_ids) + [corner_ids[0]]
+    boundaries = []
+    for i, ci in enumerate(corners[:-1]):
+        data, ids = get_segment(points, corners[i], corners[i+1])
+        boundary = helper.Struct(
+                      {'points': data,
+                           'x' : data[:,0], 
+                           'y' : data[:,1], 
+                           'z' : data[:,2],
+                           'ids' : ids})
+        boundaries.append(boundary)
+    return boundaries
 
 def make_plot(data):
     helper.plot_points2(data.bnd_rxy,'bo')
@@ -68,6 +75,15 @@ def make_plot(data):
     helper.plot_points2(data.right, 'C1-')
     helper.plot_points2(data.top, 'C2-')
     helper.plot_points2(data.left, 'C3-')
+
+    if figfile:
+        plt.savefig(figfile)
+
+def plot_boundaries(corners, points, boundaries, figfile):
+    helper.plot_points2(corners,'ko')
+    for bnd in boundaries:
+        ids = bnd['ids']
+        plt.plot(points[ids, 0], points[ids, 1])
 
     if figfile:
         plt.savefig(figfile)
@@ -81,12 +97,12 @@ bbox = sf.fitting.bbox2(data.bnd_rxy)
 data.bbox = bbox
 corner_ids = get_corners(data.bnd_rxy, bbox)
 points = np.vstack((data.bnd_rxy[:,0], data.bnd_rxy[:,1], data.bnd_rz)).T
-data.bottom, data.right, data.top, data.left, data.bottom_ids, data.right_ids,\
-data.top_ids, data.left_ids = edges(points, corner_ids)
+boundaries = edges(points, corner_ids)
 data.corners = data.bnd_rxy[corner_ids]
 data.corner_ids = corner_ids
+data.boundaries = boundaries
 
-make_plot(data)
+plot_boundaries(data.corners, pts, boundaries, '')
 helper.show(showplot)
 
 pickle.dump(data, open(outputfile, 'wb'))

@@ -1,0 +1,90 @@
+#!/usr/bin/env python
+
+import sys
+from splinefit import msh
+import splinefit as sf
+import numpy as np
+import pickle
+
+
+def main():
+
+    options = get_options(sys.argv)
+    sf.options.check_options(sys.argv, options)
+
+    data = pickle.load(open(options.input, 'rb'))
+    pcl_xyz = data.coords[:,1:]
+    pcl_xyz, mu, std = sf.fitting.normalize(pcl_xyz)
+    
+    edges = data.bnd_edges
+    
+    bnd_xyz =pcl_xyz[edges[:,0],:]
+    
+    
+    basis = sf.fitting.pca(bnd_xyz, num_components=3)
+    proj_basis = sf.fitting.pca(bnd_xyz, num_components=2)
+    bnd_xy = sf.fitting.projection(bnd_xyz, proj_basis)
+    pcl_xy = sf.fitting.projection(pcl_xyz, proj_basis)
+
+
+
+    data.mu = mu
+    data.std = std
+    data.basis = basis
+    data.proj_basis = proj_basis
+    data.edges = edges
+    data.bnd_xyz = bnd_xyz
+    data.bnd_xy = bnd_xy
+    data.pcl_xyz = pcl_xyz
+    data.pcl_xy = pcl_xy
+    data.bnd_proj_xyz = data.basis.T.dot(data.bnd_xyz.T).T
+    data.pcl_proj_xyz = data.basis.T.dot(data.pcl_xyz.T).T
+    pickle.dump(data, open(options.output, 'wb'))
+
+    make_plot(bnd_xyz, bnd_xy, basis, savefig=options.savefig,
+            showfig=options.showfig)
+
+def get_options(argv):
+    """
+    Get command line arguments.
+    """
+
+    options = sf.utils.Struct()
+    if '--help' in argv:
+        print(helptxt)
+        exit()
+
+    args = sf.options.get_options(argv)
+    options.input = args['input']
+    options.output = args['output']
+
+    if '--showfig' in args:
+        options.showfig = int(args['--showfig'])
+    else:
+        options.showfig = 0
+
+    if '--savefig' in args:
+        options.savefig = args['--savefig']
+    else:
+        options.savefig = ''
+
+    return options
+
+
+def make_plot(bnd_xyz, bnd_xy, basis, savefig='', showfig=False):
+    if not savefig or not showfig:
+        return
+    import matplotlib.pyplot as plt
+    ax = sf.plot.points(bnd_xyz)
+    sf.plot.points(bnd_xyz, ax, 'k')
+    sf.plot.points(bnd_xy, ax, 'b-')
+    sf.plot.basis(basis, ax)
+    if savefig:
+        plt.savefig(savefig)
+    if showfig:
+        plt.show()
+
+if __name__ == '__main__':
+    main()
+
+

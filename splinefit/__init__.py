@@ -7,3 +7,5 @@ from . import transfinite
 from . import options
 from . import plot
 from . import iges
+from . import utils
+from . import tsurf

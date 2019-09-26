@@ -1,21 +1,57 @@
+#!/usr/bin/env python
+
 import sys
 from splinefit import msh
 import splinefit as sf
 import numpy as np
-import helper
 import pickle
 
-inputfile = sys.argv[1]
-outputfile = sys.argv[2]
-if len(sys.argv) < 4:
-    figfile = None
-else:
-    figfile = sys.argv[3]
 
-if len(sys.argv) < 5:
-    showplot = 0
-else:
-    showplot = int(sys.argv[4])
+def main():
+
+    options = get_options(sys.argv)
+    sf.options.check_options(sys.argv, options)
+    coords, tris = sf.msh.read(options.input)
+    tris = msh.get_data(tris, num_members=3, index=1)
+    check_num_tris(tris)
+    
+    bnd_edges, loops = get_boundary(coords, tris)
+    make_plot(coords, tris, bnd_edges, options.savefig, options.showfig)
+    
+    data = sf.utils.Struct()
+    data.coords = coords
+    data.tris = tris
+    data.bnd_edges = bnd_edges
+    data.loops = loops
+    
+    pickle.dump(data, open(options.output, 'wb'))
+
+def get_options(argv):
+    """
+    Get command line arguments.
+    """
+
+    options = sf.utils.Struct()
+    if '--help' in argv:
+        print(helptxt)
+        exit()
+
+    args = sf.options.get_options(argv)
+    options.input = args['input']
+    options.output = args['output']
+
+    if '--showfig' in args:
+        options.showfig = int(args['--showfig'])
+    else:
+        options.showfig = 0
+
+    if '--savefig' in args:
+        options.savefig = args['--savefig']
+    else:
+        options.savefig = ''
+
+    return options
+
 
 def check_num_tris(tris, min_elem=16):
     # Make sure that there are a sufficient number of elements to treat
@@ -69,8 +105,8 @@ def get_boundary(coords, tris):
     loops[c_idx]["outer"] = 1
     return bnd_edges, loops
 
-def make_plot(coords, tris, edges, figfile):
-    if not figfile:
+def make_plot(coords, tris, bnd_edges, savefig='', showfig=False):
+    if not savefig or not showfig:
         return
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
@@ -79,24 +115,14 @@ def make_plot(coords, tris, edges, figfile):
     
     pt_ids = bnd_edges[:,0]
     bnd_coords = xyz[pt_ids,:]
-    bnd_coords = helper.close_boundary(bnd_coords)
+    bnd_coords = sf.triangulation.close_boundary(bnd_coords)
 
-    fig, ax = helper.plot_mesh(xyz, tris)
-    helper.plot_points(bnd_coords, ax=ax, style='k-')
-    plt.savefig(figfile)
-    helper.show(showplot)
+    fig, ax = sf.plot.mesh(xyz, tris)
+    sf.plot.points(bnd_coords, ax=ax, style='k-')
+    if savefig:
+        plt.savefig(savefig)
+    if showfig:
+        plt.show()
 
-coords, tris = sf.msh.read(inputfile)
-tris = msh.get_data(tris, num_members=3, index=1)
-check_num_tris(tris)
-
-bnd_edges, loops = get_boundary(coords, tris)
-make_plot(coords, tris, bnd_edges, figfile)
-
-data = helper.Struct()
-data.coords = coords
-data.tris = tris
-data.bnd_edges = bnd_edges
-data.loops = loops
-
-pickle.dump(data, open(outputfile, 'wb'))
+if __name__ == '__main__':
+    main()
