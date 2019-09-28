@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+"""Output bounding box information for a list of .tsurf files. 
+Usage: bbox files --options=...
+
+Options:
+    --help              Show help
+    --min_elements int  Minimum number of elements required per group"""
 import sys
 import splinefit as sf
 import numpy as np
@@ -8,7 +14,19 @@ def main():
     options = get_options(sys.argv)
     sf.options.check_options(sys.argv, options)
 
-    p, t = sf.tsurf.read(options.input, min_elems=options.min_elements)
+    if not options.args:
+        print(__doc__)
+
+    for fn in options['args']:
+        x0, x1, y0, y1, z0, z1 = get_bbox(fn, options)
+        xs = x1 - x0
+        ys = y1 - y0
+        zs = z1 - z0
+        print("%g %g %g %g %g %g" % (
+                x0, y0, z0, xs, ys, zs))
+
+def get_bbox(filename, options):
+    p, t = sf.tsurf.read(filename, min_elems=options.min_elements)
     xmin = []
     xmax = []
     ymin = []
@@ -22,11 +40,7 @@ def main():
         ymax.append(np.max(pi[:,2]))
         zmin.append(np.min(pi[:,3]))
         zmax.append(np.max(pi[:,3]))
-
-    print("x:", min(xmin), max(xmax))
-    print("y:", min(ymin), max(ymax))
-    print("z:", min(zmin), max(zmax))
-
+    return min(xmin), max(xmax), min(ymin), max(ymax), min(zmin), max(zmax)
 
 def get_options(argv):
     """
@@ -35,16 +49,22 @@ def get_options(argv):
 
     options = sf.utils.Struct()
     if '--help' in argv:
-        print("No help available.")
+        print(__doc__)
         exit()
 
-    options.input = sys.argv[1]
-    args = sf.options.get_options(argv[2::])
+    args = sf.options.get_options(argv)
 
     if '--min_elements' in args:
         options.min_elements = int(args['--min_elements'])
     else:
         options.min_elements = 10
+
+    if '--geo' in args:
+        options.geo = int(args['--geo'])
+    else:
+        options.geo = False
+
+    options.args = args['args']
 
     return options
 

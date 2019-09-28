@@ -1,28 +1,130 @@
-#!/bin/bash
+#!/usr/bin/env python
+"""Export gmsh script file. Unify .igs surfaces to produce conforming meshes and
+crop them at sea level, if desired.
+
+Usage: sfgeo <surf> (bbox)
+
+    surf   A text file that contains a list of .igs files to load and join
+           together.
+    bbox   A text file that contains a list of bounding boxes for each of the
+           surfaces. 
+
+"""
+import sys
+
+def main():
+
+    if len(sys.argv) < 2:
+        print(__doc__)
+        exit(1)
+    join_file = sys.argv[1]
+    if len(sys.argv) > 2:
+        bbox_file = sys.argv[2]
+    else:
+        bbox_file = ''
+    txt_load, num_files = load_files(join_file)
+
+    if bbox_file:
+        txt_bbox, labels = add_box(bbox_file)
+    else:
+        txt_bbox = ''
+        labels = [i+1 for i in range(num_files)]
+
+    txt_union = union(labels)
+    print(txt_load + txt_bbox + txt_union)
 
 
-echo "SetFactory(\"OpenCASCADE\");"
-i=1
-filename="${1}"
-while read p; do 
-    echo "a${i}() = ShapeFromFile(\"${p}\");"; 
-    let i=${i}+1;
-done < $filename
- 
-let num_files=i
-if [ ${num_files} -gt 1 ]
-then                 
-printf "BooleanUnion { Surface{1}; Delete; }{"
-i=1
-while [ $i -lt ${num_files} ]
-do
-        if [ $i != 1 ]
-        then
-        printf " Surface{${i}}; "
-        fi
-        let i=($i + 1)
-done
-printf "Delete; } \n"
-fi
+def load_files(join_file):
+
+    out = ""
+    out += "SetFactory(\"OpenCASCADE\");\n"
+    
+    i = 1
+    with open(join_file, "r") as fh:
+        for line in fh:
+            out += "a%d() = ShapeFromFile(\"%s\");\n" % (i, line.strip('\n')) 
+            i += 1
+    return out, i
+
+def add_box(bbox_file):
+    """
+    Determine the common bounding box for a list of geometries. This box extends
+    up to the sea level, z = 0. It is used for removing any part
+    of the geometry that extends above the sea level. Any geometry that extends
+    above sea level will get relabeled. 
+
+    Args:
+        bbox_file: File that contains bounding boxes: x y z xs ys zs, one box
+            per line. (x, y, z) is the bottom, front, left corner, and xs, ys,
+            zs is the scale in each direction.
+
+    Returns:
+        out: A string containing the .geo script for defining the box, and also
+            using it for cutting.
+        labels: A list of relabeled surfaces.
+
+    """
+    out = ""
+    x = []
+    y = []
+    z = []
+    xs = []
+    ys = []
+    zs = []
+
+    # Construct bounding box
+    with open(bbox_file, "r") as fh:
+        for line in fh:
+            fields = line.split(' ')
+            x.append(float(fields[0]))
+            y.append(float(fields[1]))
+            z.append(float(fields[2]))
+            xs.append(float(fields[3]))
+            ys.append(float(fields[4]))
+            zs.append(float(fields[5]))
+
+    bbox = "Box(1) = {%g, %g, %g, %g, %g, %g};\n" % (min(x), min(y), min(z),
+            max(xs), max(ys), -min(z))
+
+    # Relabel
+    i = 1
+    j = len(x) + 1
+    labels = []
+    for zi, zsi in zip(z, zs):
+        if zi + zsi > 0:
+            labels.append(j)
+            j+= 1
+        else:
+            labels.append(i)
+        i+= 1
 
 
+    # Apply Boolean operation
+    boolean = "BooleanIntersection{ " + " ".join(["Surface{%d};"%(i+1) for i in
+        range(len(x))]) + " Delete; }{ Volume{1}; Delete; }\n"
+
+    out = bbox + boolean
+
+    return out, labels
+
+def union(surfaces):
+    """
+    Unify the surfaces such that a conforming mesh can be generated.
+
+    Args:
+        surfaces: A list of indices that specify the surfaces to join together
+
+    Returns:
+        A string that contains the gmsh syntax for joining the surfaces
+            together.
+    """
+
+    boolean = "BooleanUnion { " + " ".join(["Surface{%d};"%(si) for si in
+        surfaces[:-1]]) + " Delete; }{ Surface{%d}; Delete; }" % (surfaces[-1])
+
+    return boolean
+
+
+
+if __name__ == '__main__':
+    main()
