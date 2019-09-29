@@ -1,4 +1,25 @@
 #!/usr/bin/env python
+"""Perform BSpline surface projection and fitting
+Usage: sffsrf <input> <output> -options=...
+
+    input file      Pickle binary file to read (.p)
+    output file     Pickle binary file to write (.p)
+
+Fitting Options:
+    -deg_u int       Degree of BSpline basis functions in the u-direction
+    -deg_v int       Degree of BSpline basis functions in the v-direction
+    -fit bool        Enable least squares fitting (disabled by default)
+    -reg float       Strength of regularization term (no effect unless -fit=1)
+    -est_uv int      Automatically determine the number of u and v control
+                     points 
+    -num_u int       Number of control points in the u-direction
+    -num_v int       Number of control points in the v-direction
+
+Other Options:
+    -help           Show help
+    -savefig path   Save figures
+    -showfig bool   Show figures (pauses application)"""
+
 import sys
 import splinefit as sf
 import numpy as np
@@ -9,11 +30,12 @@ def main():
 
     options = get_options(sys.argv)
     sf.options.check_options(sys.argv, options)
-    verbose = options.verbose
     savefig = options.savefig
     showfig = options.showfig
 
     data = pickle.load(open(options.input, 'rb'))
+
+    print("Fitting BSpline surface")
 
     tris = data.tris
 
@@ -22,7 +44,7 @@ def main():
 
     bounding_box = sf.fitting.bbox2(xyz)
     bounding_box = sf.fitting.bbox2_expand(sf.fitting.bbox2(xyz),
-                                           options.padding)
+                                           options.pad)
 
     bnd_edges = orientation(data.tris, data.bnd_edges, xyz)
     bnd_geom = normals(data.tris, bnd_edges, xyz, showfig=showfig,
@@ -34,18 +56,18 @@ def main():
     xyz_augmented = np.vstack((xyz, bbox_points, corner_points))
 
 
-    if options.estimate_uv:
+    if options.est_uv:
         nu, nv = estimate_uv(xyz, tris, bounding_box, 
-                                options.cell_scaling, verbose)
+                                options.scale)
     else:
         nu = options.num_u
         nv = options.num_v
 
-    vprint("Grid dimensions: %d x %d" % (nu, nv), verbose)
+    print(" - Grid dimensions: %d x %d" % (nu, nv))
 
 
-    pu = options.degree_u
-    pv = options.degree_v
+    pu = options.deg_u
+    pv = options.deg_v
 
     # Construct uv-grid
     int_knot_u = sf.bspline.numknots(nu, pu, interior=1)
@@ -66,9 +88,9 @@ def main():
     S = sf.bspline.Surface(U, V, pu, pv, X, Y, Z, label='grid')
 
     if options.fit:
-        vprint("Applying surface fitting", verbose)
-        res = fit_surface(S, projection, regularization=options.regularization)
-        vprint("Residual: %g " % res, verbose)
+        print(" - Applying surface fitting")
+        res = fit_surface(S, projection, regularization=options.reg)
+        print(" - Residual: %g " % res)
 
     # Transform fitted surface to the original coordinate system 
     S.rwPx, S.rwPy, S.rwPz = sf.fitting.restore(S.Px, S.Py, S.Pz,
@@ -91,17 +113,11 @@ def main():
         vtkfile = options.vtk
         S.eval(nu=options.eval_nu, nv=options.eval_nv, rw=1)
         sf.vtk.write_surface(vtkfile, S.X, S.Y, S.Z)
-        vprint("Wrote vtk file: %s" % vtkfile, verbose)
+        print(" - Wrote vtk file: %s" % vtkfilee)
 
     data.bspline_surface = S
     pickle.dump(data, open(options.output, 'wb'))
-    vprint("Wrote data file: %s" % options.output, verbose)
-
-
-def vprint(msg, verbose):
-    if not verbose:
-        return
-    print(msg)
+    print(" - Wrote: %s" % options.output)
 
 def get_options(argv):
     """
@@ -109,91 +125,85 @@ def get_options(argv):
     """
 
     options = sf.utils.Struct()
-    if '--help' in argv:
-        print(helptxt)
+    if '-help' in argv:
+        print(__doc__)
         exit()
 
     args = sf.options.get_options(argv)
-    options.input = args['input']
-    options.output = args['output']
+    try:
+        options.input = args['args'][0]
+        options.output = args['args'][1]
+    except:
+        print(__doc__)
+        exit(1)
 
-    if '--degree_u' in args:
-        options.degree_u = int(args['--degree_u'])
+    if '-deg_u' in args:
+        options.deg_u = int(args['-deg_u'])
     else:
-        options.degree_u = 2
+        options.deg_u = 2
 
-    if '--degree_v' in args:
-        options.degree_v = int(args['--degree_v'])
+    if '-deg_v' in args:
+        options.deg_v = int(args['-deg_v'])
     else:
-        options.degree_v = 2
+        options.deg_v = 2
 
-    if '--num_u' in args:
-        options.num_u = int(args['--num_u'])
+    if '-num_u' in args:
+        options.num_u = int(args['-num_u'])
     else:
         options.num_u = 10
 
-    if '--num_v' in args:
-        options.num_v = int(args['--num_v'])
+    if '-num_v' in args:
+        options.num_v = int(args['-num_v'])
     else:
         options.num_v = 10
 
-    if '--estimate_uv' in args:
-        options.estimate_uv = int(args['--estimate_uv'])
+    if '-est_uv' in args:
+        options.est_uv = int(args['-est_uv'])
     else:
-        options.estimate_uv = 1
+        options.est_uv = 1
 
-    if '--padding' in args:
-        options.padding = float(args['--padding'])
+    if '-pad' in args:
+        options.pad= float(args['-pad'])
     else:
-        options.padding = 0.1
+        options.pad= 0.1
 
-    if '--cell_scaling' in args:
-        options.cell_scaling = float(args['--cell_scaling'])
+    if '-scale' in args:
+        options.scale = float(args['-scale'])
     else:
         options.cell_scaling = 0.0
 
-    if '--fit' in args:
-        options.fit = int(args['--fit'])
+    if '-fit' in args:
+        options.fit = int(args['-fit'])
     else:
         options.fit = False
 
-    if '--regularization' in args:
-        options.regularization = float(args['--regularization'])
+    if '-reg' in args:
+        options.reg = float(args['-reg'])
     else:
-        options.regularization = 1e-1
+        options.reg = 1e-1
 
-    if '--json' in args:
-        options.json = args['--json']
-    else:
-        options.json = ''
-
-    if '--vtk' in args:
-        options.vtk = args['--vtk']
+    if '-vtk' in args:
+        options.vtk = args['-vtk']
     else:
         options.vtk = ''
 
-    if '--eval_nu' in args:
-        options.eval_nu = int(args['--eval_nu'])
+    if '-eval_nu' in args:
+        options.eval_nu = int(args['-eval_nu'])
     else:
         options.eval_nu = 10
 
-    if '--eval_nv' in args:
-        options.eval_nv = int(args['--eval_nv'])
+    if '-eval_nv' in args:
+        options.eval_nv = int(args['-eval_nv'])
     else:
         options.eval_nv = 10
-
-    if '--verbose' in args:
-        options.verbose = int(args['--verbose'])
-    else:
-        options.verbose = 0
     
-    if '--showfig' in args:
-        options.showfig = int(args['--showfig'])
+    if '-showfig' in args:
+        options.showfig = int(args['-showfig'])
     else:
         options.showfig = 0
 
-    if '--savefig' in args:
-        options.savefig = args['--savefig']
+    if '-savefig' in args:
+        options.savefig = args['-savefig']
     else:
         options.savefig = ''
 
@@ -213,7 +223,7 @@ def rotate(coords, basis, projection_basis, rotation_angle, center):
     xyz[:, 0:2] = rxy
     return xyz
 
-def estimate_uv(points, tris, bbox, cell_scaling, verbose=0):
+def estimate_uv(points, tris, bbox, cell_scaling):
     """
     Estimate the number of u, v, points to use by determining the average
     element size in the triangulation.
@@ -224,9 +234,9 @@ def estimate_uv(points, tris, bbox, cell_scaling, verbose=0):
     dist = np.mean(np.sqrt(areas))
     scaled_dist = dist * (1.0 + cell_scaling)
     Lx, Ly = sf.fitting.bbox2_dimensions(bbox)
-    vprint("Bounding box dimensions: %d x %d" % (Lx, Ly), verbose)
-    vprint("Average distance between points: %g" % dist, verbose) 
-    vprint("Scaled distance between points: %g" % scaled_dist, verbose) 
+    print(" - Bounding box dimensions: %d x %d" % (Lx, Ly))
+    print(" - Average distance between points: %g" % dist) 
+    print(" - Scaled distance between points: %g" % scaled_dist) 
 
     num_u = round(Lx / scaled_dist ) + 1
     num_v = round(Ly / scaled_dist ) + 1
@@ -470,9 +480,5 @@ def set_z_nearest_corners(points, bounding_box):
 
     return corner_points
 
-
-
-
 if __name__ == "__main__":
     main()
-

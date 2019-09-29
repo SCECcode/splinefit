@@ -1,4 +1,13 @@
 #!/usr/bin/env python
+"""Split boundary into left, bottom, right, and top segments.
+Usage: sfseg <input> <output> -options=...
+
+    input file      gmsh mesh file to read (.msh)
+    output file     Pickle binary file to write (.p)
+
+Options:
+    -savefig path   Save figures
+    -showfig bool   Show figures (pauses application)"""
 
 import sys
 from splinefit import msh
@@ -7,18 +16,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import scipy.optimize
-"""
-This script splits the boundary up into four segments (left, bottom, right, top)
-The basic principle behind the segmentation is to select corner points by using
-the L1 distance.
-
-"""
 
 def main():
+    """ This script splits the boundary up into four segments (left, bottom,
+    right, top) The basic principle behind the segmentation is to select corner
+    points by using the L1 distance.
+    """
 
     options = get_options(sys.argv)
     sf.options.check_options(sys.argv, options)
     data = pickle.load(open(options.input, 'rb'))
+
+    print("Segmenting boundary")
     pts = np.vstack((data.bnd_rxy[:,0], data.bnd_rxy[:,1], data.bnd_rz)).T
     pts = fix_orientation(pts)
     data.bnd_rxy = pts[:,0:2]
@@ -33,6 +42,7 @@ def main():
     data.boundaries = boundaries
 
     pickle.dump(data, open(options.output, 'wb'))
+    print(" - Wrote: ", options.output)
     
     plot_boundaries(data.corners, pts, boundaries, savefig=options.savefig,
                     showfig=options.showfig)
@@ -86,21 +96,25 @@ def get_options(argv):
     """
 
     options = sf.utils.Struct()
-    if '--help' in argv:
-        print(helptxt)
+    if '-help' in argv:
+        print(__doc__)
         exit()
 
     args = sf.options.get_options(argv)
-    options.input = args['input']
-    options.output = args['output']
+    try:
+        options.input = args['args'][0]
+        options.output = args['args'][1]
+    except:
+        print(__doc__)
+        exit(1)
 
-    if '--showfig' in args:
-        options.showfig = int(args['--showfig'])
+    if '-showfig' in args:
+        options.showfig = int(args['-showfig'])
     else:
         options.showfig = 0
 
-    if '--savefig' in args:
-        options.savefig = args['--savefig']
+    if '-savefig' in args:
+        options.savefig = args['-savefig']
     else:
         options.savefig = ''
 

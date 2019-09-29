@@ -1,20 +1,42 @@
 #!/usr/bin/env python
+"""Convert triangular meshes in gmsh (.msh) to VTK legacy fileformat (.vtk)
+Usage: mshvtk <input> <output>
+
+    input file          Gmsh mesh file to read (.msh)
+    output file         VTK legacy file to write (.vtk)"""
 import sys
-from splinefit import msh, vtk
+import splinefit as sf
 
-if len(sys.argv) == 1:
-    msg = 'mshvtk (input) (output)\n'
-    msg += """usage: Converts triangular meshes in gmsh (.msh) to VTK legacy fileformat (.vtk)\n"""
-    msg += 'input : is the .msh file to read\n'
-    msg += 'output : is the .vtk file to write'
-    print(msg)
-    exit(1)           
 
-inputfile = sys.argv[1]
-outputfile = sys.argv[2]
+def main():
+    options = get_options(sys.argv)
+    sf.options.check_options(sys.argv, options)
 
-p, t = msh.read(inputfile)
-t = msh.get_data(t, num_members=3, index=1)
-vtk.write_triangular_mesh(outputfile, p[:,1:], t)
-print('Wrote: %s' % outputfile)
+    print("Converting gmsh to vtk")
+    p, t = sf.msh.read(options.input)
+    t = sf.msh.get_data(t, num_members=3, index=1)
+    sf.vtk.write_triangular_mesh(options.output, p[:,1:], t)
+    print("Wrote: %s" % options.output)
 
+def get_options(argv):
+    """
+    Get command line arguments.
+    """
+
+    options = sf.utils.Struct()
+    if '-help' in argv:
+        print(__doc__)
+        exit()
+
+    args = sf.options.get_options(argv)
+    try:
+        options.input = args['args'][0]
+        options.output = args['args'][1]
+    except:
+        print(__doc__)
+        exit(1)
+
+    return options
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,101 @@
+#!/bin/bash
+source ${1}
+echo -e "\e[1mBuilding\e[0m: \e[32m${fault}\e[39m"
+
+
+if [ ${init} == 1 ]
+then
+        echo ${output}
+        mkdir -p ${output}
+        mkdir -p ${output}/pydata/
+        mkdir -p ${output}/meshes/
+        mkdir -p ${output}/vtk/
+        mkdir -p ${output}/iges/
+        mkdir -p ${output}/figures/
+fi
+
+
+if [ ${convert} == 1 ]
+then
+        tsurfmsh ${cfm}/${fault}.ts ${output}/meshes/surface.msh \
+        -min_elements=${min_elements}
+fi
+
+
+for msh in ${process_list}
+do
+        # Get mesh number
+        i=`echo $msh | grep -oP '(\d).msh' | grep -oP '\d'`
+
+        if [ ${vtk} == 1 ]
+        then
+                mshvtk ${output}/meshes/surface_${i}.msh \
+                       ${output}/vtk/surface_${i}.vtk
+        fi
+
+        if [ ${boundary} == 1 ]
+        then
+	        sfbnd ${msh} ${output}/pydata/boundary_${i}.p \
+ 	        -savefig=${output}/figures/boundary_${i}.png \
+	        -showfig=${showfig}
+        fi
+
+        if [ ${projection} == 1 ]
+        then
+	        sfproj ${output}/pydata/boundary_${i}.p \
+                       ${output}/pydata/projection_${i}.p \
+                        -savefig=${output}/figures/projection_${i}.png \
+                        -showfig=${showfig}
+        fi
+
+        if [ ${rotation} == 1 ]
+        then
+	        sfrot ${output}/pydata/projection_${i}.p \
+                      ${output}/pydata/rotation_${i}.p \
+                      -savefig=${output}/figures/rotation_${i}.png \
+                      -showfig=${showfig}
+        fi
+
+        if [ ${segmentation} == 1 ]
+        then
+                sfseg ${output}/pydata/rotation_${i}.p \
+                      ${output}/pydata/segmentation_${i}.p \
+                      -savefig=${output}/figures/segmentation_${i}.png \
+                      -showfig=${showfig}
+        fi
+        
+        if [ ${fit_boundary} == 1 ]
+        then
+                sffbnd ${output}/pydata/segmentation_${i}.p \
+                ${output}/pydata/boundary_fit_${i}.p  \
+                -deg=${deg} \
+                -showfig=${showfig} \
+                -reg=${breg} \
+                -est_knots=${est_knots} \
+                -num_knots=${num_knots}
+        fi
+
+        if [ ${fit_surface} == 1 ]
+        then
+                sffsrf ${output}/pydata/boundary_fit_${i}.p \
+                ${output}/pydata/surface_fit_${i}.p  \
+                -deg_u=${deg_u} \
+                -deg_v=${deg_v} \
+                -pad=${pad} \
+                -scale=${scale} \
+                -fit=${fit} \
+                -reg=${sreg} \
+                -est_uv=${est_uv} \
+                -num_u=${num_u} \
+                -num_v=${num_v} \
+                -showfig=${showfig} \
+                -savefig=figures/part_${d}_fit 
+        fi
+
+        if [ ${export_iges} == 1 ]
+        then
+                sfiges ${output}/pydata/surface_fit_${i}.p surface_${i}.igs
+                mv surface*.igs ${output}/iges/.
+        fi
+        echo -e "\e[1mDone\e[0m."
+done

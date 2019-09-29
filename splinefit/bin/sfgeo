@@ -39,10 +39,10 @@ def load_files(join_file):
     out = ""
     out += "SetFactory(\"OpenCASCADE\");\n"
     
-    i = 1
+    i = 0
     with open(join_file, "r") as fh:
         for line in fh:
-            out += "a%d() = ShapeFromFile(\"%s\");\n" % (i, line.strip('\n')) 
+            out += "a%d() = ShapeFromFile(\"%s\");\n" % (i+1, line.strip('\n')) 
             i += 1
     return out, i
 
