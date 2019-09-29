@@ -1,5 +1,20 @@
 from math import pi
-from pyiges.IGESCore import IGESItemData
+from pyiges.IGESCore import IGESItemData, IGEStorage
+
+class IGESWriter(IGEStorage):
+    def save(self, filename = 'IGESFile.igs'):
+        try:
+            myFile = open(filename, 'w')
+            #myFile.write(str(self))
+            myFile.write(str(self.StartSection))
+            myFile.write(str(self.GlobalSection))
+            myFile.write(str(self.DirectorySection))
+            myFile.write(str(self.ParameterSection))
+            myFile.write(str("\n"))
+            myFile.write(str(self.IGESTerminate()))
+            myFile.close()
+        except:
+            print("Failed to write: %s" % filename)
 
 
 def standard_iges_setup(system, filename):

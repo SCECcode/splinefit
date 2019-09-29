@@ -25,7 +25,7 @@ def main():
     print("Exporting BSpline Surface to IGES")
 
     export_iges(options.output, data.bspline_surface, data['bspline_curves'])
-    print("Wrote: %s" % options.output)
+    print(" - Wrote: %s" % options.output)
 
 
 def get_options(argv):
@@ -56,9 +56,7 @@ def export_iges(filename, surface, boundaries, verbose=False):
         surface: BSpline Surface representation
         boundaries: List of BSpline boundary representations
     """
-    from pyiges.IGESCore import IGEStorage
-    print(filename)
-    system = IGEStorage()
+    system = sf.iges.IGESWriter()
     sf.iges.standard_iges_setup(system, filename)
 
     iges_surface = surface.iges()
