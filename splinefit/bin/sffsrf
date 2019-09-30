@@ -342,18 +342,12 @@ def normals(tris, bnd_edges, points, showfig=False, savefig=False):
     if showfig or savefig:
         from mpl_toolkits.mplot3d import Axes3D
         fig = plt.figure()
-        #ax = fig.gca(projection='3d')
-
-        #plt.plot(bnd_points[:,0], bnd_points[:,1], bnd_points[:,2],'k-')
-        #plt.quiver(bnd_points[:,0], bnd_points[:,1], bnd_points[:,2],
-        #           normals[:,0], normals[:,1], normals[:,2], length=0.1,
-        #           normalize=True)
 
         plt.plot(bnd_points[:,0], bnd_points[:,1],'k-')
         plt.quiver(bnd_points[:,0], bnd_points[:,1],
                    normals[:,0], normals[:,1])
         if savefig:
-            plt.savefig(savefig + "normals.png", dpi=300)
+            plt.savefig(savefig + "_normals.png", dpi=300)
             
         if showfig:
             plt.show()
@@ -457,10 +451,10 @@ def intersect(normals, points, bbox, showfig=False, savefig=False):
         plt.plot(intersected_points[:,0], intersected_points[:,1], 'o')
         plt.plot(points[:,0], points[:,1], 'ko-')
         plt.legend(['bounding box points', 'boundary points'])
-        if showfig:
-            plt.show()
         if savefig:
             plt.savefig(savefig + "_intersect.png", dpi=300)
+        if showfig:
+            plt.show()
         plt.close()
     return intersected_points
 
