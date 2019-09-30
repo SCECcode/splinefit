@@ -6,6 +6,7 @@ Usage: sfseg <input> <output> -options=...
     output file     Pickle binary file to write (.p)
 
 Options:
+    -help           Show help
     -savefig path   Save figures
     -showfig bool   Show figures (pauses application)"""
 
@@ -121,7 +122,7 @@ def get_options(argv):
     return options
 
 def make_plot(data, savefig='', showfig=False):
-    if not savefig or not showfig:
+    if not savefig and not showfig:
         return
     import matplotlib.pyplot as plt
 

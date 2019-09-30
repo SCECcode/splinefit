@@ -89,7 +89,7 @@ def objective_function(xy, mu, theta):
     return sf.fitting.bbox2_vol(bbox)
 
 def make_plot(bnd_xy, rxy, savefig='', showfig=False):
-    if not savefig or not showfig:
+    if not savefig and not showfig:
         return
     import matplotlib.pyplot as plt
     plt.plot(bnd_xy[:,0], bnd_xy[:,1], 'bo')

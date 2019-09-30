@@ -9,29 +9,64 @@ Usage: sfgeo <surf> (bbox)
     bbox   A text file that contains a list of bounding boxes for each of the
            surfaces. 
 
+Options:
+    -union bool Unify surfaces
+
 """
 import sys
+import splinefit as sf
+import numpy as np
 
 def main():
 
-    if len(sys.argv) < 2:
-        print(__doc__)
-        exit(1)
-    join_file = sys.argv[1]
-    if len(sys.argv) > 2:
-        bbox_file = sys.argv[2]
-    else:
-        bbox_file = ''
-    txt_load, num_files = load_files(join_file)
 
-    if bbox_file:
-        txt_bbox, labels = add_box(bbox_file)
+    options = get_options(sys.argv)
+    sf.options.check_options(sys.argv, options)
+
+
+    txt_load, num_files = load_files(options.input)
+
+    if options.bbox_file:
+        txt_bbox, labels = add_box(options.bbox_file)
     else:
         txt_bbox = ''
         labels = [i+1 for i in range(num_files)]
 
-    txt_union = union(labels)
+    if options.union:
+        txt_union = union(labels)
+    else:
+        txt_union = ''
+
     print(txt_load + txt_bbox + txt_union)
+
+def get_options(argv):
+    """
+    Get command line arguments.
+    """
+
+    options = sf.utils.Struct()
+    if '-help' in argv:
+        print(__doc__)
+        exit()
+
+    args = sf.options.get_options(argv)
+    try:
+        options.input = args['args'][0]
+    except:
+        print(__doc__)
+        exit(1)
+
+    try:
+        options.bbox_file = args['args'][1]
+    except:
+        options.bbox_file = ''
+
+    if '-union' in args:
+        options.union = int(args['-union'])
+    else:
+        options.union = 0
+
+    return options
 
 
 def load_files(join_file):
@@ -65,33 +100,34 @@ def add_box(bbox_file):
 
     """
     out = ""
-    x = []
-    y = []
-    z = []
-    xs = []
-    ys = []
-    zs = []
+    x0 = []
+    y0 = []
+    z0 = []
+    x1 = []
+    y1 = []
+    z1 = []
 
     # Construct bounding box
     with open(bbox_file, "r") as fh:
         for line in fh:
             fields = line.split(' ')
-            x.append(float(fields[0]))
-            y.append(float(fields[1]))
-            z.append(float(fields[2]))
-            xs.append(float(fields[3]))
-            ys.append(float(fields[4]))
-            zs.append(float(fields[5]))
+            x0.append(float(fields[0]))
+            y0.append(float(fields[1]))
+            z0.append(float(fields[2]))
+            x1.append(float(fields[3]) + x0[-1])
+            y1.append(float(fields[4]) + y0[-1])
+            z1.append(float(fields[5]) + z0[-1])
 
-    bbox = "Box(1) = {%g, %g, %g, %g, %g, %g};\n" % (min(x), min(y), min(z),
-            max(xs), max(ys), -min(z))
+
+    bbox = "Box(1) = {%g, %g, %g, %g, %g, %g};\n" % (min(x0), min(y0), min(z0),
+            max(x1) - min(x0), max(y1) - min(y0), -min(z0))
 
     # Relabel
     i = 1
-    j = len(x) + 1
+    j = len(x0) + 1
     labels = []
-    for zi, zsi in zip(z, zs):
-        if zi + zsi > 0:
+    for zi in z1:
+        if zi > 0:
             labels.append(j)
             j+= 1
         else:
@@ -101,7 +137,7 @@ def add_box(bbox_file):
 
     # Apply Boolean operation
     boolean = "BooleanIntersection{ " + " ".join(["Surface{%d};"%(i+1) for i in
-        range(len(x))]) + " Delete; }{ Volume{1}; Delete; }\n"
+        range(len(x0))]) + " Delete; }{ Volume{1}; Delete; }\n"
 
     out = bbox + boolean
 

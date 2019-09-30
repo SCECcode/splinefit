@@ -70,6 +70,7 @@ do
                 ${output}/pydata/boundary_fit_${i}.p  \
                 -deg=${deg} \
                 -showfig=${showfig} \
+                -savefig=${output}/figures/boundary_fit_${i} \
                 -reg=${breg} \
                 -est_knots=${est_knots} \
                 -num_knots=${num_knots}
@@ -89,13 +90,14 @@ do
                 -num_u=${num_u} \
                 -num_v=${num_v} \
                 -showfig=${showfig} \
-                -savefig=figures/part_${d}_fit 
+                -savefig=${output}/figures/part_${i}_fit 
         fi
 
         if [ ${export_iges} == 1 ]
         then
-                sfiges ${output}/pydata/surface_fit_${i}.p surface_${i}.igs
-                mv surface*.igs ${output}/iges/.
+                sfiges ${output}/pydata/surface_fit_${i}.p \
+                       surface_${i}.igs
+                mv surface_${i}.igs ${output}/iges/surface_${i}.igs
         fi
         echo -e "\e[1mDone\e[0m."
 done
