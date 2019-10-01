@@ -1,6 +1,12 @@
 #!/bin/bash
 source ${1}
-echo -e "\e[1mBuilding\e[0m: \e[32m${fault}\e[39m"
+
+if [[ "$OSTYPE" == "darwin"* ]];
+then
+        echo -e "\033[1mBuilding\033[0m: \033[32m${fault}\033[39m"
+else
+        echo -e "\e[1mBuilding\e[0m: \e[32m${fault}\e[39m"
+fi
 
 
 if [ ${init} == 1 ]
@@ -25,7 +31,13 @@ fi
 for msh in ${process_list}
 do
         # Get mesh number
-        i=`echo $msh | grep -oP '(\d).msh' | grep -oP '\d'`
+        if [[ "$OSTYPE" == "darwin"* ]];
+        then
+                i=`echo $msh | grep -o '\d.msh' | grep -o '\d'`
+        else
+                echo "Linux, probably";
+                i=`echo $msh | grep -oP '\d.msh' | grep -oP '\d'`
+        fi
 
         if [ ${vtk} == 1 ]
         then
@@ -99,5 +111,10 @@ do
                        surface_${i}.igs
                 mv surface_${i}.igs ${output}/iges/surface_${i}.igs
         fi
-        echo -e "\e[1mDone\e[0m."
+        if [[ "$OSTYPE" == "darwin"* ]];
+        then
+                echo -e "\033[1mDone\033[0m."
+        else
+                echo -e "\e[1mDone\e[0m."
+        fi
 done
