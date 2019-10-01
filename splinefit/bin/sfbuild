@@ -35,7 +35,6 @@ do
         then
                 i=`echo $msh | grep -o '\d.msh' | grep -o '\d'`
         else
-                echo "Linux, probably";
                 i=`echo $msh | grep -oP '\d.msh' | grep -oP '\d'`
         fi
 

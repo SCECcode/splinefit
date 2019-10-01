@@ -1,45 +1,46 @@
-# Splinefit
+# Splinefit (BETA 1.0)
 
-Experimental python package for building a geometric description of a small subset of the [Community Fault Model](https://scec.usc.edu/scecpedia/CFM) using BSplines.
+This package  is designed to construct CAD geometries of the regularized meshes
+found in the [Community Fault Model](https://scec.usc.edu/scecpedia/CFM). 
+Below
+is an example of a fault zone geometry that been generated using this package. 
 
-Currently, only a developer version of this software exists. Go to [dev](dev/)
-to learn what it can do and how to use it. A detailed description of it does in a step-by-step fashion is explained in the [documentation](docs/) 
+![](docs/figures/sierra_madre.png)
+
+For more examples and tutorials, please visit the
+[splinefit-examples](https://github.com/ooreilly/splinefit-examples) package.
+
+# Dependencies
+This package has the following dependencies:
+* [Python](https://python.org) 3.6+.x 
+* [scipy](https://www.scipy.org/) >=1.1 (linux) 1.1 (OS X)
+* [numpy](https://www.numpy.org/) 
+* [matplotlib](https://www.matplotlib.org/)
+* [pyIGES](https://github.com/Rod-Persky/pyIGES)
+* [pytest](https://docs.pytest.org/en/latest/) (to run tests)
+
+## OS X
+There is a known issue with later versions of scipy that causes a segmentation
+fault on certain OS X systems, see: [#9571](https://github.com/scipy/scipy/issues/9751)
+As a work-around, install scipy version 1.1:
+```bash
+$ pip3 install scipy==1.1 --user
+```
 
 # Installation
+The [pyIGES](https://github.com/Rod-Persky/pyIGES) package is currently not available in the Pypi index. Install it by
+cloning the repository:
+```bash
+$ https://github.com/Rod-Persky/pyIGES.git
+$ cd pyIGES
+$ pip3 install . --user
+```
+
+Once all dependencies have been installed, the package can be installed via:
 ```bash
 $ git clone https://github.com/ooreilly/splinefit
-$ pip install .
-```
+$ cd splinefit
+$ pip3 install . --user
 
-# Command line tools
-
-## Convert GOCAD tsurf to gmsh
-Use `tsurfmsh` to convert a triangular mesh stored in the `.ts` file format to the gmsh `.msh` file format. 
-```bash
-$ tsurfmsh (input) (output)
-
-```
-If the `.tsurf` file contains multiple surfaces, `tsurfmesh` will save one
-surface per file. The surfaces are labelled as `output_0`, `output_1`, in the
-order in which the surfaces are listed in the `.ts` file.
-
-## Convert gmsh to vtk
-Use `mshvtk` to convert a triangular mesh stored in the `.msh` file format to
-the VTK legacy file format
-```
-$ mshvtk (input) (output)
-```
-
-![](docs/figures/vtk_view.png)
-View of a couple of fault surfaces in Paraview. The input files were first
-converted from `.ts` to `.msh`, and then to `.vtk`.
-
-
-# Tests
-The directory `splinefit/tests` contains a series of tests that can be run using [pytest](https://docs.pytest.org/en/latest/)
-```bash
-$ pytest splinefit/tests
-```
-To ensure that some test data can be found it is important that the tests are run from the root directory as indicated above.
-The tests are also useful to study to see examples of how to use different the modules.
+``` 
 
