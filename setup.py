@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='splinefit',
-      version='1.0b',
+      version='3.0b',
       description='Spline Fit.',
       url='http://github.com/ooreilly/splinefit',
       author='Ossian O\'Reilly',
@@ -23,7 +23,6 @@ setup(name='splinefit',
                ],
     install_requires=[
     'numpy',
-    'scipy==1.1',
     'matplotlib'
     ],
       zip_safe=False)

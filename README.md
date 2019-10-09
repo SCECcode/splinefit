@@ -1,4 +1,4 @@
-# Splinefit (BETA 1.0)
+# Splinefit (BETA 3.0)
 
 This package  is designed to construct CAD geometries of the regularized meshes
 found in the [Community Fault Model](https://scec.usc.edu/scecpedia/CFM). 
@@ -26,12 +26,13 @@ As a work-around, install scipy version 1.1:
 ```bash
 $ pip3 install scipy==1.1 --user
 ```
+If you are concerned about downgrading scipy, you can use [virtualenv](https://docs.python-guide.org/dev/virtualenvs/#lower-level-virtualenv).
 
 # Installation
-The [pyIGES](https://github.com/Rod-Persky/pyIGES) package is currently not available in the Pypi index. Install it by
+The [pyIGES](https://github.com/Rod-Persky/pyIGES) package is currently not available in the [PyPi](https://pypi.org/) index. Install it by
 cloning the repository:
 ```bash
-$ https://github.com/Rod-Persky/pyIGES.git
+$ git clone https://github.com/Rod-Persky/pyIGES.git
 $ cd pyIGES
 $ pip3 install . --user
 ```
