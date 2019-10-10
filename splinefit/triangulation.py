@@ -51,6 +51,25 @@ def tris_to_edges(tris):
                 edges[key]['triangles'].append(tri_id)
     return edges
 
+def active_nodes(coords, tris):
+    """
+    Return an array of node indices found in a triangulation
+    """
+
+    nodes = np.zeros((coords.shape[0], ))
+
+    for tri in tris:
+        nodes[tri[0]] = 1
+        nodes[tri[1]] = 1
+        nodes[tri[2]] = 1
+    return nodes
+
+
+
+
+
+
+
 def edges_shared_tri_count(edges):
     """
     Return an array containing the number of triangles each edge belongs to.

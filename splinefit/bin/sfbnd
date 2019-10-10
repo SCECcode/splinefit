@@ -22,6 +22,8 @@ def main():
     sf.options.check_options(sys.argv, options)
     coords, tris = sf.msh.read(options.input)
     tris = msh.get_data(tris, num_members=3, index=1)
+    active_nodes = sf.triangulation.active_nodes(coords, tris)
+    print(active_nodes)
     check_num_tris(tris)
     print("Extracting boundary segments")
     
@@ -29,6 +31,7 @@ def main():
     make_plot(coords, tris, bnd_edges, options.savefig, options.showfig)
     
     data = sf.utils.Struct()
+    data.active_nodes = active_nodes
     data.coords = coords
     data.tris = tris
     data.bnd_edges = bnd_edges

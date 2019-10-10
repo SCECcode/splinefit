@@ -584,7 +584,7 @@ def chords(x, y, z=None, a=0, b=1):
         dz = z[1:] - z[0:-1]
 
     dists = np.sqrt(dx**2 + dy**2 + dz**2)
-    d = np.zeros((len(x),))
+    d = np.zeros((len(dists)+1,))
     for i in range(len(dists)):
         d[i+1] = d[i] + dists[i]
 

@@ -39,8 +39,8 @@ def main():
 
     tris = data.tris
 
-    xyz = rotate(data.pcl_xyz, data.basis, data.proj_basis, 
-                 data.theta, data.center)
+    xyz = rotate(data.pcl_xyz[data.active_nodes==1,:], data.basis,
+            data.proj_basis, data.theta, data.center)
 
     bounding_box = sf.fitting.bbox2(xyz)
     bounding_box = sf.fitting.bbox2_expand(sf.fitting.bbox2(xyz),
@@ -99,7 +99,7 @@ def main():
     if savefig or showfig:
         S.eval(nu=options.eval_nu, nv=options.eval_nv)
         ax = sf.plot.grid(S.Px, S.Py, S.Pz)
-        ax = sf.plot.points3(xyz, 'ko', ax=ax)
+        ax = sf.plot.points3(xyz_augmented, 'ko', ax=ax)
         ax.view_init(70, 70)
 
         if savefig:

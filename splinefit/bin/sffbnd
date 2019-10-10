@@ -33,6 +33,8 @@ def main():
 
     for num, bnd in enumerate(data.boundaries):
         min_degree = sf.bspline.min_degree(len(bnd.x), options.deg)
+        if len(bnd.x) == 1:
+            continue
         if options.est_knots:
             num_knots = estimate_knots(bnd.x, bnd.y, bnd.z)
         else:
@@ -126,6 +128,7 @@ def estimate_knots(x, y, z):
     t = sf.bspline.chords(x, y, z)
 
     diff = t[1:] - t[0:-1]
+
     return int(1 / np.mean(diff))
 
 
